@@ -1,0 +1,58 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "price": {
+      "type": "number",
+      "description": "Product price"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["smartphones", "laptops", "tablets", "audio", "gaming", "smart_home", "cameras", "electrodomesticos"],
+      "description": "Product category"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image URL"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a featured product?"
+    },
+    "stock": {
+      "type": "number",
+      "default": 0,
+      "description": "Available stock"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Product rating 1-5"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Product brand"
+    },
+    "specs": {
+      "type": "object",
+      "description": "Product specifications",
+      "properties": {
+        "display": {"type": "string"},
+        "processor": {"type": "string"},
+        "ram": {"type": "string"},
+        "storage": {"type": "string"},
+        "battery": {"type": "string"},
+        "camera": {"type": "string"}
+      }
+    }
+  },
+  "required": ["name", "price"]
+}
