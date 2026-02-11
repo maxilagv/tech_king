@@ -324,7 +324,7 @@ export default function ProductsAdmin() {
                       {categoryMap[product.categorySlug] || product.categorySlug}
                     </p>
                     <p className="text-xs text-white/50 mt-1">
-                      ${Number(product.precio || 0).toFixed(2)} · Stock {product.stockActual ?? 0}
+                      ${Number(product.precio || 0).toFixed(2)} - Stock {product.stockActual ?? 0}
                     </p>
                   </div>
                 </div>

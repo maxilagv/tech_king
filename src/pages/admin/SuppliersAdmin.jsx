@@ -9,19 +9,20 @@ import {
 } from "firebase/firestore";
 import { Pencil, Trash2 } from "lucide-react";
 import { db } from "@/api/firebase";
-import { useCustomers } from "@/hooks/useCustomers";
+import { useSuppliers } from "@/hooks/useSuppliers";
 
 const emptyForm = {
   nombre: "",
-  apellido: "",
-  dni: "",
-  direccion: "",
+  contacto: "",
   telefono: "",
   email: "",
+  direccion: "",
+  notas: "",
+  activo: true,
 };
 
-export default function CustomersAdmin() {
-  const { customers, loading } = useCustomers();
+export default function SuppliersAdmin() {
+  const { suppliers, loading } = useSuppliers();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -37,15 +38,16 @@ export default function CustomersAdmin() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleEdit = (customer) => {
-    setEditingId(customer.id);
+  const handleEdit = (supplier) => {
+    setEditingId(supplier.id);
     setForm({
-      nombre: customer.nombre || "",
-      apellido: customer.apellido || "",
-      dni: customer.dni || "",
-      direccion: customer.direccion || "",
-      telefono: customer.telefono || "",
-      email: customer.email || "",
+      nombre: supplier.nombre || "",
+      contacto: supplier.contacto || "",
+      telefono: supplier.telefono || "",
+      email: supplier.email || "",
+      direccion: supplier.direccion || "",
+      notas: supplier.notas || "",
+      activo: supplier.activo ?? true,
     });
   };
 
@@ -53,47 +55,47 @@ export default function CustomersAdmin() {
     event.preventDefault();
     setFormError("");
 
-    if (!form.nombre.trim() || !form.apellido.trim()) {
-      setFormError("Nombre y apellido son obligatorios.");
+    if (!form.nombre.trim()) {
+      setFormError("El nombre es obligatorio.");
       return;
     }
 
     setSaving(true);
     const payload = {
       nombre: form.nombre.trim(),
-      apellido: form.apellido.trim(),
-      dni: form.dni.trim(),
-      direccion: form.direccion.trim(),
+      contacto: form.contacto.trim(),
       telefono: form.telefono.trim(),
       email: form.email.trim(),
-      tipo: "manual",
+      direccion: form.direccion.trim(),
+      notas: form.notas.trim(),
+      activo: Boolean(form.activo),
       updatedAt: serverTimestamp(),
     };
 
     try {
       if (editingId) {
-        await updateDoc(doc(db, "customers", editingId), payload);
+        await updateDoc(doc(db, "suppliers", editingId), payload);
       } else {
-        await addDoc(collection(db, "customers"), {
+        await addDoc(collection(db, "suppliers"), {
           ...payload,
           createdAt: serverTimestamp(),
         });
       }
       resetForm();
     } catch (err) {
-      setFormError(err.message || "No se pudo guardar el cliente.");
+      setFormError(err.message || "No se pudo guardar el proveedor.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (customerId) => {
-    const ok = window.confirm("Eliminar este cliente?");
+  const handleDelete = async (supplierId) => {
+    const ok = window.confirm("Eliminar este proveedor?");
     if (!ok) return;
     try {
-      await deleteDoc(doc(db, "customers", customerId));
+      await deleteDoc(doc(db, "suppliers", supplierId));
     } catch (err) {
-      setFormError(err.message || "No se pudo borrar el cliente.");
+      setFormError(err.message || "No se pudo borrar el proveedor.");
     }
   };
 
@@ -104,13 +106,10 @@ export default function CustomersAdmin() {
         className="rounded-3xl bg-white/10 border border-white/10 p-6 backdrop-blur-xl space-y-5"
       >
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Clientes</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Proveedores</p>
           <h2 className="text-2xl font-semibold mt-2">
-            {editingId ? "Editar cliente" : "Nuevo cliente"}
+            {editingId ? "Editar proveedor" : "Nuevo proveedor"}
           </h2>
-          <p className="text-sm text-white/50 mt-1">
-            Registro manual para ventas en el local.
-          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -125,33 +124,32 @@ export default function CustomersAdmin() {
             />
           </label>
           <label className="block">
-            <span className="text-xs uppercase tracking-[0.25em] text-white/60">Apellido</span>
+            <span className="text-xs uppercase tracking-[0.25em] text-white/60">Contacto</span>
             <input
               type="text"
-              value={form.apellido}
-              onChange={(event) => handleChange("apellido", event.target.value)}
+              value={form.contacto}
+              onChange={(event) => handleChange("contacto", event.target.value)}
               className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
-              required
             />
           </label>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
-            <span className="text-xs uppercase tracking-[0.25em] text-white/60">DNI</span>
-            <input
-              type="text"
-              value={form.dni}
-              onChange={(event) => handleChange("dni", event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
-            />
-          </label>
-          <label className="block">
             <span className="text-xs uppercase tracking-[0.25em] text-white/60">Telefono</span>
             <input
               type="text"
               value={form.telefono}
               onChange={(event) => handleChange("telefono", event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs uppercase tracking-[0.25em] text-white/60">Email</span>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(event) => handleChange("email", event.target.value)}
               className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
             />
           </label>
@@ -168,13 +166,22 @@ export default function CustomersAdmin() {
         </label>
 
         <label className="block">
-          <span className="text-xs uppercase tracking-[0.25em] text-white/60">Email</span>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(event) => handleChange("email", event.target.value)}
-            className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
+          <span className="text-xs uppercase tracking-[0.25em] text-white/60">Notas</span>
+          <textarea
+            value={form.notas}
+            onChange={(event) => handleChange("notas", event.target.value)}
+            className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none min-h-[90px]"
           />
+        </label>
+
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={form.activo}
+            onChange={(event) => handleChange("activo", event.target.checked)}
+            className="w-4 h-4 accent-cyan-400"
+          />
+          <span className="text-sm text-white/70">Activo</span>
         </label>
 
         {formError && (
@@ -206,40 +213,38 @@ export default function CustomersAdmin() {
       <div className="rounded-3xl bg-white/10 border border-white/10 p-6 backdrop-blur-xl">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-white/50">Listado</p>
-          <h2 className="text-2xl font-semibold mt-2">Clientes</h2>
+          <h2 className="text-2xl font-semibold mt-2">Proveedores</h2>
         </div>
 
         {loading ? (
-          <div className="py-12 text-sm text-white/50">Cargando clientes...</div>
-        ) : customers.length === 0 ? (
-          <div className="py-12 text-sm text-white/50">No hay clientes cargados.</div>
+          <div className="py-12 text-sm text-white/50">Cargando proveedores...</div>
+        ) : suppliers.length === 0 ? (
+          <div className="py-12 text-sm text-white/50">No hay proveedores.</div>
         ) : (
           <div className="mt-6 space-y-3">
-            {customers.map((customer) => (
+            {suppliers.map((supplier) => (
               <div
-                key={customer.id}
+                key={supplier.id}
                 className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4"
               >
                 <div>
-                  <p className="text-sm font-semibold">
-                    {customer.nombre} {customer.apellido}
-                  </p>
-                  <p className="text-xs text-white/50">{customer.email || "Sin email"}</p>
+                  <p className="text-sm font-semibold">{supplier.nombre}</p>
+                  <p className="text-xs text-white/50">{supplier.contacto || "Sin contacto"}</p>
                   <p className="text-xs text-white/50">
-                    {customer.telefono || "-"} - {customer.dni || "DNI no informado"}
+                    {supplier.telefono || "-"} - {supplier.email || "Sin email"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => handleEdit(customer)}
+                    onClick={() => handleEdit(supplier)}
                     className="p-2 rounded-xl border border-white/10 hover:bg-white/10 transition"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(customer.id)}
+                    onClick={() => handleDelete(supplier.id)}
                     className="p-2 rounded-xl border border-white/10 hover:bg-white/10 transition text-red-200"
                   >
                     <Trash2 className="w-4 h-4" />

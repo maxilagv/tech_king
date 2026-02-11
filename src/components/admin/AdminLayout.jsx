@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   BadgeDollarSign,
+  Building2,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -19,6 +20,8 @@ const navItems = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
   { label: "Productos", to: "/admin/productos", icon: Package },
   { label: "Categorias", to: "/admin/categorias", icon: Tags },
+  { label: "Proveedores", to: "/admin/proveedores", icon: Building2 },
+  { label: "Costos", to: "/admin/costos", icon: BadgeDollarSign },
   { label: "Pedidos", to: "/admin/pedidos", icon: ShoppingCart },
   { label: "Clientes", to: "/admin/clientes", icon: Users },
   { label: "Stock", to: "/admin/stock", icon: Warehouse },
@@ -37,6 +40,10 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#0B1020] text-white">
+      <style>{`
+        select { color: #ffffff; }
+        option { color: #0B1020; background-color: #ffffff; }
+      `}</style>
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full bg-cyan-500/15 blur-[140px]" />

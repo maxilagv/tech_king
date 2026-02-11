@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -9,9 +10,12 @@ import { auth, db } from "@/api/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useCustomerProfile } from "@/hooks/useCustomerProfile";
 import { useCart } from "@/context/CartContext";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 
 export default function Checkout() {
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { isAdmin, checking: checkingAdmin } = useAdminStatus();
   const { profile } = useCustomerProfile(user);
   const { items, totalAmount, clear, updateQty, removeItem } = useCart();
   const [mode, setMode] = useState("login");
@@ -30,7 +34,7 @@ export default function Checkout() {
     password: "",
   });
 
-  const canCheckout = items.length > 0 && user;
+  const canCheckout = items.length > 0 && user && profile && !isAdmin && !checkingAdmin;
 
   const customerSnapshot = useMemo(() => {
     if (!profile) return null;
@@ -43,6 +47,13 @@ export default function Checkout() {
       email: profile.email || user?.email || "",
     };
   }, [profile, user]);
+
+  useEffect(() => {
+    const desired = searchParams.get("mode");
+    if (desired === "login" || desired === "register") {
+      setMode(desired);
+    }
+  }, [searchParams]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -97,6 +108,14 @@ export default function Checkout() {
     }
     if (!user) {
       setError("Debes iniciar sesion.");
+      return;
+    }
+    if (!profile) {
+      setError("Debes completar tu registro para comprar.");
+      return;
+    }
+    if (isAdmin) {
+      setError("La cuenta de administrador no puede comprar desde la tienda.");
       return;
     }
     setLoading(true);
@@ -297,7 +316,12 @@ export default function Checkout() {
               </p>
               {!profile && (
                 <p className="text-sm text-red-500">
-                  Falta completar el perfil. Vuelve a registrarte con tus datos.
+                  Falta completar el perfil. Registrate con tus datos para poder comprar.
+                </p>
+              )}
+              {isAdmin && (
+                <p className="text-sm text-red-500">
+                  Estas logueado como administrador. Cerra sesion para comprar.
                 </p>
               )}
             </div>
@@ -370,6 +394,21 @@ export default function Checkout() {
                 <span>${totalAmount.toFixed(2)}</span>
               </div>
 
+              {!user && (
+                <p className="text-xs text-red-500">
+                  Debes iniciar sesion o registrarte para confirmar tu pedido.
+                </p>
+              )}
+              {user && !profile && (
+                <p className="text-xs text-red-500">
+                  Completa tu registro para poder comprar.
+                </p>
+              )}
+              {isAdmin && (
+                <p className="text-xs text-red-500">
+                  La cuenta admin no puede comprar desde la tienda.
+                </p>
+              )}
               <button
                 onClick={handleCheckout}
                 disabled={!canCheckout || loading}

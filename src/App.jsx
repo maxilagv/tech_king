@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { signOut } from "firebase/auth";
 import Layout from "./Layout";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
@@ -19,6 +20,10 @@ import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import StockAdmin from "./pages/admin/StockAdmin";
 import FinanceAdmin from "./pages/admin/FinanceAdmin";
 import RemitosAdmin from "./pages/admin/RemitosAdmin";
+import SuppliersAdmin from "./pages/admin/SuppliersAdmin";
+import PurchaseCostsAdmin from "./pages/admin/PurchaseCostsAdmin";
+import { auth } from "@/api/firebase";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 
 const routes = [
   { path: "/", name: "Home", element: <Home /> },
@@ -32,6 +37,14 @@ function AppContent() {
   const location = useLocation();
   const currentPageName = getPageNameFromPath(location.pathname) || "Home";
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const { isAdmin, checking } = useAdminStatus();
+
+  useEffect(() => {
+    if (isAdminRoute) return;
+    if (!checking && isAdmin) {
+      signOut(auth);
+    }
+  }, [isAdminRoute, isAdmin, checking]);
 
   const content = (
     <Routes>
@@ -50,6 +63,8 @@ function AppContent() {
         <Route index element={<AdminDashboard />} />
         <Route path="productos" element={<ProductsAdmin />} />
         <Route path="categorias" element={<CategoriesAdmin />} />
+        <Route path="proveedores" element={<SuppliersAdmin />} />
+        <Route path="costos" element={<PurchaseCostsAdmin />} />
         <Route path="pedidos" element={<OrdersAdmin />} />
         <Route path="clientes" element={<CustomersAdmin />} />
         <Route path="stock" element={<StockAdmin />} />

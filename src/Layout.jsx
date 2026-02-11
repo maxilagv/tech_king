@@ -6,10 +6,12 @@ import { ShoppingBag, Search } from "lucide-react";
 import HamburgerMenu from "./components/navigation/HamburgerMenu";
 import WhatsAppButton from "./components/navigation/WhatsAppButton";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Layout({ children, currentPageName }) {
   const isHome = currentPageName === "Home";
   const { totalQty } = useCart();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -81,6 +83,38 @@ export default function Layout({ children, currentPageName }) {
               }`}>
               <Search className="w-5 h-5" />
             </button>
+            {!user ? (
+              <div className="hidden md:flex items-center gap-2">
+                <Link
+                  to="/checkout?mode=login"
+                  className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] border transition-colors ${isHome
+                      ? "border-white/40 text-white hover:bg-white/10"
+                      : "border-black/10 text-[#0A0A0A] hover:bg-black/5"
+                    }`}
+                >
+                  Iniciar sesion
+                </Link>
+                <Link
+                  to="/checkout?mode=register"
+                  className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] transition-colors ${isHome
+                      ? "bg-white text-[#0A0A0A] hover:bg-white/90"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                >
+                  Registrarse
+                </Link>
+              </div>
+            ) : (
+              <Link
+                to="/checkout"
+                className={`hidden md:flex px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] border transition-colors ${isHome
+                    ? "border-white/40 text-white hover:bg-white/10"
+                    : "border-black/10 text-[#0A0A0A] hover:bg-black/5"
+                  }`}
+              >
+                Mi cuenta
+              </Link>
+            )}
             <Link
               to="/checkout"
               className={`relative p-2 transition-colors duration-300 ${isHome ? "text-white hover:text-blue-300" : "text-[#0A0A0A] hover:text-blue-600"
@@ -93,7 +127,7 @@ export default function Layout({ children, currentPageName }) {
             </Link>
             {/* Hamburger only on mobile */}
             <div className="md:hidden">
-              <HamburgerMenu isHome={isHome} />
+              <HamburgerMenu isHome={isHome} user={user} />
             </div>
           </div>
         </div>

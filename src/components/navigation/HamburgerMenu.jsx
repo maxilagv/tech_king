@@ -11,7 +11,7 @@ const menuItems = [
   { label: "Contacto", page: "Contact" },
 ];
 
-export default function HamburgerMenu({ isHome }) {
+export default function HamburgerMenu({ isHome, user }) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -136,6 +136,34 @@ export default function HamburgerMenu({ isHome }) {
                     </Link>
                   </motion.div>
                 ))}
+                {!user ? (
+                  <div className="mt-10 flex flex-col gap-3">
+                    <Link
+                      to="/checkout?mode=login"
+                      onClick={() => setIsOpen(false)}
+                      className="inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-xs uppercase tracking-[0.2em] text-white hover:bg-white/10 transition"
+                    >
+                      Iniciar sesion
+                    </Link>
+                    <Link
+                      to="/checkout?mode=register"
+                      onClick={() => setIsOpen(false)}
+                      className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-xs uppercase tracking-[0.2em] text-[#0A0A0A] hover:bg-white/90 transition"
+                    >
+                      Registrarse
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="mt-10">
+                    <Link
+                      to="/checkout"
+                      onClick={() => setIsOpen(false)}
+                      className="inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-xs uppercase tracking-[0.2em] text-white hover:bg-white/10 transition"
+                    >
+                      Mi cuenta
+                    </Link>
+                  </div>
+                )}
               </nav>
             </div>
 

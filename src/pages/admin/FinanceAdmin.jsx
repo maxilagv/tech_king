@@ -8,29 +8,147 @@ import {
   serverTimestamp,
   writeBatch,
 } from "firebase/firestore";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { db } from "@/api/firebase";
-import { useFinance } from "@/hooks/useFinance";
 import { useOrders } from "@/hooks/useOrders";
+import { usePurchaseCosts } from "@/hooks/usePurchaseCosts";
+
+const periodOptions = [
+  { value: "today", label: "Hoy" },
+  { value: "week", label: "Semana" },
+  { value: "month", label: "Mes" },
+  { value: "custom", label: "Rango" },
+];
+
+function getDateFromTimestamp(ts) {
+  if (!ts) return null;
+  if (typeof ts.toDate === "function") return ts.toDate();
+  if (typeof ts.seconds === "number") return new Date(ts.seconds * 1000);
+  if (ts instanceof Date) return ts;
+  return null;
+}
+
+function toDateKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function endOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+}
+
+function getRange(period, customStart, customEnd) {
+  const now = new Date();
+  if (period === "today") {
+    return { start: startOfDay(now), end: endOfDay(now) };
+  }
+  if (period === "week") {
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const start = new Date(now);
+    start.setDate(now.getDate() + diff);
+    return { start: startOfDay(start), end: endOfDay(now) };
+  }
+  if (period === "month") {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { start: startOfDay(start), end: endOfDay(now) };
+  }
+  if (period === "custom" && customStart && customEnd) {
+    return { start: startOfDay(customStart), end: endOfDay(customEnd) };
+  }
+  return { start: null, end: null };
+}
 
 export default function FinanceAdmin() {
-  const { entries, loading } = useFinance();
   const { orders } = useOrders();
+  const { costs } = usePurchaseCosts();
+
   const [form, setForm] = useState({ tipo: "ingreso", monto: "", detalle: "" });
+  const [period, setPeriod] = useState("month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [cleaning, setCleaning] = useState(false);
 
-  const totals = useMemo(() => {
-    const confirmed = orders.filter((order) => order.status === "confirmado");
-    const totalVentas = confirmed.reduce((sum, order) => sum + Number(order.total || 0), 0);
-    const ingresos = entries
-      .filter((entry) => entry.tipo === "ingreso")
-      .reduce((sum, entry) => sum + Number(entry.monto || 0), 0);
-    const egresos = entries
-      .filter((entry) => entry.tipo === "egreso")
-      .reduce((sum, entry) => sum + Number(entry.monto || 0), 0);
-    return { totalVentas, ingresos, egresos };
-  }, [orders, entries]);
+  const costMap = useMemo(() => {
+    const map = new Map();
+    costs.forEach((cost) => {
+      const productId = cost.productId;
+      const date = getDateFromTimestamp(cost.fechaCompra || cost.createdAt) || new Date(0);
+      const current = map.get(productId);
+      if (!current || date > current.date) {
+        map.set(productId, {
+          date,
+          costoUnitarioARS: Number(cost.costoUnitarioARS || 0),
+        });
+      }
+    });
+    return map;
+  }, [costs]);
+
+  const { chartData, totals } = useMemo(() => {
+    const start = customStart ? new Date(customStart) : null;
+    const end = customEnd ? new Date(customEnd) : null;
+    const { start: rangeStart, end: rangeEnd } = getRange(period, start, end);
+    const validStatuses = new Set(["confirmado", "despachado"]);
+
+    const filteredOrders = orders.filter((order) => {
+      const date = getDateFromTimestamp(order.createdAt);
+      if (!date || !rangeStart || !rangeEnd) return false;
+      if (!validStatuses.has(order.status)) return false;
+      return date >= rangeStart && date <= rangeEnd;
+    });
+
+    const grouped = {};
+    let bruto = 0;
+    let costoTotal = 0;
+
+    filteredOrders.forEach((order) => {
+      const date = getDateFromTimestamp(order.createdAt);
+      if (!date) return;
+      const key = toDateKey(date);
+      if (!grouped[key]) {
+        grouped[key] = { date: key, bruto: 0, neto: 0 };
+      }
+
+      const orderCost = (order.items || []).reduce((sum, item) => {
+        const costInfo = costMap.get(item.productId);
+        const costoUnitarioARS = costInfo?.costoUnitarioARS || 0;
+        return sum + costoUnitarioARS * Number(item.cantidad || 0);
+      }, 0);
+
+      grouped[key].bruto += Number(order.total || 0);
+      grouped[key].neto += Number(order.total || 0) - orderCost;
+      bruto += Number(order.total || 0);
+      costoTotal += orderCost;
+    });
+
+    const data = Object.values(grouped).sort((a, b) => (a.date > b.date ? 1 : -1));
+    const neto = bruto - costoTotal;
+
+    return {
+      chartData: data,
+      totals: {
+        bruto,
+        neto,
+        costoTotal,
+        pedidos: filteredOrders.length,
+      },
+    };
+  }, [orders, costMap, period, customStart, customEnd]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -131,18 +249,101 @@ export default function FinanceAdmin() {
 
   return (
     <div className="space-y-6">
-      <div className="grid md:grid-cols-3 gap-4">
-        <div className="rounded-3xl bg-white/10 border border-white/10 p-5 backdrop-blur-xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Ventas confirmadas</p>
-          <h3 className="text-2xl font-semibold mt-2">${totals.totalVentas.toFixed(2)}</h3>
+      <div className="rounded-3xl bg-white/10 border border-white/10 p-6 backdrop-blur-xl space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Finanzas</p>
+            <h2 className="text-2xl font-semibold mt-2">Bruto vs Neto</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {periodOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setPeriod(opt.value)}
+                className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] ${
+                  period === opt.value ? "bg-cyan-500 text-[#0B1020]" : "bg-white/10 text-white/60"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="rounded-3xl bg-white/10 border border-white/10 p-5 backdrop-blur-xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Ingresos manuales</p>
-          <h3 className="text-2xl font-semibold mt-2">${totals.ingresos.toFixed(2)}</h3>
+
+        {period === "custom" && (
+          <div className="grid md:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-xs uppercase tracking-[0.25em] text-white/60">Desde</span>
+              <input
+                type="date"
+                value={customStart}
+                onChange={(event) => setCustomStart(event.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs uppercase tracking-[0.25em] text-white/60">Hasta</span>
+              <input
+                type="date"
+                value={customEnd}
+                onChange={(event) => setCustomEnd(event.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
+              />
+            </label>
+          </div>
+        )}
+
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50">Bruto</p>
+            <p className="text-xl font-semibold mt-2">${totals.bruto.toFixed(2)}</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50">Costo</p>
+            <p className="text-xl font-semibold mt-2">${totals.costoTotal.toFixed(2)}</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50">Neto</p>
+            <p className="text-xl font-semibold mt-2">${totals.neto.toFixed(2)}</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50">Pedidos</p>
+            <p className="text-xl font-semibold mt-2">{totals.pedidos}</p>
+          </div>
         </div>
-        <div className="rounded-3xl bg-white/10 border border-white/10 p-5 backdrop-blur-xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Egresos</p>
-          <h3 className="text-2xl font-semibold mt-2">${totals.egresos.toFixed(2)}</h3>
+
+        <div className="h-80">
+          {chartData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-sm text-white/50">
+              No hay datos para este periodo.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorBruto" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorNeto" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="date" stroke="rgba(255,255,255,0.6)" />
+                <YAxis stroke="rgba(255,255,255,0.6)" />
+                <Tooltip
+                  contentStyle={{ background: "#0B1020", border: "1px solid rgba(255,255,255,0.1)" }}
+                  labelStyle={{ color: "#fff" }}
+                />
+                <Legend />
+                <Area type="monotone" dataKey="bruto" stroke="#22d3ee" fill="url(#colorBruto)" />
+                <Area type="monotone" dataKey="neto" stroke="#60a5fa" fill="url(#colorNeto)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -201,9 +402,6 @@ export default function FinanceAdmin() {
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-white/50">Modo pruebas</p>
           <h2 className="text-2xl font-semibold mt-2">Limpiar datos</h2>
-          <p className="text-sm text-white/50 mt-2">
-            Usa estas opciones para borrar datos generados en pruebas.
-          </p>
         </div>
         <div className="flex flex-col md:flex-row gap-3">
           <button
@@ -235,42 +433,6 @@ export default function FinanceAdmin() {
           {error}
         </div>
       )}
-
-      <div className="rounded-3xl bg-white/10 border border-white/10 p-6 backdrop-blur-xl">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Historial</p>
-          <h2 className="text-2xl font-semibold mt-2">Movimientos</h2>
-        </div>
-
-        {loading ? (
-          <div className="py-12 text-sm text-white/50">Cargando movimientos...</div>
-        ) : entries.length === 0 ? (
-          <div className="py-12 text-sm text-white/50">No hay movimientos.</div>
-        ) : (
-          <div className="mt-6 space-y-3">
-            {entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-              >
-                <div>
-                  <p className="text-sm font-semibold">{entry.detalle || "Movimiento"}</p>
-                  <p className="text-xs text-white/50">{entry.referencia || "Sin referencia"}</p>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs uppercase tracking-[0.2em] ${
-                    entry.tipo === "ingreso"
-                      ? "bg-emerald-500/15 text-emerald-200"
-                      : "bg-red-500/15 text-red-200"
-                  }`}
-                >
-                  ${Number(entry.monto || 0).toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

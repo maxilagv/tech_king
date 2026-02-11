@@ -21,6 +21,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function customerExists(uid) {
+      return exists(/databases/$(database)/documents/customers/$(uid));
+    }
+
     function validServerTimestamp(value) {
       return value is timestamp || value == request.time;
     }
@@ -68,6 +72,7 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
         "nombre", "descripcion", "precio", "categorySlug",
         "imagenes", "destacado", "stockActual", "marca",
+        "costoActual",
         "activo", "createdAt", "updatedAt"
       ])
       && request.resource.data.nombre is string
@@ -80,6 +85,7 @@ service cloud.firestore {
       && request.resource.data.imagenes[0] is string
       && request.resource.data.stockActual is number
       && request.resource.data.stockActual >= 0
+      && (request.resource.data.costoActual is number || !("costoActual" in request.resource.data))
       && (request.resource.data.descripcion is string || !("descripcion" in request.resource.data))
       && (request.resource.data.marca is string || !("marca" in request.resource.data))
       && (request.resource.data.destacado is bool || !("destacado" in request.resource.data))
@@ -92,6 +98,7 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
         "nombre", "descripcion", "precio", "categorySlug",
         "imagenes", "destacado", "stockActual", "marca",
+        "costoActual",
         "activo", "createdAt", "updatedAt"
       ])
       && request.resource.data.nombre is string
@@ -104,11 +111,22 @@ service cloud.firestore {
       && request.resource.data.imagenes[0] is string
       && request.resource.data.stockActual is number
       && request.resource.data.stockActual >= 0
+      && (request.resource.data.costoActual is number || !("costoActual" in request.resource.data))
       && (request.resource.data.descripcion is string || !("descripcion" in request.resource.data))
       && (request.resource.data.marca is string || !("marca" in request.resource.data))
       && (request.resource.data.destacado is bool || !("destacado" in request.resource.data))
       && (request.resource.data.activo is bool || !("activo" in request.resource.data))
       && request.resource.data.createdAt == resource.data.createdAt
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function isProductStockCostUpdate() {
+      return request.writeFields.hasOnly([
+        "stockActual", "costoActual", "updatedAt"
+      ])
+      && request.resource.data.stockActual is number
+      && request.resource.data.stockActual >= 0
+      && (request.resource.data.costoActual is number || !("costoActual" in request.resource.data))
       && validServerTimestamp(request.resource.data.updatedAt);
     }
 
@@ -135,6 +153,7 @@ service cloud.firestore {
     function validOrderCreateSelf() {
       return validOrderBase()
       && request.resource.data.customerId == request.auth.uid
+      && customerExists(request.auth.uid)
       && request.resource.data.status == "pendiente";
     }
 
@@ -185,7 +204,7 @@ service cloud.firestore {
     match /products/{productId} {
       allow get, list: if true;
       allow create: if isAdmin() && validProductCreate();
-      allow update: if isAdmin() && validProductUpdate();
+      allow update: if isAdmin() && (validProductUpdate() || isProductStockCostUpdate());
       allow delete: if isAdmin();
     }
 
@@ -219,5 +238,9 @@ service cloud.firestore {
     match /finance/{id} { allow read, write: if isAdmin(); }
     match /remitos/{id} { allow read, write: if isAdmin(); }
     match /counters/{id} { allow read, write: if isAdmin(); }
+    match /suppliers/{id} { allow read, write: if isAdmin(); }
+    match /purchase_costs/{id} { allow read, write: if isAdmin(); }
+    match /config/{id} { allow read, write: if isAdmin(); }
+    match /fx_rates/{id} { allow read, write: if isAdmin(); }
   }
 }
