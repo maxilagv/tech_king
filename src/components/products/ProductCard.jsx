@@ -1,11 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ShoppingBag, Heart, Eye } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
+function parseStock(rawStock) {
+  const parsed = Number(rawStock);
+  if (!Number.isFinite(parsed)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, Math.floor(parsed));
+}
+
+function clampQty(value, maxStock) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  const qty = Math.max(1, Math.floor(parsed));
+  return Math.min(qty, maxStock);
+}
+
 export default function ProductCard({ product, index }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [selectedQty, setSelectedQty] = useState(1);
   const { addItem } = useCart();
 
   const name = product.nombre ?? product.name;
@@ -17,6 +31,27 @@ export default function ProductCard({ product, index }) {
   const category = product.categoryLabel ?? product.categorySlug ?? product.category;
   const featured = product.destacado ?? product.featured;
   const brand = product.marca ?? product.brand;
+
+  const maxStock = parseStock(product.stockActual);
+  const hasStockLimit = Number.isFinite(maxStock);
+  const outOfStock = hasStockLimit && maxStock <= 0;
+  const cannotIncrease = hasStockLimit && selectedQty >= maxStock;
+
+  useEffect(() => {
+    if (hasStockLimit) {
+      setSelectedQty((prev) => Math.min(Math.max(1, prev), Math.max(1, maxStock)));
+    }
+  }, [hasStockLimit, maxStock]);
+
+  const handleAddToCart = () => {
+    if (outOfStock) return;
+    addItem(product, selectedQty);
+  };
+
+  const handleQtyChange = (value) => {
+    const max = hasStockLimit ? Math.max(1, maxStock) : Number.POSITIVE_INFINITY;
+    setSelectedQty(clampQty(value, max));
+  };
 
   return (
     <motion.div
@@ -63,8 +98,9 @@ export default function ProductCard({ product, index }) {
             initial={{ y: 20, opacity: 0 }}
             animate={isHovered ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="w-11 h-11 rounded-full bg-white flex items-center justify-center hover:bg-green-500 hover:text-white transition-all duration-300 text-[#0A0A0A] shadow-lg"
-            onClick={() => addItem(product, 1)}
+            className="w-11 h-11 rounded-full bg-white flex items-center justify-center hover:bg-green-500 hover:text-white transition-all duration-300 text-[#0A0A0A] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleAddToCart}
+            disabled={outOfStock}
           >
             <ShoppingBag className="w-4 h-4" />
           </motion.button>
@@ -103,6 +139,50 @@ export default function ProductCard({ product, index }) {
               <span className="text-sm">*</span>
               <span className="text-sm text-[#0A0A0A] font-semibold">{product.rating}</span>
             </div>
+          )}
+        </div>
+
+        <div className="pt-2 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center rounded-xl border border-black/10 bg-white">
+              <button
+                type="button"
+                onClick={() => handleQtyChange(selectedQty - 1)}
+                disabled={selectedQty <= 1 || outOfStock}
+                className="w-8 h-8 text-sm text-black/70 hover:bg-black/5 disabled:opacity-40"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="1"
+                value={selectedQty}
+                onChange={(event) => handleQtyChange(event.target.value)}
+                className="w-10 h-8 text-center text-sm outline-none"
+                disabled={outOfStock}
+              />
+              <button
+                type="button"
+                onClick={() => handleQtyChange(selectedQty + 1)}
+                disabled={cannotIncrease || outOfStock}
+                className="w-8 h-8 text-sm text-black/70 hover:bg-black/5 disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={outOfStock}
+              className="flex-1 rounded-xl bg-blue-600 text-white text-xs uppercase tracking-[0.2em] py-2 font-semibold hover:bg-blue-700 transition disabled:bg-black/20 disabled:text-white/60 disabled:cursor-not-allowed"
+            >
+              {outOfStock ? "Sin stock" : "Agregar"}
+            </button>
+          </div>
+
+          {hasStockLimit && (
+            <p className="text-[11px] text-black/50">Stock disponible: {maxStock}</p>
           )}
         </div>
       </div>

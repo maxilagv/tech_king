@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ShoppingBag, Search } from "lucide-react";
 import HamburgerMenu from "./components/navigation/HamburgerMenu";
 import WhatsAppButton from "./components/navigation/WhatsAppButton";
+import CartNotice from "./components/navigation/CartNotice";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -140,6 +141,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* WhatsApp Floating Button */}
       < WhatsAppButton />
+      <CartNotice />
     </div >
   );
 }
