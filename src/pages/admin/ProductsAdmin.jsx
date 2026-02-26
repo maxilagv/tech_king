@@ -7,11 +7,13 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { Pencil, Trash2 } from "lucide-react";
+import { Download, Pencil, Trash2 } from "lucide-react";
 import { db } from "@/api/firebase";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
+import { useOffers } from "@/hooks/useOffers";
 import ProductImagesField from "@/components/admin/ProductImagesField";
+import { exportCatalogTablePdf, exportCatalogVisualPdf } from "@/utils/catalogPdf";
 
 const emptyForm = {
   nombre: "",
@@ -28,9 +30,11 @@ const emptyForm = {
 export default function ProductsAdmin() {
   const { products, loading } = useProducts();
   const { categories } = useCategories();
+  const { offers } = useOffers({ onlyActive: true });
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState("");
   const [formError, setFormError] = useState("");
   const [query, setQuery] = useState("");
 
@@ -134,6 +138,43 @@ export default function ProductsAdmin() {
   const categoryMap = Object.fromEntries(
     categories.map((cat) => [cat.slug || cat.id, cat.nombre])
   );
+
+  const handleExportCatalog = async (mode) => {
+    const activeProducts = products.filter((product) => product.activo !== false);
+    if (activeProducts.length === 0) {
+      setFormError("No hay productos activos para exportar.");
+      return;
+    }
+
+    const sortedProducts = [...activeProducts].sort((a, b) =>
+      String(a.nombre || "").localeCompare(String(b.nombre || ""))
+    );
+
+    setFormError("");
+    setExporting(mode);
+    try {
+      const dateLabel = new Date().toISOString().slice(0, 10);
+      if (mode === "table") {
+        await exportCatalogTablePdf({
+          products: sortedProducts,
+          offers,
+          categoryMap,
+          filename: `catalogo-tech-king-tabla-${dateLabel}.pdf`,
+        });
+      } else {
+        await exportCatalogVisualPdf({
+          products: sortedProducts,
+          offers,
+          categoryMap,
+          filename: `catalogo-tech-king-visual-${dateLabel}.pdf`,
+        });
+      }
+    } catch (error) {
+      setFormError(error?.message || "No se pudo exportar el catalogo.");
+    } finally {
+      setExporting("");
+    }
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_1.9fr]">
@@ -288,13 +329,33 @@ export default function ProductsAdmin() {
             <p className="text-xs uppercase tracking-[0.3em] text-white/50">Listado</p>
             <h2 className="text-2xl font-semibold mt-2">Productos</h2>
           </div>
-          <input
-            type="text"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar producto..."
-            className="w-full md:w-64 rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm outline-none placeholder:text-white/30"
-          />
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={() => handleExportCatalog("table")}
+              disabled={Boolean(exporting)}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/40 text-cyan-200 px-4 py-2 text-xs uppercase tracking-[0.2em] hover:bg-cyan-500/10 disabled:opacity-60"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {exporting === "table" ? "Exportando tabla..." : "PDF tabla"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleExportCatalog("visual")}
+              disabled={Boolean(exporting)}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/40 text-cyan-200 px-4 py-2 text-xs uppercase tracking-[0.2em] hover:bg-cyan-500/10 disabled:opacity-60"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {exporting === "visual" ? "Exportando visual..." : "PDF visual"}
+            </button>
+            <input
+              type="text"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar producto..."
+              className="w-full md:w-64 rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm outline-none placeholder:text-white/30"
+            />
+          </div>
         </div>
 
         {loading ? (

@@ -10,14 +10,19 @@ import { auth, db } from "@/api/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useCustomerProfile } from "@/hooks/useCustomerProfile";
 import { useCart } from "@/context/CartContext";
-import { useAdminStatus } from "@/hooks/useAdminStatus";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
+import { useOffers } from "@/hooks/useOffers";
+import { useProducts } from "@/hooks/useProducts";
+import { getProductPricing } from "@/utils/offers";
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { isAdmin, checking: checkingAdmin } = useAdminStatus();
+  const { isAdmin, checking: checkingAdmin } = useAdminAccess();
+  const { products } = useProducts({ onlyActive: true });
+  const { offers } = useOffers({ onlyActive: true });
   const { profile } = useCustomerProfile(user);
-  const { items, totalAmount, clear, updateQty, removeItem } = useCart();
+  const { items, clear, updateQty, removeItem } = useCart();
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -34,7 +39,48 @@ export default function Checkout() {
     password: "",
   });
 
-  const canCheckout = items.length > 0 && user && profile && !isAdmin && !checkingAdmin;
+  const productMap = useMemo(
+    () => new Map(products.map((product) => [String(product.id), product])),
+    [products]
+  );
+
+  const pricedItems = useMemo(
+    () =>
+      items.map((item) => {
+        const qty = Math.max(1, Number(item.cantidad || 1));
+        const fallbackPrice = Number(item.precio || 0);
+        const product = productMap.get(String(item.id));
+
+        if (!product) {
+          return {
+            ...item,
+            unitPrice: fallbackPrice,
+            baseUnitPrice: fallbackPrice,
+            hasOffer: false,
+            pricing: null,
+            lineTotal: Number((fallbackPrice * qty).toFixed(2)),
+          };
+        }
+
+        const pricing = getProductPricing(product, offers, qty);
+        return {
+          ...item,
+          unitPrice: pricing.finalPrice,
+          baseUnitPrice: pricing.basePrice,
+          hasOffer: pricing.hasOffer,
+          pricing,
+          lineTotal: Number((pricing.finalPrice * qty).toFixed(2)),
+        };
+      }),
+    [items, offers, productMap]
+  );
+
+  const checkoutTotal = useMemo(
+    () => pricedItems.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0),
+    [pricedItems]
+  );
+
+  const canCheckout = pricedItems.length > 0 && user && profile && !isAdmin && !checkingAdmin;
 
   const customerSnapshot = useMemo(() => {
     if (!profile) return null;
@@ -102,7 +148,7 @@ export default function Checkout() {
   const handleCheckout = async () => {
     setError("");
     setMessage("");
-    if (!items.length) {
+    if (!pricedItems.length) {
       setError("El carrito esta vacio.");
       return;
     }
@@ -120,17 +166,17 @@ export default function Checkout() {
     }
     setLoading(true);
     try {
-      const orderItems = items.map((item) => ({
+      const orderItems = pricedItems.map((item) => ({
         productId: item.id,
         nombre: item.nombre,
-        precio: item.precio,
+        precio: Number(item.unitPrice.toFixed(2)),
         cantidad: item.cantidad,
       }));
 
       await addDoc(collection(db, "orders"), {
         customerId: user.uid,
         items: orderItems,
-        total: Number(totalAmount.toFixed(2)),
+        total: Number(checkoutTotal.toFixed(2)),
         status: "pendiente",
         source: "web",
         stockApplied: false,
@@ -150,23 +196,23 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-28 pb-20 px-6 md:px-16 lg:px-24">
+    <div className="min-h-screen tk-theme-bg pt-28 pb-20 px-6 md:px-16 lg:px-24">
       <div className="max-w-6xl mx-auto grid lg:grid-cols-[1.1fr_0.9fr] gap-10">
         <div className="space-y-6">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-blue-600">Checkout</p>
-            <h1 className="text-3xl md:text-4xl font-semibold text-[#0A0A0A] mt-2">
+            <h1 className="text-3xl md:text-4xl font-semibold tk-theme-text mt-2">
               Finaliza tu compra
             </h1>
           </div>
 
           {!user ? (
-            <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-lg">
+            <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg">
               <div className="flex gap-3 mb-6">
                 <button
                   onClick={() => setMode("login")}
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] ${
-                    mode === "login" ? "bg-blue-600 text-white" : "bg-black/5 text-black/60"
+                    mode === "login" ? "bg-blue-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
                   }`}
                 >
                   Ingresar
@@ -174,7 +220,7 @@ export default function Checkout() {
                 <button
                   onClick={() => setMode("register")}
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] ${
-                    mode === "register" ? "bg-blue-600 text-white" : "bg-black/5 text-black/60"
+                    mode === "register" ? "bg-blue-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
                   }`}
                 >
                   Registrarse
@@ -190,7 +236,7 @@ export default function Checkout() {
                       setLoginForm((prev) => ({ ...prev, email: event.target.value }))
                     }
                     placeholder="Email"
-                    className="w-full rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                    className="w-full rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <input
@@ -200,7 +246,7 @@ export default function Checkout() {
                       setLoginForm((prev) => ({ ...prev, password: event.target.value }))
                     }
                     placeholder="Contrasena"
-                    className="w-full rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                    className="w-full rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <button
@@ -221,7 +267,7 @@ export default function Checkout() {
                         setRegisterForm((prev) => ({ ...prev, nombre: event.target.value }))
                       }
                       placeholder="Nombre"
-                      className="rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                       required
                     />
                     <input
@@ -231,7 +277,7 @@ export default function Checkout() {
                         setRegisterForm((prev) => ({ ...prev, apellido: event.target.value }))
                       }
                       placeholder="Apellido"
-                      className="rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                       required
                     />
                   </div>
@@ -242,7 +288,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, dni: event.target.value }))
                     }
                     placeholder="DNI"
-                    className="rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                   />
                   <input
                     type="text"
@@ -251,7 +297,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, direccion: event.target.value }))
                     }
                     placeholder="Direccion"
-                    className="rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                   />
                   <input
                     type="text"
@@ -260,7 +306,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, telefono: event.target.value }))
                     }
                     placeholder="Telefono"
-                    className="rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                   />
                   <input
                     type="email"
@@ -269,7 +315,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, email: event.target.value }))
                     }
                     placeholder="Email"
-                    className="rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <input
@@ -279,7 +325,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, password: event.target.value }))
                     }
                     placeholder="Contrasena"
-                    className="rounded-2xl border border-black/10 px-4 py-3 text-sm outline-none"
+                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <button
@@ -293,10 +339,10 @@ export default function Checkout() {
               )}
             </div>
           ) : (
-            <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-lg space-y-4">
+            <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-black/50">Cuenta</p>
+                  <p className="text-xs uppercase tracking-[0.3em] tk-theme-muted">Cuenta</p>
                   <h2 className="text-lg font-semibold">
                     {profile ? `${profile.nombre} ${profile.apellido}` : user.email}
                   </h2>
@@ -308,10 +354,10 @@ export default function Checkout() {
                   Cerrar sesion
                 </button>
               </div>
-              <p className="text-sm text-black/60">
+              <p className="text-sm tk-theme-muted">
                 Direccion: {profile?.direccion || "No informada"}
               </p>
-              <p className="text-sm text-black/60">
+              <p className="text-sm tk-theme-muted">
                 Telefono: {profile?.telefono || "No informado"}
               </p>
               {!profile && (
@@ -339,18 +385,18 @@ export default function Checkout() {
           )}
         </div>
 
-        <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-lg">
-          <p className="text-xs uppercase tracking-[0.3em] text-black/50">Resumen</p>
+        <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg">
+          <p className="text-xs uppercase tracking-[0.3em] tk-theme-muted">Resumen</p>
           <h2 className="text-2xl font-semibold mt-2">Tu pedido</h2>
 
-          {items.length === 0 ? (
-            <div className="py-10 text-sm text-black/50">No hay productos en el carrito.</div>
+          {pricedItems.length === 0 ? (
+            <div className="py-10 text-sm tk-theme-muted">No hay productos en el carrito.</div>
           ) : (
             <div className="mt-6 space-y-4">
-              {items.map((item) => (
+              {pricedItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-4 border-b border-black/10 pb-4"
+                  className="flex items-center gap-4 border-b tk-theme-border pb-4"
                 >
                   <img
                     src={item.imagen}
@@ -359,18 +405,31 @@ export default function Checkout() {
                   />
                   <div className="flex-1">
                     <p className="text-sm font-semibold">{item.nombre}</p>
-                    <p className="text-xs text-black/50">${item.precio}</p>
+                    {item.hasOffer ? (
+                      <div className="space-y-0.5">
+                        <p className="text-xs tk-theme-text font-semibold">
+                          ${Number(item.unitPrice || 0).toFixed(2)} c/u
+                        </p>
+                        <p className="text-[11px] tk-theme-muted line-through">
+                          ${Number(item.baseUnitPrice || 0).toFixed(2)} lista
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs tk-theme-muted">
+                        ${Number(item.unitPrice || 0).toFixed(2)} c/u
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => updateQty(item.id, Math.max(1, item.cantidad - 1))}
-                        className="w-7 h-7 rounded-full border border-black/10 text-sm"
+                        className="w-7 h-7 rounded-full border tk-theme-border text-sm"
                       >
                         -
                       </button>
                       <span className="text-sm">{item.cantidad}</span>
                       <button
                         onClick={() => updateQty(item.id, item.cantidad + 1)}
-                        className="w-7 h-7 rounded-full border border-black/10 text-sm disabled:opacity-40"
+                        className="w-7 h-7 rounded-full border tk-theme-border text-sm disabled:opacity-40"
                         disabled={item.stockMax !== undefined && item.cantidad >= item.stockMax}
                       >
                         +
@@ -382,16 +441,21 @@ export default function Checkout() {
                         Quitar
                       </button>
                     </div>
+                    {item.pricing?.volumeHintMinUnits && !item.pricing?.hasOffer && (
+                      <p className="text-[11px] text-blue-600 mt-1">
+                        Mejora desde {item.pricing.volumeHintMinUnits} unidades.
+                      </p>
+                    )}
                   </div>
                   <div className="text-sm font-semibold">
-                    ${(item.precio * item.cantidad).toFixed(2)}
+                    ${Number(item.lineTotal || 0).toFixed(2)}
                   </div>
                 </div>
               ))}
 
               <div className="flex items-center justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <span>${checkoutTotal.toFixed(2)}</span>
               </div>
 
               {!user && (

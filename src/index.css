@@ -2,12 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --tk-bg: #f5f7fb;
+  --tk-text: #0a0a0a;
+  --tk-muted: #5b6475;
+  --tk-surface: #ffffff;
+  --tk-soft: #f0f3f9;
+  --tk-surface-elevated: #ffffff;
+  --tk-border: #d7deec;
+  --tk-border-strong: #b5c0d8;
+  --tk-field-bg: #edf2fd;
+  --tk-offer-border: #f6c189;
+  --tk-offer-surface: linear-gradient(135deg, #fff4e7 0%, #ffe3c9 100%);
+}
+
+[data-theme="dark"] {
+  --tk-bg: #090f1e;
+  --tk-text: #eef3ff;
+  --tk-muted: #aeb7ca;
+  --tk-surface: #10192d;
+  --tk-soft: #0d1628;
+  --tk-surface-elevated: #15213a;
+  --tk-border: #263553;
+  --tk-border-strong: #3a4d72;
+  --tk-field-bg: #16233d;
+  --tk-offer-border: #7f5327;
+  --tk-offer-surface: linear-gradient(135deg, rgba(130, 83, 35, 0.25) 0%, rgba(48, 74, 132, 0.25) 100%);
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: #ffffff;
-  color: #0a0a0a;
+  background: var(--tk-bg);
+  color: var(--tk-text);
+  transition: background-color 240ms ease, color 240ms ease;
+}
+
+.tk-theme-bg {
+  background: var(--tk-bg);
+}
+
+.tk-theme-text {
+  color: var(--tk-text);
+}
+
+.tk-theme-muted {
+  color: var(--tk-muted);
+}
+
+.tk-theme-surface {
+  background: var(--tk-surface);
+}
+
+.tk-theme-soft {
+  background: var(--tk-soft);
+}
+
+.tk-theme-card {
+  background: var(--tk-surface);
+  border: 1px solid var(--tk-border);
+}
+
+.tk-theme-border {
+  border-color: var(--tk-border);
 }

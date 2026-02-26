@@ -12,6 +12,12 @@ function getTimeValue(ts) {
   return 0;
 }
 
+function formatDateTime(ts) {
+  const timeValue = getTimeValue(ts);
+  if (!timeValue) return "-";
+  return new Date(timeValue).toLocaleString();
+}
+
 function normalizeEmployeeModules(modules) {
   return normalizeAdminModules(modules).filter((moduleId) => EMPLOYEE_MODULE_IDS.includes(moduleId));
 }
@@ -25,12 +31,15 @@ const moduleLabels = {
   remitos: "Remitos",
 };
 
-const initialCreateForm = {
-  email: "",
-  displayName: "",
-  password: "",
-  modules: [...EMPLOYEE_MODULE_IDS],
-};
+function buildInitialCreateForm() {
+  return {
+    email: "",
+    displayName: "",
+    password: "",
+    confirmPassword: "",
+    modules: [...EMPLOYEE_MODULE_IDS],
+  };
+}
 
 export default function UsersAdmin() {
   const { user } = useAuth();
@@ -39,9 +48,11 @@ export default function UsersAdmin() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [createForm, setCreateForm] = useState(initialCreateForm);
+  const [createForm, setCreateForm] = useState(buildInitialCreateForm);
   const [editingId, setEditingId] = useState("");
   const [editingForm, setEditingForm] = useState({ displayName: "", modules: [], active: true });
+  const [employeesQuery, setEmployeesQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     if (!isFirebaseConfigured || !db) {
@@ -80,6 +91,22 @@ export default function UsersAdmin() {
     [users]
   );
 
+  const filteredEmployees = useMemo(() => {
+    const query = employeesQuery.trim().toLowerCase();
+    return employees.filter((adminUser) => {
+      const statusOk =
+        statusFilter === "all" ||
+        (statusFilter === "active" && adminUser.active !== false) ||
+        (statusFilter === "inactive" && adminUser.active === false);
+      if (!statusOk) return false;
+      if (!query) return true;
+      const text = `${adminUser.displayName || ""} ${adminUser.email || ""} ${adminUser.id || ""}`
+        .toLowerCase()
+        .trim();
+      return text.includes(query);
+    });
+  }, [employees, employeesQuery, statusFilter]);
+
   const handleCreateModuleToggle = (moduleId) => {
     setCreateForm((prev) => {
       const exists = prev.modules.includes(moduleId);
@@ -107,9 +134,23 @@ export default function UsersAdmin() {
 
     const email = createForm.email.trim().toLowerCase();
     const displayName = createForm.displayName.trim();
+    const password = String(createForm.password || "");
+    const confirmPassword = String(createForm.confirmPassword || "");
     const modules = normalizeEmployeeModules(createForm.modules);
-    if (!email || !createForm.password || modules.length === 0) {
+    if (!email || !password || modules.length === 0) {
       setError("Completa email, contrasena y al menos un modulo.");
+      return;
+    }
+    if (!email.includes("@")) {
+      setError("El email no es valido.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("La contrasena debe tener al menos 6 caracteres.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("La confirmacion de contrasena no coincide.");
       return;
     }
 
@@ -117,12 +158,12 @@ export default function UsersAdmin() {
     try {
       await createEmployeeUser({
         email,
-        password: createForm.password,
+        password,
         displayName,
         modules,
         createdBy: user?.uid || "system",
       });
-      setCreateForm(initialCreateForm);
+      setCreateForm(buildInitialCreateForm());
       setMessage("Empleado creado correctamente.");
     } catch (createError) {
       setError(createError?.message || "No se pudo crear el empleado.");
@@ -265,6 +306,23 @@ export default function UsersAdmin() {
             />
           </label>
 
+          <label className="block">
+            <span className="text-xs uppercase tracking-[0.25em] text-white/60">
+              Confirmar contrasena
+            </span>
+            <input
+              type="password"
+              value={createForm.confirmPassword}
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, confirmPassword: event.target.value }))
+              }
+              className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
+              placeholder="Repite la contrasena"
+              minLength={6}
+              required
+            />
+          </label>
+
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-white/60 mb-3">Modulos permitidos</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -296,21 +354,41 @@ export default function UsersAdmin() {
       </div>
 
       <div className="rounded-3xl bg-white/10 border border-white/10 p-6 backdrop-blur-xl">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-white/50">Empleados</p>
             <h2 className="text-2xl font-semibold mt-2">Accesos administrativos</h2>
           </div>
-          <p className="text-sm text-white/60">{employees.length} empleado(s)</p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={employeesQuery}
+              onChange={(event) => setEmployeesQuery(event.target.value)}
+              placeholder="Buscar por nombre, email o UID"
+              className="w-full sm:w-72 rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm outline-none"
+            />
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm outline-none"
+            >
+              <option value="all">Todos</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
+          </div>
         </div>
+        <p className="text-sm text-white/60 mt-3">{filteredEmployees.length} empleado(s)</p>
 
         {loading ? (
           <div className="py-12 text-sm text-white/50">Cargando usuarios...</div>
-        ) : employees.length === 0 ? (
-          <div className="py-12 text-sm text-white/50">No hay empleados registrados.</div>
+        ) : filteredEmployees.length === 0 ? (
+          <div className="py-12 text-sm text-white/50">
+            No hay empleados registrados para ese filtro.
+          </div>
         ) : (
           <div className="mt-6 space-y-4">
-            {employees.map((adminUser) => {
+            {filteredEmployees.map((adminUser) => {
               const isEditing = editingId === adminUser.id;
               return (
                 <div
@@ -321,6 +399,12 @@ export default function UsersAdmin() {
                     <div>
                       <p className="text-sm font-semibold">{adminUser.displayName || "Sin nombre"}</p>
                       <p className="text-xs text-white/50">{adminUser.email}</p>
+                      <p className="text-[11px] text-white/40">
+                        Alta: {formatDateTime(adminUser.createdAt)}
+                      </p>
+                      <p className="text-[11px] text-white/40">
+                        Ultimo login: {formatDateTime(adminUser.lastLoginAt)}
+                      </p>
                       <p className="text-[11px] text-white/40">UID: {adminUser.id}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">

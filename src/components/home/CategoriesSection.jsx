@@ -8,7 +8,7 @@ export default function CategoriesSection() {
   const { categories, loading } = useCategories({ onlyActive: true });
 
   return (
-    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-white">
+    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-surface">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -20,7 +20,7 @@ export default function CategoriesSection() {
           <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
             Categorias
           </span>
-          <h2 className="text-[#0A0A0A] text-4xl md:text-5xl font-bold tracking-tight">
+          <h2 className="tk-theme-text text-4xl md:text-5xl font-bold tracking-tight">
             Explora por{" "}
             <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
               categoria
@@ -29,11 +29,11 @@ export default function CategoriesSection() {
         </motion.div>
 
         {loading ? (
-          <div className="py-16 text-center text-sm text-[#0A0A0A]/50">
+          <div className="py-16 text-center text-sm tk-theme-muted">
             Cargando categorias...
           </div>
         ) : categories.length === 0 ? (
-          <div className="py-16 text-center text-sm text-[#0A0A0A]/50">
+          <div className="py-16 text-center text-sm tk-theme-muted">
             No hay categorias cargadas.
           </div>
         ) : (

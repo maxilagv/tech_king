@@ -5,38 +5,55 @@ import {
   Building2,
   FileText,
   LayoutDashboard,
+  Loader2,
   LogOut,
   Package,
   ShoppingCart,
+  Sparkles,
   Tags,
+  UserCog,
   Users,
   Warehouse,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/api/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import { ADMIN_MODULES } from "@/constants/adminAccess";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 
-const navItems = [
-  { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
-  { label: "Productos", to: "/admin/productos", icon: Package },
-  { label: "Categorias", to: "/admin/categorias", icon: Tags },
-  { label: "Proveedores", to: "/admin/proveedores", icon: Building2 },
-  { label: "Costos", to: "/admin/costos", icon: BadgeDollarSign },
-  { label: "Pedidos", to: "/admin/pedidos", icon: ShoppingCart },
-  { label: "Clientes", to: "/admin/clientes", icon: Users },
-  { label: "Stock", to: "/admin/stock", icon: Warehouse },
-  { label: "Finanzas", to: "/admin/finanzas", icon: BadgeDollarSign },
-  { label: "Remitos", to: "/admin/remitos", icon: FileText },
-];
+const MODULE_ICON_BY_ID = {
+  products: Package,
+  categories: Tags,
+  offers: Sparkles,
+  customers: Users,
+  orders: ShoppingCart,
+  remitos: FileText,
+  suppliers: Building2,
+  costs: BadgeDollarSign,
+  stock: Warehouse,
+  finance: BadgeDollarSign,
+  users: UserCog,
+};
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { checking, authLoading, isSuperAdmin, modules } = useAdminAccess();
 
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/admin/login");
   };
+
+  const moduleIds = new Set(modules || []);
+  const navItems = [
+    ...(isSuperAdmin ? [{ label: "Dashboard", to: "/admin", icon: LayoutDashboard }] : []),
+    ...ADMIN_MODULES.filter((module) => isSuperAdmin || moduleIds.has(module.id)).map((module) => ({
+      label: module.label,
+      to: module.path,
+      icon: MODULE_ICON_BY_ID[module.id] || LayoutDashboard,
+    })),
+  ];
 
   return (
     <div className="min-h-screen bg-[#0B1020] text-white">
@@ -65,26 +82,33 @@ export default function AdminLayout() {
           </div>
 
           <nav className="flex-1 space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all ${
-                      isActive
-                        ? "bg-white/15 text-white shadow-lg shadow-cyan-500/20"
-                        : "text-white/60 hover:text-white hover:bg-white/10"
-                    }`
-                  }
-                  end={item.to === "/admin"}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                </NavLink>
-              );
-            })}
+            {checking || authLoading ? (
+              <div className="flex items-center gap-2 px-4 py-3 text-xs uppercase tracking-[0.2em] text-white/50">
+                <Loader2 className="w-4 h-4 animate-spin text-cyan-300" />
+                Cargando accesos
+              </div>
+            ) : (
+              navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all ${
+                        isActive
+                          ? "bg-white/15 text-white shadow-lg shadow-cyan-500/20"
+                          : "text-white/60 hover:text-white hover:bg-white/10"
+                      }`
+                    }
+                    end={item.to === "/admin"}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {item.label}
+                  </NavLink>
+                );
+              })
+            )}
           </nav>
 
           <button
@@ -107,7 +131,9 @@ export default function AdminLayout() {
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:block text-right">
-                <p className="text-sm text-white/80">Administrador</p>
+                <p className="text-sm text-white/80">
+                  {isSuperAdmin ? "Super Admin" : "Empleado"}
+                </p>
                 <p className="text-xs text-white/40">{user?.email || "admin@techking"}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sm font-semibold">

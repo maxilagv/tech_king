@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Heart, Eye } from "lucide-react";
+import { Eye, Heart, ShoppingBag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
+import { getProductPricing } from "@/utils/offers";
 
 function parseStock(rawStock) {
   const parsed = Number(rawStock);
@@ -16,26 +18,41 @@ function clampQty(value, maxStock) {
   return Math.min(qty, maxStock);
 }
 
-export default function ProductCard({ product, index }) {
+function buildFallbackImage(product) {
+  return (
+    product.image_url ||
+    "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&q=80"
+  );
+}
+
+export default function ProductCard({ product, index, offers = [] }) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [selectedQty, setSelectedQty] = useState(1);
   const { addItem } = useCart();
 
   const name = product.nombre ?? product.name;
-  const price = product.precio ?? product.price;
-  const image =
-    product.imagenes?.[0] ??
-    product.image_url ??
-    "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&q=80";
   const category = product.categoryLabel ?? product.categorySlug ?? product.category;
   const featured = product.destacado ?? product.featured;
   const brand = product.marca ?? product.brand;
+  const detailPath = `/products/${product.id}`;
 
+  const images = useMemo(() => {
+    const list = Array.isArray(product.imagenes) ? product.imagenes.filter(Boolean) : [];
+    if (list.length > 0) return list;
+    return [buildFallbackImage(product)];
+  }, [product]);
+
+  const previewImage = isHovered && images[1] ? images[1] : images[0];
   const maxStock = parseStock(product.stockActual);
   const hasStockLimit = Number.isFinite(maxStock);
   const outOfStock = hasStockLimit && maxStock <= 0;
   const cannotIncrease = hasStockLimit && selectedQty >= maxStock;
+  const pricing = useMemo(
+    () => getProductPricing(product, offers, selectedQty),
+    [product, offers, selectedQty]
+  );
 
   useEffect(() => {
     if (hasStockLimit) {
@@ -45,7 +62,27 @@ export default function ProductCard({ product, index }) {
 
   const handleAddToCart = () => {
     if (outOfStock) return;
-    addItem(product, selectedQty);
+
+    addItem(
+      {
+        ...product,
+        precio: pricing.finalPrice,
+        precioOriginal: pricing.basePrice,
+        ofertaAplicada: pricing.offer
+          ? {
+              id: pricing.offer.id,
+              titulo: pricing.offerTitle,
+              tipo: pricing.offerType,
+              descuentoPct: pricing.offer?.descuentoPct ?? null,
+              precioOferta: pricing.offer?.precioOferta ?? null,
+              minUnidades: pricing.offer?.minUnidades ?? null,
+              startsAt: pricing.offer?.startsAt ?? null,
+              endsAt: pricing.offer?.endsAt ?? null,
+            }
+          : null,
+      },
+      selectedQty
+    );
   };
 
   const handleQtyChange = (value) => {
@@ -63,11 +100,12 @@ export default function ProductCard({ product, index }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#F5F0EB] mb-4">
+      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden tk-theme-soft mb-4">
         <img
-          src={image}
+          src={previewImage}
           alt={name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+          onClick={() => navigate(detailPath)}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out cursor-pointer"
         />
 
         <motion.div
@@ -80,6 +118,7 @@ export default function ProductCard({ product, index }) {
             animate={isHovered ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
             transition={{ delay: 0, duration: 0.3 }}
             className="w-11 h-11 rounded-full bg-white flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all duration-300 text-[#0A0A0A] shadow-lg"
+            onClick={() => navigate(detailPath)}
           >
             <Eye className="w-4 h-4" />
           </motion.button>
@@ -89,7 +128,9 @@ export default function ProductCard({ product, index }) {
             transition={{ delay: 0.05, duration: 0.3 }}
             onClick={() => setIsLiked(!isLiked)}
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-              isLiked ? "bg-red-500 text-white" : "bg-white text-[#0A0A0A] hover:bg-red-500 hover:text-white"
+              isLiked
+                ? "bg-red-500 text-white"
+                : "bg-white text-[#0A0A0A] hover:bg-red-500 hover:text-white"
             }`}
           >
             <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
@@ -121,35 +162,52 @@ export default function ProductCard({ product, index }) {
             </span>
           </div>
         )}
+
+        {images.length > 1 && (
+          <div className="absolute bottom-4 left-4">
+            <span className="px-2.5 py-1 rounded-full bg-black/55 text-[10px] tracking-[0.15em] uppercase text-white">
+              {images.length} fotos
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="space-y-1.5 px-1">
         <span className="text-blue-600 text-[10px] tracking-[0.2em] uppercase block font-semibold">
           {brand || category || "Tech"}
         </span>
-        <h3 className="text-[#0A0A0A] text-base font-semibold leading-tight group-hover:text-blue-600 transition-colors duration-300">
+        <button
+          type="button"
+          onClick={() => navigate(detailPath)}
+          className="text-left tk-theme-text text-base font-semibold leading-tight group-hover:text-blue-600 transition-colors duration-300"
+        >
           {name}
-        </h3>
-        <div className="flex items-center justify-between">
-          <p className="text-[#0A0A0A] text-xl font-bold">
-            ${Number(price || 0).toFixed(2)}
-          </p>
-          {product.rating && (
-            <div className="flex items-center gap-1 text-yellow-400">
-              <span className="text-sm">*</span>
-              <span className="text-sm text-[#0A0A0A] font-semibold">{product.rating}</span>
+        </button>
+
+        {pricing.hasOffer ? (
+          <div className="space-y-1">
+            <div className="flex items-end gap-2">
+              <p className="tk-theme-text text-xl font-bold">${pricing.finalPrice.toFixed(2)}</p>
+              <p className="text-sm tk-theme-muted line-through">
+                ${pricing.basePrice.toFixed(2)}
+              </p>
             </div>
-          )}
-        </div>
+            <p className="text-[11px] text-emerald-600">
+              Ahorras ${pricing.savingsPerUnit.toFixed(2)} por unidad
+            </p>
+          </div>
+        ) : (
+          <p className="tk-theme-text text-xl font-bold">${pricing.basePrice.toFixed(2)}</p>
+        )}
 
         <div className="pt-2 space-y-2">
           <div className="flex items-center gap-2">
-            <div className="inline-flex items-center rounded-xl border border-black/10 bg-white">
+            <div className="inline-flex items-center rounded-xl border tk-theme-border tk-theme-surface">
               <button
                 type="button"
                 onClick={() => handleQtyChange(selectedQty - 1)}
                 disabled={selectedQty <= 1 || outOfStock}
-                className="w-8 h-8 text-sm text-black/70 hover:bg-black/5 disabled:opacity-40"
+                className="w-8 h-8 text-sm tk-theme-muted hover:bg-[var(--tk-field-bg)] disabled:opacity-40"
               >
                 -
               </button>
@@ -158,14 +216,14 @@ export default function ProductCard({ product, index }) {
                 min="1"
                 value={selectedQty}
                 onChange={(event) => handleQtyChange(event.target.value)}
-                className="w-10 h-8 text-center text-sm outline-none"
+                className="w-10 h-8 text-center text-sm outline-none bg-transparent tk-theme-text"
                 disabled={outOfStock}
               />
               <button
                 type="button"
                 onClick={() => handleQtyChange(selectedQty + 1)}
                 disabled={cannotIncrease || outOfStock}
-                className="w-8 h-8 text-sm text-black/70 hover:bg-black/5 disabled:opacity-40"
+                className="w-8 h-8 text-sm tk-theme-muted hover:bg-[var(--tk-field-bg)] disabled:opacity-40"
               >
                 +
               </button>
@@ -181,8 +239,16 @@ export default function ProductCard({ product, index }) {
             </button>
           </div>
 
-          {hasStockLimit && (
-            <p className="text-[11px] text-black/50">Stock disponible: {maxStock}</p>
+          {hasStockLimit && <p className="text-[11px] tk-theme-muted">Stock disponible: {maxStock}</p>}
+          {pricing.volumeHintMinUnits && !pricing.hasOffer && (
+            <p className="text-[11px] text-blue-600">
+              Oferta por volumen desde {pricing.volumeHintMinUnits} unidades.
+            </p>
+          )}
+          {pricing.hasOffer && pricing.offerTitle && (
+            <p className="text-[11px] text-orange-600 uppercase tracking-[0.14em]">
+              {pricing.offerTitle}
+            </p>
           )}
         </div>
       </div>

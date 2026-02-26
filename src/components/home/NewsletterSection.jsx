@@ -16,10 +16,10 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-[#F5F0EB] relative overflow-hidden">
+    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
       {/* Decorative circle */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-[#C9A96E]/10 pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-[#C9A96E]/5 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-[var(--tk-border)]/50 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-[var(--tk-border)]/30 pointer-events-none" />
 
       <div className="max-w-2xl mx-auto text-center relative z-10">
         <motion.div
@@ -31,10 +31,10 @@ export default function NewsletterSection() {
           <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
             Newsletter
           </span>
-          <h2 className="text-[#0A0A0A] text-3xl md:text-4xl font-bold tracking-tight mb-4">
+          <h2 className="tk-theme-text text-3xl md:text-4xl font-bold tracking-tight mb-4">
             Recibe ofertas <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">exclusivas</span>
           </h2>
-          <p className="text-[#0A0A0A]/60 text-sm font-normal mb-10 max-w-md mx-auto">
+          <p className="tk-theme-muted text-sm font-normal mb-10 max-w-md mx-auto">
             Sé el primero en conocer nuevos lanzamientos, descuentos especiales y ofertas en productos tech.
           </p>
 
@@ -44,7 +44,7 @@ export default function NewsletterSection() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Tu correo electrónico"
-              className="flex-1 px-5 py-3.5 rounded-xl bg-white border border-[#0A0A0A]/10 text-[#0A0A0A] text-sm placeholder:text-[#0A0A0A]/30 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
+              className="flex-1 px-5 py-3.5 rounded-xl bg-[var(--tk-surface)] border border-[var(--tk-border)] text-[var(--tk-text)] text-sm placeholder:text-[var(--tk-muted)] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
             />
             <motion.button
               type="submit"

@@ -1,9 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-export default function ProductFilters({ activeCategory, onCategoryChange, categories = [] }) {
+export default function ProductFilters({
+  activeCategory,
+  onCategoryChange,
+  categories = [],
+  includeOffers = false,
+}) {
   const filters = [
     { key: "all", label: "Todos" },
+    ...(includeOffers ? [{ key: "offers", label: "Ofertas" }] : []),
     ...categories.map((cat) => ({ key: cat.slug || cat.id, label: cat.nombre })),
   ];
 

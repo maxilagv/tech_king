@@ -9,13 +9,65 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
+    function adminUserExists() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admin_users/$(request.auth.uid));
+    }
+
+    function adminUserIsActive() {
+      return adminUserExists()
+        && (
+          !("active" in get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data)
+          || get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.active == true
+        );
+    }
+
+    function adminUserIsDisabled() {
+      return adminUserExists()
+        && ("active" in get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data)
+        && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.active == false;
+    }
+
+    function adminUserRoleIs(roleName) {
+      return adminUserIsActive()
+        && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.role == roleName;
+    }
+
+    function adminUserHasModule(moduleName) {
+      return adminUserIsActive()
+        && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.modules is list
+        && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.modules.hasAny([moduleName]);
+    }
+
+    function isSuperAdmin() {
       return isSignedIn() && (
         request.auth.token.admin == true ||
+        request.auth.token.role == "super_admin" ||
         request.auth.uid == "GauPQvDIhPWfAvlu55CwmfLB15k1" ||
-        request.auth.token.email == "techking@gmail.com"
+        request.auth.token.email == "techking@gmail.com" ||
+        adminUserRoleIs("super_admin")
       );
     }
+
+    function hasModule(moduleName) {
+      return isSignedIn()
+        && !adminUserIsDisabled()
+        && (
+        (
+          request.auth.token.modules is list
+          && request.auth.token.modules.hasAny([moduleName])
+        )
+        || adminUserHasModule(moduleName)
+      );
+    }
+
+    function canManageProducts() { return isSuperAdmin() || hasModule("products"); }
+    function canManageCategories() { return isSuperAdmin() || hasModule("categories"); }
+    function canManageOffers() { return isSuperAdmin() || hasModule("offers"); }
+    function canManageCustomers() { return isSuperAdmin() || hasModule("customers"); }
+    function canManageOrders() { return isSuperAdmin() || hasModule("orders"); }
+    function canManageRemitos() { return isSuperAdmin() || hasModule("remitos"); }
+    function canManageUsers() { return isSuperAdmin(); }
 
     function isOwner(uid) {
       return isSignedIn() && request.auth.uid == uid;
@@ -27,6 +79,26 @@ service cloud.firestore {
 
     function validServerTimestamp(value) {
       return value is timestamp || value == request.time;
+    }
+
+    function validOrderStatus(status) {
+      return status == "pendiente"
+        || status == "confirmado"
+        || status == "despachado"
+        || status == "cancelado";
+    }
+
+    function validOrderSource(source) {
+      return source == "web" || source == "local";
+    }
+
+    function validFinancialSummary(value) {
+      return value is map
+        && value.keys().hasOnly(["revenue", "cost", "grossProfit", "marginPct"])
+        && value.revenue is number
+        && value.cost is number
+        && value.grossProfit is number
+        && value.marginPct is number;
     }
 
     // ----------------------------
@@ -133,16 +205,24 @@ service cloud.firestore {
     function validOrderBase() {
       return request.resource.data.keys().hasOnly([
         "customerId", "items", "total", "status", "source",
-        "stockApplied", "financeApplied", "customerSnapshot",
+        "stockApplied", "financeApplied", "financialSummary",
+        "hasAdjustments", "lastAdjustmentAt", "customerSnapshot",
         "remitoId", "remitoNumero", "createdAt", "updatedAt"
       ])
       && request.resource.data.items is list
       && request.resource.data.items.size() > 0
       && request.resource.data.total is number
       && request.resource.data.total >= 0
-      && (request.resource.data.source is string || !("source" in request.resource.data))
+      && (validOrderSource(request.resource.data.source) || !("source" in request.resource.data))
       && (request.resource.data.stockApplied is bool || !("stockApplied" in request.resource.data))
       && (request.resource.data.financeApplied is bool || !("financeApplied" in request.resource.data))
+      && (
+        !("financialSummary" in request.resource.data)
+        || request.resource.data.financialSummary == null
+        || validFinancialSummary(request.resource.data.financialSummary)
+      )
+      && (request.resource.data.hasAdjustments is bool || !("hasAdjustments" in request.resource.data))
+      && (request.resource.data.lastAdjustmentAt is timestamp || !("lastAdjustmentAt" in request.resource.data))
       && (request.resource.data.customerSnapshot is map || request.resource.data.customerSnapshot == null || !("customerSnapshot" in request.resource.data))
       && (request.resource.data.remitoId is string || !("remitoId" in request.resource.data))
       && (request.resource.data.remitoNumero is number || !("remitoNumero" in request.resource.data))
@@ -154,22 +234,24 @@ service cloud.firestore {
       return validOrderBase()
       && request.resource.data.customerId == request.auth.uid
       && customerExists(request.auth.uid)
-      && request.resource.data.status == "pendiente";
+      && request.resource.data.status == "pendiente"
+      && request.resource.data.source == "web"
+      && request.resource.data.stockApplied == false
+      && request.resource.data.financeApplied == false;
     }
 
     function validOrderCreateAdmin() {
       return validOrderBase()
       && request.resource.data.customerId is string
-      && (request.resource.data.status == "pendiente"
-          || request.resource.data.status == "confirmado"
-          || request.resource.data.status == "despachado"
-          || request.resource.data.status == "cancelado");
+      && validOrderStatus(request.resource.data.status)
+      && (validOrderSource(request.resource.data.source) || !("source" in request.resource.data));
     }
 
     function validOrderUpdateAdmin() {
       return request.resource.data.keys().hasOnly([
         "customerId", "items", "total", "status", "source",
-        "stockApplied", "financeApplied", "customerSnapshot",
+        "stockApplied", "financeApplied", "financialSummary",
+        "hasAdjustments", "lastAdjustmentAt", "customerSnapshot",
         "remitoId", "remitoNumero", "createdAt", "updatedAt"
       ])
       && request.resource.data.customerId == resource.data.customerId
@@ -177,13 +259,17 @@ service cloud.firestore {
       && request.resource.data.items.size() > 0
       && request.resource.data.total is number
       && request.resource.data.total >= 0
-      && (request.resource.data.status == "pendiente"
-          || request.resource.data.status == "confirmado"
-          || request.resource.data.status == "despachado"
-          || request.resource.data.status == "cancelado")
-      && (request.resource.data.source is string || !("source" in request.resource.data))
+      && validOrderStatus(request.resource.data.status)
+      && (validOrderSource(request.resource.data.source) || !("source" in request.resource.data))
       && (request.resource.data.stockApplied is bool || !("stockApplied" in request.resource.data))
       && (request.resource.data.financeApplied is bool || !("financeApplied" in request.resource.data))
+      && (
+        !("financialSummary" in request.resource.data)
+        || request.resource.data.financialSummary == null
+        || validFinancialSummary(request.resource.data.financialSummary)
+      )
+      && (request.resource.data.hasAdjustments is bool || !("hasAdjustments" in request.resource.data))
+      && (request.resource.data.lastAdjustmentAt is timestamp || !("lastAdjustmentAt" in request.resource.data))
       && (request.resource.data.customerSnapshot is map || request.resource.data.customerSnapshot == null || !("customerSnapshot" in request.resource.data))
       && (request.resource.data.remitoId is string || !("remitoId" in request.resource.data))
       && (request.resource.data.remitoNumero is number || !("remitoNumero" in request.resource.data))
@@ -191,56 +277,275 @@ service cloud.firestore {
       && validServerTimestamp(request.resource.data.updatedAt);
     }
 
+    function validOfferType(value) {
+      return value == "fecha" || value == "volumen";
+    }
+
+    function hasOfferPrice() {
+      return (request.resource.data.descuentoPct is number && request.resource.data.descuentoPct > 0 && request.resource.data.descuentoPct <= 100)
+        || (request.resource.data.precioOferta is number && request.resource.data.precioOferta >= 0);
+    }
+
+    function validOfferBase() {
+      return request.resource.data.keys().hasOnly([
+        "titulo", "descripcion", "tipo", "activa",
+        "productIds", "bannerImages",
+        "descuentoPct", "precioOferta", "minUnidades",
+        "startsAt", "endsAt", "prioridad",
+        "createdAt", "updatedAt"
+      ])
+      && request.resource.data.titulo is string
+      && request.resource.data.titulo.size() >= 2
+      && (request.resource.data.descripcion is string || !("descripcion" in request.resource.data))
+      && request.resource.data.tipo is string
+      && validOfferType(request.resource.data.tipo)
+      && (request.resource.data.activa is bool || !("activa" in request.resource.data))
+      && request.resource.data.productIds is list
+      && request.resource.data.productIds.size() > 0
+      && request.resource.data.productIds[0] is string
+      && (request.resource.data.bannerImages is list || !("bannerImages" in request.resource.data))
+      && (
+        !("bannerImages" in request.resource.data)
+        || request.resource.data.bannerImages.size() == 0
+        || request.resource.data.bannerImages[0] is string
+      )
+      && (request.resource.data.descuentoPct is number || !("descuentoPct" in request.resource.data))
+      && (request.resource.data.precioOferta is number || !("precioOferta" in request.resource.data))
+      && (request.resource.data.minUnidades is number || !("minUnidades" in request.resource.data))
+      && (request.resource.data.startsAt is timestamp || !("startsAt" in request.resource.data))
+      && (request.resource.data.endsAt is timestamp || !("endsAt" in request.resource.data))
+      && (request.resource.data.prioridad is number || !("prioridad" in request.resource.data))
+      && hasOfferPrice()
+      && (
+        request.resource.data.tipo != "fecha"
+        || (
+          request.resource.data.startsAt is timestamp
+          && request.resource.data.endsAt is timestamp
+          && request.resource.data.endsAt > request.resource.data.startsAt
+        )
+      )
+      && (
+        request.resource.data.tipo != "volumen"
+        || (
+          request.resource.data.minUnidades is number
+          && request.resource.data.minUnidades >= 1
+        )
+      );
+    }
+
+    function validOfferCreate() {
+      return validOfferBase()
+      && validServerTimestamp(request.resource.data.createdAt)
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function validOfferUpdate() {
+      return validOfferBase()
+      && request.resource.data.createdAt == resource.data.createdAt
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function validRemitoCreate() {
+      return request.resource.data.keys().hasOnly([
+        "numero", "orderId", "customerId", "total", "createdAt"
+      ])
+      && request.resource.data.numero is number
+      && request.resource.data.numero >= 1
+      && request.resource.data.orderId is string
+      && request.resource.data.customerId is string
+      && request.resource.data.total is number
+      && request.resource.data.total >= 0
+      && validServerTimestamp(request.resource.data.createdAt);
+    }
+
+    function validRemitoCounterCreate() {
+      return request.resource.data.keys().hasOnly(["value", "updatedAt"])
+      && request.resource.data.value is number
+      && request.resource.data.value == 1
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function validRemitoCounterUpdate() {
+      return request.resource.data.keys().hasOnly(["value", "updatedAt"])
+      && request.resource.data.value is number
+      && request.resource.data.value == resource.data.value + 1
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function validOrderStockMovement() {
+      return request.resource.data.keys().hasOnly([
+        "productId", "tipo", "cantidad", "motivo", "orderId", "createdAt"
+      ])
+      && request.resource.data.productId is string
+      && (request.resource.data.tipo == "ingreso" || request.resource.data.tipo == "egreso")
+      && request.resource.data.cantidad is number
+      && request.resource.data.cantidad > 0
+      && (
+        request.resource.data.motivo == "venta_local"
+        || request.resource.data.motivo == "venta_web"
+        || request.resource.data.motivo == "ajuste_pedido"
+        || request.resource.data.motivo == "cancelacion"
+      )
+      && request.resource.data.orderId is string
+      && validServerTimestamp(request.resource.data.createdAt);
+    }
+
+    function validOrderFinanceEntry() {
+      return request.resource.data.keys().hasOnly([
+        "tipo", "monto", "referencia", "orderId",
+        "categoria", "source", "detalle", "createdAt"
+      ])
+      && (request.resource.data.tipo == "ingreso" || request.resource.data.tipo == "egreso")
+      && request.resource.data.monto is number
+      && request.resource.data.monto >= 0
+      && request.resource.data.referencia is string
+      && request.resource.data.orderId is string
+      && (
+        request.resource.data.categoria == "venta"
+        || request.resource.data.categoria == "venta_ajuste"
+        || request.resource.data.categoria == "cancelacion_pedido"
+      )
+      && validOrderSource(request.resource.data.source)
+      && request.resource.data.detalle is string
+      && validServerTimestamp(request.resource.data.createdAt);
+    }
+
+    function validOrderAdjustmentCreate() {
+      return request.resource.data.keys().hasOnly([
+        "orderId", "previousTotal", "nextTotal", "deltaTotal", "addedItems",
+        "stockAppliedAtAdjustment", "financeAppliedAtAdjustment", "createdAt"
+      ])
+      && request.resource.data.orderId is string
+      && request.resource.data.previousTotal is number
+      && request.resource.data.nextTotal is number
+      && request.resource.data.deltaTotal is number
+      && request.resource.data.addedItems is list
+      && (
+        request.resource.data.addedItems.size() == 0
+        || request.resource.data.addedItems[0] is map
+      )
+      && request.resource.data.stockAppliedAtAdjustment is bool
+      && request.resource.data.financeAppliedAtAdjustment is bool
+      && validServerTimestamp(request.resource.data.createdAt);
+    }
+
+    function validAdminUserWrite() {
+      return request.resource.data.keys().hasOnly([
+        "email", "displayName", "role", "modules",
+        "active", "createdBy", "createdAt", "updatedAt", "lastLoginAt"
+      ])
+      && request.resource.data.email is string
+      && request.resource.data.email.size() >= 5
+      && (request.resource.data.displayName is string || !("displayName" in request.resource.data))
+      && (request.resource.data.role == "super_admin" || request.resource.data.role == "employee")
+      && request.resource.data.modules is list
+      && (request.resource.data.modules.size() == 0 || request.resource.data.modules[0] is string)
+      && request.resource.data.active is bool
+      && request.resource.data.createdBy is string
+      && validServerTimestamp(request.resource.data.createdAt)
+      && validServerTimestamp(request.resource.data.updatedAt)
+      && (request.resource.data.lastLoginAt is timestamp || !("lastLoginAt" in request.resource.data));
+    }
+
     // ----------------------------
     // Public catalog
     // ----------------------------
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create: if isAdmin() && validCategoryCreate();
-      allow update: if isAdmin() && validCategoryUpdate();
-      allow delete: if isAdmin();
+      allow create: if canManageCategories() && validCategoryCreate();
+      allow update: if canManageCategories() && validCategoryUpdate();
+      allow delete: if canManageCategories();
     }
 
     match /products/{productId} {
       allow get, list: if true;
-      allow create: if isAdmin() && validProductCreate();
-      allow update: if isAdmin() && (validProductUpdate() || isProductStockCostUpdate());
-      allow delete: if isAdmin();
+      allow create: if canManageProducts() && validProductCreate();
+      allow update: if canManageProducts() && (validProductUpdate() || isProductStockCostUpdate());
+      allow delete: if canManageProducts();
+    }
+
+    match /offers/{offerId} {
+      allow get, list: if true;
+      allow create: if canManageOffers() && validOfferCreate();
+      allow update: if canManageOffers() && validOfferUpdate();
+      allow delete: if canManageOffers();
     }
 
     // ----------------------------
     // Customers
     // ----------------------------
     match /customers/{uid} {
-      allow get: if isOwner(uid) || isAdmin();
-      allow list: if isAdmin();
-      allow create: if isAdmin() || isOwner(uid);
-      allow update: if isAdmin() || isOwner(uid);
-      allow delete: if isAdmin();
+      allow get: if isOwner(uid) || canManageCustomers();
+      allow list: if canManageCustomers();
+      allow create: if canManageCustomers() || isOwner(uid);
+      allow update: if canManageCustomers() || isOwner(uid);
+      allow delete: if canManageCustomers();
     }
 
     // ----------------------------
     // Orders
     // ----------------------------
     match /orders/{orderId} {
-      allow create: if (isAdmin() && validOrderCreateAdmin())
+      allow create: if (canManageOrders() && validOrderCreateAdmin())
                     || (isSignedIn() && validOrderCreateSelf());
-      allow get: if isAdmin() || (isSignedIn() && resource.data.customerId == request.auth.uid);
-      allow list: if isAdmin();
-      allow update: if isAdmin() && validOrderUpdateAdmin();
-      allow delete: if isAdmin();
+      allow get: if canManageOrders() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow list: if canManageOrders();
+      allow update: if canManageOrders() && validOrderUpdateAdmin();
+      allow delete: if canManageOrders();
     }
 
     // ----------------------------
-    // Internal collections (admin only)
+    // Admin users (for employee management)
     // ----------------------------
-    match /stock_movements/{id} { allow read, write: if isAdmin(); }
-    match /finance/{id} { allow read, write: if isAdmin(); }
-    match /remitos/{id} { allow read, write: if isAdmin(); }
-    match /counters/{id} { allow read, write: if isAdmin(); }
-    match /suppliers/{id} { allow read, write: if isAdmin(); }
-    match /purchase_costs/{id} { allow read, write: if isAdmin(); }
-    match /config/{id} { allow read, write: if isAdmin(); }
-    match /fx_rates/{id} { allow read, write: if isAdmin(); }
+    match /admin_users/{uid} {
+      allow get: if canManageUsers() || isOwner(uid);
+      allow list: if canManageUsers();
+      allow create, update: if canManageUsers() && validAdminUserWrite();
+      allow delete: if canManageUsers();
+    }
+
+    // ----------------------------
+    // Internal collections
+    // ----------------------------
+    match /stock_movements/{id} {
+      allow get, list: if isSuperAdmin();
+      allow create: if isSuperAdmin() || (canManageOrders() && validOrderStockMovement());
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /finance/{id} {
+      allow get, list: if isSuperAdmin();
+      allow create: if isSuperAdmin() || (canManageOrders() && validOrderFinanceEntry());
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /order_adjustments/{id} {
+      allow get, list: if isSuperAdmin();
+      allow create: if isSuperAdmin() || (canManageOrders() && validOrderAdjustmentCreate());
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /remitos/{id} {
+      allow get, list: if canManageRemitos();
+      allow create: if canManageRemitos() && validRemitoCreate();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /counters/remito {
+      allow get: if canManageRemitos();
+      allow create: if canManageRemitos() && validRemitoCounterCreate();
+      allow update: if canManageRemitos() && validRemitoCounterUpdate();
+      allow list, delete: if isSuperAdmin();
+    }
+
+    match /counters/{id} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    match /suppliers/{id} { allow read, write: if isSuperAdmin(); }
+    match /purchase_costs/{id} { allow read, write: if isSuperAdmin(); }
+    match /config/{id} { allow read, write: if isSuperAdmin(); }
+    match /fx_rates/{id} { allow read, write: if isSuperAdmin(); }
   }
 }
+
