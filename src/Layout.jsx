@@ -1,8 +1,8 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
-import { ShoppingBag, Search } from "lucide-react";
+import { ShoppingBag, Search, X } from "lucide-react";
 import HamburgerMenu from "./components/navigation/HamburgerMenu";
 import WhatsAppButton from "./components/navigation/WhatsAppButton";
 import CartNotice from "./components/navigation/CartNotice";
@@ -10,10 +10,79 @@ import ThemeToggleButton from "./components/navigation/ThemeToggleButton";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 
+function sanitizeSearchTerm(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
 export default function Layout({ children, currentPageName }) {
   const isHome = currentPageName === "Home";
   const { totalQty } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchInputRef = useRef(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const isProductsPage = location.pathname === createPageUrl("Products");
+  const currentSearchTerm = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return sanitizeSearchTerm(params.get("q"));
+  }, [location.search]);
+  const hasSearchTerm = currentSearchTerm.length > 0;
+
+  useEffect(() => {
+    setSearchTerm(currentSearchTerm);
+  }, [currentSearchTerm]);
+
+  useEffect(() => {
+    setIsSearchOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isSearchOpen) return undefined;
+    searchInputRef.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsSearchOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isSearchOpen]);
+
+  const goToProductsWithParams = (term) => {
+    const params = new URLSearchParams();
+    if (isProductsPage) {
+      const existing = new URLSearchParams(location.search);
+      const activeCategory = existing.get("category");
+      if (activeCategory) {
+        params.set("category", activeCategory);
+      }
+    }
+    if (term) {
+      params.set("q", term);
+    }
+
+    navigate({
+      pathname: createPageUrl("Products"),
+      search: params.toString() ? `?${params.toString()}` : "",
+    });
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const term = sanitizeSearchTerm(searchTerm);
+    goToProductsWithParams(term);
+    setIsSearchOpen(false);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    if (isProductsPage) {
+      goToProductsWithParams("");
+    }
+  };
 
   return (
     <div className="min-h-screen tk-theme-bg font-sans tk-theme-text">
@@ -90,9 +159,18 @@ export default function Layout({ children, currentPageName }) {
             <div className="hidden md:block">
               <ThemeToggleButton compact />
             </div>
-            <button className={`hidden md:flex p-2 transition-colors duration-300 ${
-              isHome ? "text-white hover:text-blue-300" : "tk-theme-text hover:text-blue-600"
-            }`}>
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen((prev) => !prev)}
+              aria-label="Buscar productos"
+              className={`hidden md:flex p-2 rounded-lg transition-colors duration-300 ${
+                isHome
+                  ? "text-white bg-white/10 hover:bg-white/20"
+                  : hasSearchTerm
+                    ? "text-white bg-blue-600 hover:bg-blue-700"
+                    : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-blue-100"
+              }`}
+            >
               <Search className="w-5 h-5" />
             </button>
             {!user ? (
@@ -141,10 +219,65 @@ export default function Layout({ children, currentPageName }) {
             {/* Hamburger only on mobile */}
             <div className="md:hidden flex items-center gap-2">
               <ThemeToggleButton compact />
-              <HamburgerMenu isHome={isHome} user={user} />
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen((prev) => !prev)}
+                aria-label="Buscar productos"
+                className={`p-2 rounded-lg transition-colors duration-300 ${
+                  isHome
+                    ? "text-white bg-white/10 hover:bg-white/20"
+                    : hasSearchTerm
+                      ? "text-white bg-blue-600 hover:bg-blue-700"
+                      : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-blue-100"
+                }`}
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <HamburgerMenu user={user} />
             </div>
           </div>
         </div>
+
+        {isSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.22 }}
+            className="pt-4"
+          >
+            <form
+              onSubmit={handleSearchSubmit}
+              className="max-w-7xl mx-auto tk-theme-surface border tk-theme-border rounded-2xl shadow-xl p-2 md:p-3 flex items-center gap-2"
+            >
+              <Search className="w-4 h-4 md:w-5 md:h-5 text-blue-600 shrink-0 ml-2" />
+              <input
+                ref={searchInputRef}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                type="search"
+                placeholder="Buscar por producto, marca, categoria, modelo o SKU"
+                className="flex-1 min-w-0 bg-transparent outline-none tk-theme-text placeholder:text-slate-400 text-sm md:text-base"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="w-9 h-9 rounded-lg tk-theme-text opacity-70 hover:opacity-100 hover:bg-[var(--tk-field-bg)] flex items-center justify-center"
+                  aria-label="Limpiar busqueda"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="px-4 md:px-5 h-9 rounded-xl bg-blue-600 text-white text-xs md:text-sm tracking-[0.12em] uppercase font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Buscar
+              </button>
+            </form>
+          </motion.div>
+        )}
       </motion.header >
 
       {/* Page Content */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
@@ -9,17 +9,44 @@ import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
 
+function normalizeSearchText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function buildSearchableText(product, categoryLabel) {
+  return [
+    product.nombre,
+    product.name,
+    product.marca,
+    product.brand,
+    product.category,
+    product.categorySlug,
+    product.categoryId,
+    categoryLabel,
+    product.descripcion,
+    product.description,
+    product.sku,
+    product.codigo,
+    product.modelo,
+  ]
+    .map((field) => normalizeSearchText(field))
+    .filter(Boolean)
+    .join(" ");
+}
+
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const categoryParam = searchParams.get("category") || "all";
-  const [activeCategory, setActiveCategory] = useState(categoryParam);
+  const rawCategoryParam = searchParams.get("category");
+  const activeCategory = rawCategoryParam ? rawCategoryParam : "all";
+  const queryParam = searchParams.get("q") || "";
+  const normalizedQuery = normalizeSearchText(queryParam);
   const { categories } = useCategories({ onlyActive: true });
   const { products, loading } = useProducts({ onlyActive: true });
   const { offers } = useOffers({ onlyActive: true });
-
-  useEffect(() => {
-    setActiveCategory(categoryParam);
-  }, [categoryParam]);
 
   const offeredProductIds = useMemo(() => {
     const ids = new Set();
@@ -31,27 +58,73 @@ export default function Products() {
     return ids;
   }, [offers]);
 
-  const filtered = useMemo(() => {
-    if (activeCategory === "offers") {
-      return products.filter((product) => offeredProductIds.has(String(product.id)));
-    }
-    if (activeCategory === "all") {
-      return products;
-    }
-    return products.filter(
-      (p) => p.category === activeCategory || p.categorySlug === activeCategory
-    );
-  }, [activeCategory, offeredProductIds, products]);
-
-  const categoryMap = Object.fromEntries(
-    categories.map((cat) => [cat.slug || cat.id, cat.nombre])
+  const categoryMap = useMemo(
+    () => Object.fromEntries(categories.map((cat) => [cat.slug || cat.id, cat.nombre])),
+    [categories]
   );
+
+  const activeCategoryAliases = useMemo(() => {
+    if (activeCategory === "all" || activeCategory === "offers") {
+      return new Set();
+    }
+
+    const aliases = new Set([normalizeSearchText(activeCategory)]);
+    const matchedCategory = categories.find(
+      (cat) => String(cat.slug || "") === activeCategory || String(cat.id) === activeCategory
+    );
+
+    if (matchedCategory) {
+      aliases.add(normalizeSearchText(matchedCategory.slug));
+      aliases.add(normalizeSearchText(matchedCategory.id));
+      aliases.add(normalizeSearchText(matchedCategory.nombre));
+    }
+
+    return aliases;
+  }, [activeCategory, categories]);
+
+  const filtered = useMemo(() => {
+    let byCategory = products;
+
+    if (activeCategory === "offers") {
+      byCategory = products.filter((product) => offeredProductIds.has(String(product.id)));
+    } else if (activeCategory !== "all") {
+      byCategory = products.filter((product) => {
+        const productCategoryValues = [
+          product.category,
+          product.categorySlug,
+          product.categoryId,
+          product.categoryLabel,
+        ]
+          .map((value) => normalizeSearchText(value))
+          .filter(Boolean);
+
+        return productCategoryValues.some((value) => activeCategoryAliases.has(value));
+      });
+    }
+
+    if (!normalizedQuery) {
+      return byCategory;
+    }
+
+    return byCategory.filter((product) => {
+      const categoryLabel =
+        categoryMap[product.categorySlug] ||
+        categoryMap[product.categoryId] ||
+        product.categoryLabel ||
+        "";
+      const haystack = buildSearchableText(product, categoryLabel);
+      return haystack.includes(normalizedQuery);
+    });
+  }, [activeCategory, activeCategoryAliases, categoryMap, normalizedQuery, offeredProductIds, products]);
 
   const normalized = useMemo(
     () =>
       filtered.map((product) => ({
         ...product,
-        categoryLabel: categoryMap[product.categorySlug] || product.categoryLabel,
+        categoryLabel:
+          categoryMap[product.categorySlug] ||
+          categoryMap[product.categoryId] ||
+          product.categoryLabel,
       })),
     [filtered, categoryMap]
   );
@@ -59,12 +132,19 @@ export default function Products() {
   const hasActiveOffers = offers.length > 0;
 
   const handleCategoryChange = (nextCategory) => {
-    setActiveCategory(nextCategory);
-    if (nextCategory === "all") {
-      setSearchParams({}, { replace: true });
-      return;
+    const nextParams = new URLSearchParams(searchParams);
+    const sanitizedQuery = normalizeSearchText(nextParams.get("q"));
+    if (!sanitizedQuery) {
+      nextParams.delete("q");
     }
-    setSearchParams({ category: nextCategory }, { replace: true });
+
+    if (nextCategory === "all") {
+      nextParams.delete("category");
+    } else {
+      nextParams.set("category", nextCategory);
+    }
+
+    setSearchParams(nextParams, { replace: true });
   };
 
   return (
@@ -121,6 +201,11 @@ export default function Products() {
                 <p className="tk-theme-muted text-sm">
                   {normalized.length} producto{normalized.length !== 1 ? "s" : ""}
                 </p>
+                {queryParam.trim() && (
+                  <p className="tk-theme-muted text-xs uppercase tracking-[0.15em]">
+                    Busqueda: "{queryParam.trim()}"
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
                 {normalized.map((product, i) => (

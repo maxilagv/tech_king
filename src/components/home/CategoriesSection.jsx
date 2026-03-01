@@ -38,7 +38,13 @@ export default function CategoriesSection() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {categories.map((cat, i) => (
+            {categories.map((cat, i) => {
+              const categoryKey = cat.slug || cat.id;
+              const targetUrl = categoryKey
+                ? `${createPageUrl("Products")}?category=${encodeURIComponent(categoryKey)}`
+                : createPageUrl("Products");
+
+              return (
               <motion.div
                 key={cat.id}
                 initial={{ opacity: 0, y: 50 }}
@@ -47,7 +53,7 @@ export default function CategoriesSection() {
                 transition={{ delay: i * 0.15, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
               >
                 <Link
-                  to={createPageUrl("Products")}
+                  to={targetUrl}
                   className="group relative block aspect-[4/5] rounded-3xl overflow-hidden"
                 >
                   <img
@@ -88,7 +94,8 @@ export default function CategoriesSection() {
                   </div>
                 </Link>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
