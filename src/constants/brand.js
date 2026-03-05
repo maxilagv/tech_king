@@ -1,23 +1,23 @@
-export const BRAND_NAME = "NexaElectronics";
+export const BRAND_NAME = "Nexastore";
 
 export const BRAND_LOGO_URL =
   "https://i.postimg.cc/3J0RjYzG/Chat-GPT-Image-5-mar-2026-03-17-40-p-m.png";
 
-export const BRAND_SUPPORT_EMAIL = "soporte@nexaelectronics.com";
-export const BRAND_ADMIN_EMAIL_PLACEHOLDER = "admin@nexaelectronics.com";
+export const BRAND_SUPPORT_EMAIL = "soporte@nexastore.com";
+export const BRAND_ADMIN_EMAIL_PLACEHOLDER = "admin@nexastore.com";
 export const BRAND_PHONE = "+54 11 4123-4567";
 export const BRAND_WHATSAPP = "5491141234567";
 export const BRAND_ADDRESS = "Av corrientes 2332";
 export const BRAND_GOOGLE_MAPS_EMBED_URL =
   "https://www.google.com/maps?q=Av+Corrientes+2332,+Buenos+Aires,+Argentina&output=embed";
 
-export const BRAND_CLOUDINARY_ROOT = "nexaelectronics";
+export const BRAND_CLOUDINARY_ROOT = "nexastore";
 
 export const LANDING_HERO_FALLBACK_SLIDES = Object.freeze([
   {
     id: "fallback-1",
     titulo: "Tecnologia premium para cada compra",
-    subtitulo: "NexaElectronics",
+    subtitulo: "Nexastore",
     descripcion:
       "Smartphones, gaming, audio y hogar inteligente con garantia real y atencion especializada.",
     badge: "Nueva coleccion 2026",

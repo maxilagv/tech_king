@@ -83,6 +83,35 @@ h6,
   border-color: var(--tk-border);
 }
 
+:root[data-performance="reduced"] {
+  scroll-behavior: auto;
+}
+
+:root[data-performance="reduced"] [class*="blur-"] {
+  filter: none !important;
+}
+
+:root[data-performance="reduced"] [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-performance="reduced"] * {
+  transition-duration: 120ms !important;
+}
+
+@media (max-width: 380px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .tk-mobile-section {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

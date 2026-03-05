@@ -181,14 +181,14 @@ export default function ProductsAdmin() {
           products: sortedProducts,
           offers,
           categoryMap,
-          filename: `catalogo-nexaelectronics-tabla-${dateLabel}.pdf`,
+          filename: `catalogo-nexastore-tabla-${dateLabel}.pdf`,
         });
       } else {
         await exportCatalogVisualPdf({
           products: sortedProducts,
           offers,
           categoryMap,
-          filename: `catalogo-nexaelectronics-visual-${dateLabel}.pdf`,
+          filename: `catalogo-nexastore-visual-${dateLabel}.pdf`,
         });
       }
     } catch (error) {

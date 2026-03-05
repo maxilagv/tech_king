@@ -236,7 +236,7 @@ export async function exportCatalogTablePdf({
   products = [],
   offers = [],
   categoryMap = {},
-  filename = "catalogo-nexaelectronics-tabla.pdf",
+  filename = "catalogo-nexastore-tabla.pdf",
 }) {
   const doc = new jsPDF();
   const orderedProducts = sortProductsByCategory(products, categoryMap);
@@ -400,7 +400,7 @@ export async function exportCatalogVisualPdf({
   products = [],
   offers = [],
   categoryMap = {},
-  filename = "catalogo-nexaelectronics-visual.pdf",
+  filename = "catalogo-nexastore-visual.pdf",
 }) {
   const doc = new jsPDF();
   const orderedProducts = sortProductsByCategory(products, categoryMap);

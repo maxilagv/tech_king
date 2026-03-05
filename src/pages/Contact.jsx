@@ -92,7 +92,7 @@ export default function Contact() {
               className="aspect-[4/3] rounded-2xl overflow-hidden mt-8 border tk-theme-border tk-theme-surface"
             >
               <iframe
-                title="Mapa NexaElectronics"
+                title="Mapa Nexastore"
                 src={BRAND_GOOGLE_MAPS_EMBED_URL}
                 className="w-full h-full border-0"
                 loading="lazy"

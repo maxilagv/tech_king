@@ -104,8 +104,12 @@ export default function Layout({ children, currentPageName }) {
         initial={reduceMotion ? false : { y: -100 }}
         animate={reduceMotion ? undefined : { y: 0 }}
         transition={reduceMotion ? undefined : { duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 px-6 lg:px-10 py-4 transition-all duration-500 ${
-          isHome ? "bg-transparent" : "tk-theme-surface border-b tk-theme-border backdrop-blur-xl shadow-sm"
+        className={`tk-mobile-section fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-10 py-3 sm:py-4 transition-all duration-500 ${
+          isHome
+            ? "bg-transparent"
+            : reduceMotion
+              ? "tk-theme-surface border-b tk-theme-border shadow-sm"
+              : "tk-theme-surface border-b tk-theme-border backdrop-blur-xl shadow-sm"
         }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -115,6 +119,7 @@ export default function Layout({ children, currentPageName }) {
               src={BRAND_LOGO_URL}
               alt={BRAND_NAME}
               className="w-11 h-11 md:w-12 md:h-12 rounded-xl object-cover border border-white/25 shadow-lg shadow-black/20"
+              decoding="async"
             />
             <span className={`text-xl font-semibold transition-colors duration-300 ${
               isHome

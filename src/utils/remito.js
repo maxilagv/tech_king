@@ -178,7 +178,7 @@ export async function generateRemitoPdf({ numero, order, customer }) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.text(
-    "Documento emitido digitalmente por NexaElectronics.",
+    "Documento emitido digitalmente por Nexastore.",
     margin,
     doc.internal.pageSize.getHeight() - 12
   );

@@ -10,7 +10,7 @@ export default function WhatsAppButton() {
   const phoneNumber = BRAND_WHATSAPP;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-3">
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -18,11 +18,11 @@ export default function WhatsAppButton() {
             animate={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: 10, scale: 0.97 }}
             transition={reduceMotion ? undefined : { duration: 0.25 }}
-            className="bg-white rounded-2xl shadow-2xl shadow-black/10 p-5 w-72 border border-black/5"
+            className="bg-white rounded-2xl shadow-2xl shadow-black/10 p-4 sm:p-5 w-[min(18rem,88vw)] border border-black/5"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <div className={`w-2 h-2 rounded-full bg-green-500 ${reduceMotion ? "" : "animate-pulse"}`} />
                 <span className="text-xs font-medium text-[#0A0A0A]/60 tracking-wide uppercase">
                   En linea
                 </span>
@@ -55,7 +55,7 @@ export default function WhatsAppButton() {
 
       <motion.button
         onClick={() => setIsExpanded((prev) => !prev)}
-        className="relative w-14 h-14 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full flex items-center justify-center shadow-lg shadow-violet-500/40 group overflow-hidden"
+        className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full flex items-center justify-center shadow-lg shadow-violet-500/40 group overflow-hidden"
         whileHover={reduceMotion ? undefined : { scale: 1.05 }}
         whileTap={reduceMotion ? undefined : { scale: 0.95 }}
       >

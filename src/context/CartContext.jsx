@@ -8,7 +8,8 @@ import React, {
 
 const CartContext = createContext(null);
 
-const STORAGE_KEY = "nexaelectronics_cart";
+const STORAGE_KEY = "nexastore_cart";
+const LEGACY_STORAGE_KEY = "nexaelectronics_cart";
 
 function parsePositiveInt(value, fallback = 1) {
   const parsed = Number(value);
@@ -66,7 +67,7 @@ function sanitizeCartItems(rawItems) {
 
 function loadCart() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
     return sanitizeCartItems(raw ? JSON.parse(raw) : []);
   } catch {
     return [];
@@ -241,6 +242,9 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+    if (localStorage.getItem(LEGACY_STORAGE_KEY) != null) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
   }, [state.items]);
 
   useEffect(() => {

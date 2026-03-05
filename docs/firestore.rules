@@ -44,6 +44,7 @@ service cloud.firestore {
         request.auth.token.admin == true ||
         request.auth.token.role == "super_admin" ||
         request.auth.uid == "GauPQvDIhPWfAvlu55CwmfLB15k1" ||
+        request.auth.token.email == "nexastore@gmail.com" ||
         request.auth.token.email == "nexaelectronics@gmail.com" ||
         adminUserRoleIs("super_admin")
       );

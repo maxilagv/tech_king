@@ -80,12 +80,12 @@ export default function HeroSection() {
 
   const activeSlide = slides[index];
   const heroHeightClass = isDark
-    ? "min-h-[98vh] md:min-h-[100vh]"
-    : "min-h-[108vh] md:min-h-[114vh]";
-  const contentSpacingClass = isDark ? "pb-16 pt-32" : "pb-24 pt-40 md:pt-44";
+    ? "min-h-[90vh] md:min-h-[98vh]"
+    : "min-h-[94vh] md:min-h-[106vh]";
+  const contentSpacingClass = isDark ? "pb-14 pt-28 md:pt-32" : "pb-20 pt-32 md:pt-40";
   const titleSizeClass = isDark
     ? "text-4xl md:text-6xl lg:text-7xl"
-    : "text-5xl md:text-7xl lg:text-8xl";
+    : "text-4xl md:text-6xl lg:text-8xl";
   const overlayMainClass = isDark
     ? "absolute inset-0 bg-gradient-to-r from-[#09051f]/85 via-[#120b2f]/62 to-[#0a0822]/78"
     : "absolute inset-0 bg-gradient-to-r from-[#09051f]/92 via-[#120b2f]/78 to-[#0a0822]/88";
@@ -103,12 +103,14 @@ export default function HeroSection() {
     : "max-w-2xl text-sm leading-relaxed text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] md:text-lg";
 
   return (
-    <section className={`relative ${heroHeightClass} w-full overflow-hidden bg-[#120b2f]`}>
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-20 left-[-12%] h-[420px] w-[420px] rounded-full bg-fuchsia-500/30 blur-[140px]" />
-        <div className="absolute bottom-[-180px] right-[-10%] h-[520px] w-[520px] rounded-full bg-indigo-500/35 blur-[180px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_38%),radial-gradient(circle_at_80%_80%,rgba(147,51,234,0.22),transparent_40%)]" />
-      </div>
+    <section className={`tk-mobile-section relative ${heroHeightClass} w-full overflow-hidden bg-[#120b2f]`}>
+      {!reduceMotion && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-20 left-[-12%] h-[420px] w-[420px] rounded-full bg-fuchsia-500/30 blur-[140px]" />
+          <div className="absolute bottom-[-180px] right-[-10%] h-[520px] w-[520px] rounded-full bg-indigo-500/35 blur-[180px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_38%),radial-gradient(circle_at_80%_80%,rgba(147,51,234,0.22),transparent_40%)]" />
+        </div>
+      )}
 
       {reduceMotion ? (
         <div className="absolute inset-0">
@@ -117,6 +119,8 @@ export default function HeroSection() {
             alt={activeSlide.titulo || "Hero"}
             className="h-full w-full object-cover"
             fetchpriority="high"
+            decoding="async"
+            sizes="100vw"
           />
           <div className={overlayMainClass} />
           <div className={overlayBottomClass} />
@@ -136,6 +140,8 @@ export default function HeroSection() {
               alt={activeSlide.titulo || "Hero"}
               className="h-full w-full object-cover"
               fetchpriority="high"
+              decoding="async"
+              sizes="100vw"
             />
             <div className={overlayMainClass} />
             <div className={overlayBottomClass} />
@@ -191,7 +197,7 @@ export default function HeroSection() {
           <SlideAction slide={activeSlide} />
         </motion.div>
 
-        <div className="mt-10 flex items-center justify-between gap-4">
+        <div className="mt-8 md:mt-10 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             {slides.map((slide, dotIndex) => (
               <button
@@ -205,7 +211,7 @@ export default function HeroSection() {
               />
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIndex((prev) => (prev - 1 + slides.length) % slides.length)}
