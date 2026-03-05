@@ -8,7 +8,7 @@ import React, {
 
 const CartContext = createContext(null);
 
-const STORAGE_KEY = "techking_cart";
+const STORAGE_KEY = "nexaelectronics_cart";
 
 function parsePositiveInt(value, fallback = 1) {
   const parsed = Number(value);

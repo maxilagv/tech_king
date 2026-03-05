@@ -12,7 +12,7 @@ export default function AdminHome() {
     return (
       <div className="min-h-[40vh] flex items-center justify-center text-white/70">
         <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em]">
-          <Loader2 className="w-4 h-4 animate-spin text-cyan-300" />
+          <Loader2 className="w-4 h-4 animate-spin text-violet-300" />
           Cargando inicio
         </div>
       </div>

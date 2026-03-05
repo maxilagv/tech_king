@@ -7,11 +7,13 @@ import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { getProductPricing } from "@/utils/offers";
+import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 
 export default function FeaturedProducts() {
   const { products, loading } = useProducts({ onlyActive: true, featuredOnly: true, limit: 4 });
   const { categories } = useCategories({ onlyActive: true });
   const { offers } = useOffers({ onlyActive: true });
+  const reduceMotion = useShouldReduceMotion();
 
   const categoryMap = Object.fromEntries(
     categories.map((cat) => [cat.slug || cat.id, cat.nombre])
@@ -23,36 +25,36 @@ export default function FeaturedProducts() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16">
           <div>
             <motion.span
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
+              initial={reduceMotion ? false : { opacity: 0 }}
+              whileInView={reduceMotion ? undefined : { opacity: 1 }}
+              viewport={reduceMotion ? undefined : { once: true }}
+              className="text-violet-500 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
             >
               Lo mas vendido
             </motion.span>
             <motion.h2
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+              initial={reduceMotion ? false : { opacity: 0, y: 40 }}
+              whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+              viewport={reduceMotion ? undefined : { once: true }}
+              transition={reduceMotion ? undefined : { duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
               className="tk-theme-text text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
             >
               Productos
               <br />
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent">
                 destacados
               </span>
             </motion.h2>
           </div>
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            whileInView={reduceMotion ? undefined : { opacity: 1 }}
+            viewport={reduceMotion ? undefined : { once: true }}
+            transition={reduceMotion ? undefined : { delay: 0.3 }}
           >
             <Link
               to={createPageUrl("Products")}
-              className="tk-theme-muted text-sm tracking-[0.15em] uppercase hover:text-blue-500 transition-colors duration-500 mt-6 md:mt-0 inline-block"
+              className="tk-theme-muted text-sm tracking-[0.15em] uppercase hover:text-violet-500 transition-colors duration-500 mt-6 md:mt-0 inline-block"
             >
               Ver todo -&gt;
             </Link>
@@ -74,10 +76,10 @@ export default function FeaturedProducts() {
               return (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 50 }}
+                  whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                  viewport={reduceMotion ? undefined : { once: true }}
+                  transition={reduceMotion ? undefined : { delay: i * 0.1, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
                 >
                   <Link to={`/products/${item.id}`} className="group block">
                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-5 tk-theme-surface">
@@ -88,6 +90,8 @@ export default function FeaturedProducts() {
                         }
                         alt={item.nombre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <div className="absolute inset-0 bg-[#0A0A0A]/0 group-hover:bg-[#0A0A0A]/20 transition-all duration-500" />
                       {pricing.hasOffer && (
@@ -99,17 +103,17 @@ export default function FeaturedProducts() {
                       )}
                       <motion.div
                         className="absolute top-4 right-4 w-10 h-10 rounded-full tk-theme-surface flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        whileHover={{ scale: 1.1 }}
+                        whileHover={reduceMotion ? undefined : { scale: 1.1 }}
                       >
                         <ArrowUpRight className="w-4 h-4 tk-theme-text" />
                       </motion.div>
                     </div>
 
                     <div className="space-y-2">
-                      <span className="text-blue-600 text-[11px] tracking-[0.25em] uppercase font-semibold">
-                        {categoryMap[item.categorySlug] || item.categorySlug || "Tech"}
+                      <span className="text-violet-600 text-[11px] tracking-[0.25em] uppercase font-semibold">
+                        {categoryMap[item.categorySlug] || item.categorySlug || "Electronica"}
                       </span>
-                      <h3 className="tk-theme-text text-lg font-medium leading-tight group-hover:text-blue-600 transition-colors duration-300">
+                      <h3 className="tk-theme-text text-lg font-medium leading-tight group-hover:text-violet-500 transition-colors duration-300">
                         {item.nombre}
                       </h3>
                       {pricing.hasOffer ? (

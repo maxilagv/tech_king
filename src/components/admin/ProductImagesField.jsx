@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { UploadCloud, X } from "lucide-react";
 import { uploadToCloudinary } from "@/utils/cloudinary";
+import { BRAND_CLOUDINARY_ROOT } from "@/constants/brand";
 
-export default function ProductImagesField({ images, onChange, folder = "techking/products" }) {
+export default function ProductImagesField({
+  images,
+  onChange,
+  folder = `${BRAND_CLOUDINARY_ROOT}/products`,
+}) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 

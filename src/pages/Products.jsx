@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
+import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 
 function normalizeSearchText(value) {
   return String(value || "")
@@ -47,6 +48,7 @@ export default function Products() {
   const { categories } = useCategories({ onlyActive: true });
   const { products, loading } = useProducts({ onlyActive: true });
   const { offers } = useOffers({ onlyActive: true });
+  const reduceMotion = useShouldReduceMotion();
 
   const offeredProductIds = useMemo(() => {
     const ids = new Set();
@@ -150,34 +152,34 @@ export default function Products() {
   return (
     <div className="tk-theme-bg">
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[#C9A96E]/5 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-violet-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={reduceMotion ? undefined : { opacity: 1 }}
+            className="text-violet-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
           >
             Catalogo completo
           </motion.span>
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 30 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={reduceMotion ? undefined : { delay: 0.1, duration: 0.6 }}
             className="tk-theme-text text-4xl md:text-6xl font-bold tracking-tight mb-6"
           >
             Productos{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent">
               premium
             </span>
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={reduceMotion ? undefined : { opacity: 1 }}
+            transition={reduceMotion ? undefined : { delay: 0.2 }}
             className="tk-theme-muted text-sm font-normal max-w-md mx-auto mb-10"
           >
-            Tecnologia de ultima generacion con garantia oficial. Los mejores precios y envio
-            gratis en compras mayores a $100.
+            Tecnologia de ultima generacion con garantia oficial. Los mejores precios y envios
+            gratis a partir de 200.000 ARS.
           </motion.p>
 
           <ProductFilters
@@ -193,7 +195,7 @@ export default function Products() {
         <div className="max-w-7xl mx-auto">
           {loading ? (
             <div className="flex items-center justify-center py-32">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-violet-600" />
             </div>
           ) : (
             <>

@@ -1,5 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function ProductFilters({
   activeCategory,
@@ -7,6 +9,8 @@ export default function ProductFilters({
   categories = [],
   includeOffers = false,
 }) {
+  const reduceMotion = useShouldReduceMotion();
+  const { isDark } = useTheme();
   const filters = [
     { key: "all", label: "Todos" },
     ...(includeOffers ? [{ key: "offers", label: "Ofertas" }] : []),
@@ -23,14 +27,18 @@ export default function ProductFilters({
         >
           {activeCategory === cat.key && (
             <motion.div
-              layoutId="activeFilter"
-              className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full shadow-lg shadow-blue-500/30"
-              transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
+              layoutId={reduceMotion ? undefined : "activeFilter"}
+              className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-500 rounded-full shadow-lg shadow-violet-500/30"
+              transition={reduceMotion ? { duration: 0.01 } : { duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
             />
           )}
           <span
             className={`relative z-10 font-medium ${
-              activeCategory === cat.key ? "text-white" : "text-[#0A0A0A]/50 hover:text-blue-600"
+              activeCategory === cat.key
+                ? "text-white"
+                : isDark
+                  ? "text-white/75 hover:text-white"
+                  : "text-[#0A0A0A]/55 hover:text-violet-600"
             }`}
           >
             {cat.label}

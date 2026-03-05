@@ -4,6 +4,7 @@ import {
   BadgeDollarSign,
   Building2,
   FileText,
+  ImageIcon,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -20,11 +21,17 @@ import { auth } from "@/api/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { ADMIN_MODULES } from "@/constants/adminAccess";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
+import {
+  BRAND_ADMIN_EMAIL_PLACEHOLDER,
+  BRAND_LOGO_URL,
+  BRAND_NAME,
+} from "@/constants/brand";
 
 const MODULE_ICON_BY_ID = {
   products: Package,
   categories: Tags,
   offers: Sparkles,
+  landing: ImageIcon,
   customers: Users,
   orders: ShoppingCart,
   remitos: FileText,
@@ -63,8 +70,8 @@ export default function AdminLayout() {
       `}</style>
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full bg-cyan-500/15 blur-[140px]" />
-        <div className="absolute bottom-[-160px] right-[-120px] w-[520px] h-[520px] rounded-full bg-blue-500/20 blur-[160px]" />
+        <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full bg-fuchsia-500/15 blur-[140px]" />
+        <div className="absolute bottom-[-160px] right-[-120px] w-[520px] h-[520px] rounded-full bg-violet-500/20 blur-[160px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_45%)]" />
       </div>
 
@@ -72,19 +79,21 @@ export default function AdminLayout() {
         {/* Sidebar */}
         <aside className="hidden lg:flex flex-col w-72 min-h-screen px-6 py-8 border-r border-white/10 bg-white/5 backdrop-blur-xl">
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center font-semibold">
-              TK
-            </div>
+            <img
+              src={BRAND_LOGO_URL}
+              alt={BRAND_NAME}
+              className="w-14 h-14 rounded-2xl object-cover border border-white/20 shadow-lg shadow-black/30"
+            />
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-white/50">Admin</p>
-              <p className="text-lg font-semibold">Tech King</p>
+              <p className="text-lg font-semibold">{BRAND_NAME}</p>
             </div>
           </div>
 
           <nav className="flex-1 space-y-2">
             {checking || authLoading ? (
               <div className="flex items-center gap-2 px-4 py-3 text-xs uppercase tracking-[0.2em] text-white/50">
-                <Loader2 className="w-4 h-4 animate-spin text-cyan-300" />
+                <Loader2 className="w-4 h-4 animate-spin text-violet-300" />
                 Cargando accesos
               </div>
             ) : (
@@ -97,7 +106,7 @@ export default function AdminLayout() {
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all ${
                         isActive
-                          ? "bg-white/15 text-white shadow-lg shadow-cyan-500/20"
+                          ? "bg-white/15 text-white shadow-lg shadow-violet-500/20"
                           : "text-white/60 hover:text-white hover:bg-white/10"
                       }`
                     }
@@ -134,7 +143,9 @@ export default function AdminLayout() {
                 <p className="text-sm text-white/80">
                   {isSuperAdmin ? "Super Admin" : "Empleado"}
                 </p>
-                <p className="text-xs text-white/40">{user?.email || "admin@techking"}</p>
+                <p className="text-xs text-white/40">
+                  {user?.email || BRAND_ADMIN_EMAIL_PLACEHOLDER}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sm font-semibold">
                 {user?.email?.slice(0, 2).toUpperCase() || "AD"}

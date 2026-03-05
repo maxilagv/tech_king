@@ -14,6 +14,7 @@ import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
 import ProductImagesField from "@/components/admin/ProductImagesField";
 import { isOfferEnabled, toDate } from "@/utils/offers";
+import { BRAND_CLOUDINARY_ROOT } from "@/constants/brand";
 
 const emptyForm = {
   titulo: "",
@@ -379,7 +380,7 @@ export default function OffersAdmin() {
         <ProductImagesField
           images={form.bannerImages}
           onChange={(value) => handleChange("bannerImages", value)}
-          folder="techking/offers"
+          folder={`${BRAND_CLOUDINARY_ROOT}/offers`}
         />
 
         <div className="space-y-3">

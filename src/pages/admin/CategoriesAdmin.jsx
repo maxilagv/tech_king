@@ -12,6 +12,7 @@ import { db } from "@/api/firebase";
 import { useCategories } from "@/hooks/useCategories";
 import { slugify } from "@/utils/slugify";
 import ImageUploadField from "@/components/admin/ImageUploadField";
+import { BRAND_CLOUDINARY_ROOT } from "@/constants/brand";
 
 const emptyForm = {
   nombre: "",
@@ -180,7 +181,7 @@ export default function CategoriesAdmin() {
           label="Imagen"
           value={form.imagen}
           onChange={(value) => handleChange("imagen", value)}
-          folder="techking/categories"
+          folder={`${BRAND_CLOUDINARY_ROOT}/categories`}
         />
 
         {formError && (

@@ -1,3 +1,5 @@
+import { BRAND_CLOUDINARY_ROOT } from "@/constants/brand";
+
 export async function uploadToCloudinary(file, options = {}) {
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -6,7 +8,7 @@ export async function uploadToCloudinary(file, options = {}) {
     throw new Error("Cloudinary no esta configurado. Revisa el .env");
   }
 
-  const { folder = "techking", tags = ["techking"] } = options;
+  const { folder = BRAND_CLOUDINARY_ROOT, tags = [BRAND_CLOUDINARY_ROOT] } = options;
   const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
   const formData = new FormData();

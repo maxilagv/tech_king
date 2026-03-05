@@ -47,7 +47,7 @@ export default function RemitosAdmin() {
         updatedAt: serverTimestamp(),
       });
 
-      generateRemitoPdf({ numero, order, customer });
+      await generateRemitoPdf({ numero, order, customer });
       setMessage(`Remito #${numero} generado.`);
     } catch (err) {
       setError(err.message || "No se pudo generar el remito.");

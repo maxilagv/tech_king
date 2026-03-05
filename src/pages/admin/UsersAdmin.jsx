@@ -4,6 +4,7 @@ import { db, isFirebaseConfigured } from "@/api/firebase";
 import { createEmployeeUser, saveAdminUserProfile } from "@/api/adminUsers";
 import { useAuth } from "@/hooks/useAuth";
 import { EMPLOYEE_MODULE_IDS, normalizeAdminModules } from "@/constants/adminAccess";
+import { BRAND_SUPPORT_EMAIL } from "@/constants/brand";
 
 function getTimeValue(ts) {
   if (!ts) return 0;
@@ -273,7 +274,7 @@ export default function UsersAdmin() {
                   setCreateForm((prev) => ({ ...prev, email: event.target.value }))
                 }
                 className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
-                placeholder="empleado@techking.com"
+                placeholder={BRAND_SUPPORT_EMAIL}
                 required
               />
             </label>

@@ -146,9 +146,31 @@ export default function ProductsAdmin() {
       return;
     }
 
-    const sortedProducts = [...activeProducts].sort((a, b) =>
-      String(a.nombre || "").localeCompare(String(b.nombre || ""))
-    );
+    const sortedProducts = [...activeProducts].sort((a, b) => {
+      const categoryA = String(
+        categoryMap[a.categorySlug || a.categoryId || a.category] ||
+          a.categorySlug ||
+          a.categoryId ||
+          a.category ||
+          "Sin categoria"
+      );
+      const categoryB = String(
+        categoryMap[b.categorySlug || b.categoryId || b.category] ||
+          b.categorySlug ||
+          b.categoryId ||
+          b.category ||
+          "Sin categoria"
+      );
+
+      const categoryCompare = categoryA.localeCompare(categoryB, "es", {
+        sensitivity: "base",
+      });
+      if (categoryCompare !== 0) return categoryCompare;
+
+      return String(a.nombre || "").localeCompare(String(b.nombre || ""), "es", {
+        sensitivity: "base",
+      });
+    });
 
     setFormError("");
     setExporting(mode);
@@ -159,14 +181,14 @@ export default function ProductsAdmin() {
           products: sortedProducts,
           offers,
           categoryMap,
-          filename: `catalogo-tech-king-tabla-${dateLabel}.pdf`,
+          filename: `catalogo-nexaelectronics-tabla-${dateLabel}.pdf`,
         });
       } else {
         await exportCatalogVisualPdf({
           products: sortedProducts,
           offers,
           categoryMap,
-          filename: `catalogo-tech-king-visual-${dateLabel}.pdf`,
+          filename: `catalogo-nexaelectronics-visual-${dateLabel}.pdf`,
         });
       }
     } catch (error) {

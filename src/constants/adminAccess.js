@@ -2,6 +2,7 @@ export const ADMIN_MODULES = Object.freeze([
   { id: "products", label: "Productos", path: "/admin/productos", employeeAllowed: true },
   { id: "categories", label: "Categorias", path: "/admin/categorias", employeeAllowed: true },
   { id: "offers", label: "Ofertas", path: "/admin/ofertas", employeeAllowed: true },
+  { id: "landing", label: "Landing", path: "/admin/landing", employeeAllowed: false },
   { id: "customers", label: "Clientes", path: "/admin/clientes", employeeAllowed: true },
   { id: "orders", label: "Pedidos", path: "/admin/pedidos", employeeAllowed: true },
   { id: "remitos", label: "Remitos", path: "/admin/remitos", employeeAllowed: true },

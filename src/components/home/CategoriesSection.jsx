@@ -3,26 +3,28 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCategories } from "@/hooks/useCategories";
+import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 
 export default function CategoriesSection() {
   const { categories, loading } = useCategories({ onlyActive: true });
+  const reduceMotion = useShouldReduceMotion();
 
   return (
     <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-surface">
       <div className="max-w-7xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 30 }}
+          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={reduceMotion ? undefined : { once: true }}
+          transition={reduceMotion ? undefined : { duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+          <span className="text-violet-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
             Categorias
           </span>
           <h2 className="tk-theme-text text-4xl md:text-5xl font-bold tracking-tight">
             Explora por{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent">
               categoria
             </span>
           </h2>
@@ -47,10 +49,10 @@ export default function CategoriesSection() {
               return (
               <motion.div
                 key={cat.id}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
+                initial={reduceMotion ? false : { opacity: 0, y: 50 }}
+                whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                viewport={reduceMotion ? undefined : { once: true }}
+                transition={reduceMotion ? undefined : { delay: i * 0.15, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
               >
                 <Link
                   to={targetUrl}
@@ -59,7 +61,9 @@ export default function CategoriesSection() {
                   <img
                     src={cat.imagen}
                     alt={cat.nombre}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.2s] ease-out"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/80 via-[#0A0A0A]/20 to-transparent" />
 
@@ -80,7 +84,7 @@ export default function CategoriesSection() {
                       </div>
                       <motion.div
                         className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-all duration-500"
-                        whileHover={{ scale: 1.1 }}
+                        whileHover={reduceMotion ? undefined : { scale: 1.1 }}
                       >
                         <span className="text-white text-xl font-light">-&gt;</span>
                       </motion.div>

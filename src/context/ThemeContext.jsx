@@ -1,22 +1,19 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "techking-theme";
+const STORAGE_KEY = "nexaelectronics-theme";
 
 const ThemeContext = createContext({
-  theme: "light",
-  isDark: false,
+  theme: "dark",
+  isDark: true,
   setTheme: () => {},
   toggleTheme: () => {},
 });
 
 function getInitialTheme() {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   const saved = window.localStorage.getItem(STORAGE_KEY);
   if (saved === "light" || saved === "dark") return saved;
-  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
-  }
-  return "light";
+  return "dark";
 }
 
 export function ThemeProvider({ children }) {

@@ -4,6 +4,8 @@ import { Eye, Heart, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { getProductPricing } from "@/utils/offers";
+import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { useTheme } from "@/context/ThemeContext";
 
 function parseStock(rawStock) {
   const parsed = Number(rawStock);
@@ -19,15 +21,13 @@ function clampQty(value, maxStock) {
 }
 
 function buildFallbackImage(product) {
-  return (
-    product.image_url ||
-    "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&q=80"
-  );
+  return product.image_url || "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&q=80";
 }
 
 export default function ProductCard({ product, index, offers = [] }) {
   const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
+  const reduceMotion = useShouldReduceMotion();
+  const { isDark } = useTheme();
   const [isLiked, setIsLiked] = useState(false);
   const [selectedQty, setSelectedQty] = useState(1);
   const { addItem } = useCart();
@@ -44,7 +44,7 @@ export default function ProductCard({ product, index, offers = [] }) {
     return [buildFallbackImage(product)];
   }, [product]);
 
-  const previewImage = isHovered && images[1] ? images[1] : images[0];
+  const previewImage = images[0];
   const maxStock = parseStock(product.stockActual);
   const hasStockLimit = Number.isFinite(maxStock);
   const outOfStock = hasStockLimit && maxStock <= 0;
@@ -90,66 +90,58 @@ export default function ProductCard({ product, index, offers = [] }) {
     setSelectedQty(clampQty(value, max));
   };
 
+  const cardAnimationProps = reduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 18 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, margin: "0px 0px -20px 0px" },
+        transition: { delay: Math.min(index, 6) * 0.04, duration: 0.35 },
+      };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.06, duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
-      className="group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <motion.div className="group" {...cardAnimationProps}>
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden tk-theme-soft mb-4">
         <img
           src={previewImage}
           alt={name}
           onClick={() => navigate(detailPath)}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out cursor-pointer"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out cursor-pointer"
+          loading="lazy"
         />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          className="absolute inset-0 bg-[#0A0A0A]/30 flex items-center justify-center gap-3"
-        >
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            animate={isHovered ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-            transition={{ delay: 0, duration: 0.3 }}
-            className="w-11 h-11 rounded-full bg-white flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all duration-300 text-[#0A0A0A] shadow-lg"
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/30 via-black/5 to-transparent opacity-70" />
+
+        <div className="absolute right-3 bottom-3 flex items-center gap-2">
+          <button
+            type="button"
+            className="pointer-events-auto w-9 h-9 rounded-full bg-white/90 text-[#0A0A0A] flex items-center justify-center hover:bg-violet-600 hover:text-white transition"
             onClick={() => navigate(detailPath)}
+            aria-label="Ver detalle"
           >
             <Eye className="w-4 h-4" />
-          </motion.button>
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            animate={isHovered ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-            transition={{ delay: 0.05, duration: 0.3 }}
-            onClick={() => setIsLiked(!isLiked)}
-            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-              isLiked
-                ? "bg-red-500 text-white"
-                : "bg-white text-[#0A0A0A] hover:bg-red-500 hover:text-white"
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsLiked((prev) => !prev)}
+            className={`pointer-events-auto w-9 h-9 rounded-full flex items-center justify-center transition ${
+              isLiked ? "bg-rose-500 text-white" : "bg-white/90 text-[#0A0A0A] hover:bg-rose-500 hover:text-white"
             }`}
+            aria-label="Favorito"
           >
             <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
-          </motion.button>
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            animate={isHovered ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="w-11 h-11 rounded-full bg-white flex items-center justify-center hover:bg-green-500 hover:text-white transition-all duration-300 text-[#0A0A0A] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleAddToCart}
-            disabled={outOfStock}
-          >
-            <ShoppingBag className="w-4 h-4" />
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
 
         {category && (
           <div className="absolute top-4 left-4">
-            <span className="px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm text-[10px] tracking-[0.15em] uppercase text-[#0A0A0A] font-semibold shadow-sm">
+            <span
+              className={`px-3 py-1.5 rounded-full backdrop-blur-sm text-[10px] tracking-[0.15em] uppercase font-semibold shadow-sm ${
+                isDark
+                  ? "bg-black/65 text-white border border-white/20"
+                  : "bg-white/95 text-[#0A0A0A]"
+              }`}
+            >
               {category}
             </span>
           </div>
@@ -157,7 +149,7 @@ export default function ProductCard({ product, index, offers = [] }) {
 
         {featured && (
           <div className="absolute top-4 right-4">
-            <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 text-[10px] tracking-[0.15em] uppercase text-white font-semibold shadow-lg shadow-blue-500/40">
+            <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-[10px] tracking-[0.15em] uppercase text-white font-semibold shadow-lg shadow-violet-500/40">
               Destacado
             </span>
           </div>
@@ -173,13 +165,13 @@ export default function ProductCard({ product, index, offers = [] }) {
       </div>
 
       <div className="space-y-1.5 px-1">
-        <span className="text-blue-600 text-[10px] tracking-[0.2em] uppercase block font-semibold">
-          {brand || category || "Tech"}
+        <span className="text-violet-600 text-[10px] tracking-[0.2em] uppercase block font-semibold">
+          {brand || category || "Electronica"}
         </span>
         <button
           type="button"
           onClick={() => navigate(detailPath)}
-          className="text-left tk-theme-text text-base font-semibold leading-tight group-hover:text-blue-600 transition-colors duration-300"
+          className="text-left tk-theme-text text-base font-semibold leading-tight group-hover:text-violet-600 transition-colors duration-300"
         >
           {name}
         </button>
@@ -188,13 +180,9 @@ export default function ProductCard({ product, index, offers = [] }) {
           <div className="space-y-1">
             <div className="flex items-end gap-2">
               <p className="tk-theme-text text-xl font-bold">${pricing.finalPrice.toFixed(2)}</p>
-              <p className="text-sm tk-theme-muted line-through">
-                ${pricing.basePrice.toFixed(2)}
-              </p>
+              <p className="text-sm tk-theme-muted line-through">${pricing.basePrice.toFixed(2)}</p>
             </div>
-            <p className="text-[11px] text-emerald-600">
-              Ahorras ${pricing.savingsPerUnit.toFixed(2)} por unidad
-            </p>
+            <p className="text-[11px] text-emerald-600">Ahorras ${pricing.savingsPerUnit.toFixed(2)} por unidad</p>
           </div>
         ) : (
           <p className="tk-theme-text text-xl font-bold">${pricing.basePrice.toFixed(2)}</p>
@@ -233,22 +221,23 @@ export default function ProductCard({ product, index, offers = [] }) {
               type="button"
               onClick={handleAddToCart}
               disabled={outOfStock}
-              className="flex-1 rounded-xl bg-blue-600 text-white text-xs uppercase tracking-[0.2em] py-2 font-semibold hover:bg-blue-700 transition disabled:bg-black/20 disabled:text-white/60 disabled:cursor-not-allowed"
+              className="flex-1 rounded-xl bg-violet-600 text-white text-xs uppercase tracking-[0.2em] py-2 font-semibold hover:bg-violet-700 transition disabled:bg-black/20 disabled:text-white/60 disabled:cursor-not-allowed"
             >
-              {outOfStock ? "Sin stock" : "Agregar"}
+              <span className="inline-flex items-center gap-1.5">
+                <ShoppingBag className="w-3.5 h-3.5" />
+                {outOfStock ? "Sin stock" : "Agregar"}
+              </span>
             </button>
           </div>
 
           {hasStockLimit && <p className="text-[11px] tk-theme-muted">Stock disponible: {maxStock}</p>}
           {pricing.volumeHintMinUnits && !pricing.hasOffer && (
-            <p className="text-[11px] text-blue-600">
+            <p className="text-[11px] text-violet-600">
               Oferta por volumen desde {pricing.volumeHintMinUnits} unidades.
             </p>
           )}
           {pricing.hasOffer && pricing.offerTitle && (
-            <p className="text-[11px] text-orange-600 uppercase tracking-[0.14em]">
-              {pricing.offerTitle}
-            </p>
+            <p className="text-[11px] text-orange-600 uppercase tracking-[0.14em]">{pricing.offerTitle}</p>
           )}
         </div>
       </div>

@@ -9,6 +9,9 @@ import CartNotice from "./components/navigation/CartNotice";
 import ThemeToggleButton from "./components/navigation/ThemeToggleButton";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { BRAND_LOGO_URL, BRAND_NAME } from "@/constants/brand";
+import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { useTheme } from "@/context/ThemeContext";
 
 function sanitizeSearchTerm(value) {
   return String(value || "").trim().replace(/\s+/g, " ");
@@ -23,6 +26,8 @@ export default function Layout({ children, currentPageName }) {
   const searchInputRef = useRef(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const reduceMotion = useShouldReduceMotion();
+  const { isDark } = useTheme();
 
   const isProductsPage = location.pathname === createPageUrl("Products");
   const currentSearchTerm = useMemo(() => {
@@ -87,67 +92,93 @@ export default function Layout({ children, currentPageName }) {
   return (
     <div className="min-h-screen tk-theme-bg font-sans tk-theme-text">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        * { font-family: 'Inter', sans-serif; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--tk-soft); }
-        ::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #2563EB; }
-        ::selection { background: #3B82F620; color: var(--tk-text); }
+        ::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+        ::selection { background: #8b5cf620; color: var(--tk-text); }
       `}</style>
 
       {/* Fixed Navigation Bar */}
       <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
+        initial={reduceMotion ? false : { y: -100 }}
+        animate={reduceMotion ? undefined : { y: 0 }}
+        transition={reduceMotion ? undefined : { duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 px-6 lg:px-10 py-4 transition-all duration-500 ${
           isHome ? "bg-transparent" : "tk-theme-surface border-b tk-theme-border backdrop-blur-xl shadow-sm"
         }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <Link to={createPageUrl("Home")} className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">E</span>
-            </div>
+          <Link to={createPageUrl("Home")} className="flex items-center gap-3">
+            <img
+              src={BRAND_LOGO_URL}
+              alt={BRAND_NAME}
+              className="w-11 h-11 md:w-12 md:h-12 rounded-xl object-cover border border-white/25 shadow-lg shadow-black/20"
+            />
             <span className={`text-xl font-semibold transition-colors duration-300 ${
-              isHome ? "text-white" : "tk-theme-text"
+              isHome
+                ? isDark
+                  ? "text-white"
+                  : "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] bg-black/35 px-3 py-1 rounded-lg border border-white/25"
+                : "tk-theme-text"
             }`}>
-              Tech King
+              {BRAND_NAME}
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav
+            className={`hidden md:flex items-center ${
+              isHome && !isDark
+                ? "gap-4 rounded-full bg-black/35 px-4 py-2 border border-white/25 backdrop-blur-md"
+                : "gap-8"
+            }`}
+          >
             <Link
               to={createPageUrl("Home")}
-              className={`text-sm font-medium hover:text-blue-600 transition-colors ${
-                isHome ? "text-white hover:text-blue-300" : "tk-theme-text"
+              className={`text-sm font-medium hover:text-violet-500 transition-colors ${
+                isHome
+                  ? isDark
+                    ? "text-white hover:text-violet-200"
+                    : "text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] hover:text-violet-100"
+                  : "tk-theme-text"
               }`}
             >
               Inicio
             </Link>
             <Link
               to={createPageUrl("Products")}
-              className={`text-sm font-medium hover:text-blue-600 transition-colors ${
-                isHome ? "text-white hover:text-blue-300" : "tk-theme-text"
+              className={`text-sm font-medium hover:text-violet-500 transition-colors ${
+                isHome
+                  ? isDark
+                    ? "text-white hover:text-violet-200"
+                    : "text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] hover:text-violet-100"
+                  : "tk-theme-text"
               }`}
             >
               Productos
             </Link>
             <Link
               to={createPageUrl("About")}
-              className={`text-sm font-medium hover:text-blue-600 transition-colors ${
-                isHome ? "text-white hover:text-blue-300" : "tk-theme-text"
+              className={`text-sm font-medium hover:text-violet-500 transition-colors ${
+                isHome
+                  ? isDark
+                    ? "text-white hover:text-violet-200"
+                    : "text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] hover:text-violet-100"
+                  : "tk-theme-text"
               }`}
             >
               Nosotros
             </Link>
             <Link
               to={createPageUrl("Contact")}
-              className={`text-sm font-medium hover:text-blue-600 transition-colors ${
-                isHome ? "text-white hover:text-blue-300" : "tk-theme-text"
+              className={`text-sm font-medium hover:text-violet-500 transition-colors ${
+                isHome
+                  ? isDark
+                    ? "text-white hover:text-violet-200"
+                    : "text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] hover:text-violet-100"
+                  : "tk-theme-text"
               }`}
             >
               Contacto
@@ -165,10 +196,12 @@ export default function Layout({ children, currentPageName }) {
               aria-label="Buscar productos"
               className={`hidden md:flex p-2 rounded-lg transition-colors duration-300 ${
                 isHome
-                  ? "text-white bg-white/10 hover:bg-white/20"
+                  ? isDark
+                    ? "text-white bg-white/10 hover:bg-white/20"
+                    : "text-white bg-black/45 border border-white/25 shadow-lg shadow-black/35 hover:bg-black/60"
                   : hasSearchTerm
-                    ? "text-white bg-blue-600 hover:bg-blue-700"
-                    : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-blue-100"
+                    ? "text-white bg-violet-600 hover:bg-violet-700"
+                    : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-violet-100"
               }`}
             >
               <Search className="w-5 h-5" />
@@ -178,7 +211,9 @@ export default function Layout({ children, currentPageName }) {
                 <Link
                   to="/checkout?mode=login"
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] border transition-colors ${isHome
-                      ? "border-white/40 text-white hover:bg-white/10"
+                      ? isDark
+                        ? "border-white/40 text-white hover:bg-white/10"
+                        : "border-white/25 bg-black/45 text-white shadow-lg shadow-black/35 hover:bg-black/60"
                       : "tk-theme-border tk-theme-text hover:bg-[var(--tk-field-bg)]"
                     }`}
                 >
@@ -188,7 +223,7 @@ export default function Layout({ children, currentPageName }) {
                   to="/checkout?mode=register"
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] transition-colors ${isHome
                       ? "bg-white text-[#0A0A0A] hover:bg-white/90"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-violet-600 text-white hover:bg-violet-700"
                     }`}
                 >
                   Registrarse
@@ -198,7 +233,9 @@ export default function Layout({ children, currentPageName }) {
               <Link
                 to="/checkout"
                 className={`hidden md:flex px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] border transition-colors ${isHome
-                    ? "border-white/40 text-white hover:bg-white/10"
+                    ? isDark
+                      ? "border-white/40 text-white hover:bg-white/10"
+                      : "border-white/25 bg-black/45 text-white shadow-lg shadow-black/35 hover:bg-black/60"
                     : "tk-theme-border tk-theme-text hover:bg-[var(--tk-field-bg)]"
                   }`}
               >
@@ -208,11 +245,11 @@ export default function Layout({ children, currentPageName }) {
             <Link
               to="/checkout"
               className={`relative p-2 transition-colors duration-300 ${
-                isHome ? "text-white hover:text-blue-300" : "tk-theme-text hover:text-blue-600"
+                isHome ? "text-white hover:text-violet-200" : "tk-theme-text hover:text-violet-600"
               }`}
             >
               <ShoppingBag className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-600 rounded-full text-[10px] text-white flex items-center justify-center font-medium">
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-violet-600 rounded-full text-[10px] text-white flex items-center justify-center font-medium">
                 {totalQty}
               </span>
             </Link>
@@ -225,10 +262,12 @@ export default function Layout({ children, currentPageName }) {
                 aria-label="Buscar productos"
                 className={`p-2 rounded-lg transition-colors duration-300 ${
                   isHome
+                  ? isDark
                     ? "text-white bg-white/10 hover:bg-white/20"
-                    : hasSearchTerm
-                      ? "text-white bg-blue-600 hover:bg-blue-700"
-                      : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-blue-100"
+                    : "text-white bg-black/45 border border-white/25 shadow-md shadow-black/35 hover:bg-black/60"
+                  : hasSearchTerm
+                      ? "text-white bg-violet-600 hover:bg-violet-700"
+                      : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-violet-100"
                 }`}
               >
                 <Search className="w-5 h-5" />
@@ -240,17 +279,17 @@ export default function Layout({ children, currentPageName }) {
 
         {isSearchOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.22 }}
+            initial={reduceMotion ? false : { opacity: 0, y: -16 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: -16 }}
+            transition={reduceMotion ? undefined : { duration: 0.22 }}
             className="pt-4"
           >
             <form
               onSubmit={handleSearchSubmit}
               className="max-w-7xl mx-auto tk-theme-surface border tk-theme-border rounded-2xl shadow-xl p-2 md:p-3 flex items-center gap-2"
             >
-              <Search className="w-4 h-4 md:w-5 md:h-5 text-blue-600 shrink-0 ml-2" />
+              <Search className="w-4 h-4 md:w-5 md:h-5 text-violet-500 shrink-0 ml-2" />
               <input
                 ref={searchInputRef}
                 value={searchTerm}
@@ -271,23 +310,23 @@ export default function Layout({ children, currentPageName }) {
               )}
               <button
                 type="submit"
-                className="px-4 md:px-5 h-9 rounded-xl bg-blue-600 text-white text-xs md:text-sm tracking-[0.12em] uppercase font-semibold hover:bg-blue-700 transition-colors"
+                className="px-4 md:px-5 h-9 rounded-xl bg-violet-600 text-white text-xs md:text-sm tracking-[0.12em] uppercase font-semibold hover:bg-violet-700 transition-colors"
               >
                 Buscar
               </button>
             </form>
           </motion.div>
         )}
-      </motion.header >
+      </motion.header>
 
       {/* Page Content */}
-      < main >
+      <main>
         {children}
-      </main >
+      </main>
 
       {/* WhatsApp Floating Button */}
-      < WhatsAppButton />
+      <WhatsAppButton />
       <CartNotice />
-    </div >
+    </div>
   );
 }

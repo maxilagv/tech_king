@@ -210,8 +210,9 @@ export default function OrdersAdmin() {
 
       await runTransaction(db, async (tx) => {
         const orderRef = doc(collection(db, "orders"));
-        const orderItems = [];
+        const draftItems = [];
 
+        // Read phase: all product reads first.
         for (const row of validItems) {
           const productRef = doc(db, "products", row.productId);
           const productSnap = await tx.get(productRef);
@@ -225,33 +226,38 @@ export default function OrdersAdmin() {
             throw new Error(`Stock insuficiente para ${data.nombre || "producto"}`);
           }
 
-          const unitPrice = Number(data.precio || 0);
-          const unitCost = Number(data.costoActual || 0);
-          const item = {
-            productId: row.productId,
-            nombre: data.nombre || "Producto",
-            precio: unitPrice,
-            cantidad: quantity,
-            costoUnitarioARS: unitCost,
-          };
-          orderItems.push(item);
+          draftItems.push({
+            productRef,
+            currentStock,
+            item: {
+              productId: row.productId,
+              nombre: data.nombre || "Producto",
+              precio: Number(data.precio || 0),
+              cantidad: quantity,
+              costoUnitarioARS: Number(data.costoActual || 0),
+            },
+          });
+        }
 
-          tx.update(productRef, {
-            stockActual: currentStock - item.cantidad,
+        const orderItems = draftItems.map((entry) => entry.item);
+        const totals = calculateOrderTotals(orderItems);
+
+        // Write phase: product updates, movements, finance and order.
+        for (const entry of draftItems) {
+          tx.update(entry.productRef, {
+            stockActual: entry.currentStock - entry.item.cantidad,
             updatedAt: serverTimestamp(),
           });
 
           tx.set(doc(collection(db, "stock_movements")), {
-            productId: item.productId,
+            productId: entry.item.productId,
             tipo: "egreso",
-            cantidad: item.cantidad,
+            cantidad: entry.item.cantidad,
             motivo: "venta_local",
             orderId: orderRef.id,
             createdAt: serverTimestamp(),
           });
         }
-
-        const totals = calculateOrderTotals(orderItems);
 
         tx.set(doc(collection(db, "finance")), {
           tipo: "ingreso",
@@ -307,7 +313,8 @@ export default function OrdersAdmin() {
         throw new Error("El pedido no tiene items validos.");
       }
 
-      const enrichedItems = [];
+      const productDrafts = [];
+      // Read phase: read all products first.
       for (const item of items) {
         const productRef = doc(db, "products", item.productId);
         const productSnap = await tx.get(productRef);
@@ -320,36 +327,43 @@ export default function OrdersAdmin() {
         if (nextStock < 0) {
           throw new Error(`Stock insuficiente para ${data.nombre}`);
         }
-        const unitPrice = Number(item.precio || data.precio || 0);
-        const unitCost =
-          item.costoUnitarioARS === null || item.costoUnitarioARS === undefined
-            ? Number(data.costoActual || 0)
-            : Number(item.costoUnitarioARS || 0);
+        productDrafts.push({
+          item,
+          productRef,
+          data,
+          nextStock,
+        });
+      }
 
-        tx.update(productRef, {
-          stockActual: nextStock,
+      const enrichedItems = productDrafts.map((draft) => ({
+        productId: draft.item.productId,
+        nombre: draft.item.nombre || draft.data.nombre || "Producto",
+        precio: Number(draft.item.precio || draft.data.precio || 0),
+        cantidad: draft.item.cantidad,
+        costoUnitarioARS:
+          draft.item.costoUnitarioARS === null || draft.item.costoUnitarioARS === undefined
+            ? Number(draft.data.costoActual || 0)
+            : Number(draft.item.costoUnitarioARS || 0),
+      }));
+
+      const totals = calculateOrderTotals(enrichedItems);
+
+      // Write phase.
+      for (const draft of productDrafts) {
+        tx.update(draft.productRef, {
+          stockActual: draft.nextStock,
           updatedAt: serverTimestamp(),
         });
 
         tx.set(doc(collection(db, "stock_movements")), {
-          productId: item.productId,
+          productId: draft.item.productId,
           tipo: "egreso",
-          cantidad: item.cantidad,
+          cantidad: draft.item.cantidad,
           motivo: "venta_web",
           orderId: order.id,
           createdAt: serverTimestamp(),
         });
-
-        enrichedItems.push({
-          productId: item.productId,
-          nombre: item.nombre || data.nombre || "Producto",
-          precio: unitPrice,
-          cantidad: item.cantidad,
-          costoUnitarioARS: unitCost,
-        });
       }
-
-      const totals = calculateOrderTotals(enrichedItems);
 
       tx.set(doc(collection(db, "finance")), {
         tipo: "ingreso",
@@ -405,7 +419,9 @@ export default function OrdersAdmin() {
           normalizeOrderItems(current.items).map((item) => [item.productId, { ...item }])
         );
         const adjustmentItems = [];
+        const productDrafts = [];
 
+        // Read phase.
         for (const row of validItems) {
           const productRef = doc(db, "products", row.productId);
           const productSnap = await tx.get(productRef);
@@ -417,22 +433,8 @@ export default function OrdersAdmin() {
           const existing = itemsMap.get(row.productId);
           const quantityToAdd = Number(row.cantidad || 0);
 
-          if (current.stockApplied) {
-            if (currentStock < quantityToAdd) {
-              throw new Error(`Stock insuficiente para ${data.nombre || "producto"}`);
-            }
-            tx.update(productRef, {
-              stockActual: currentStock - quantityToAdd,
-              updatedAt: serverTimestamp(),
-            });
-            tx.set(doc(collection(db, "stock_movements")), {
-              productId: row.productId,
-              tipo: "egreso",
-              cantidad: quantityToAdd,
-              motivo: "ajuste_pedido",
-              orderId,
-              createdAt: serverTimestamp(),
-            });
+          if (current.stockApplied && currentStock < quantityToAdd) {
+            throw new Error(`Stock insuficiente para ${data.nombre || "producto"}`);
           }
 
           const nextLine = {
@@ -454,12 +456,37 @@ export default function OrdersAdmin() {
             precio: nextLine.precio,
             costoUnitarioARS: nextLine.costoUnitarioARS,
           });
+
+          productDrafts.push({
+            productRef,
+            productId: row.productId,
+            quantityToAdd,
+            currentStock,
+          });
         }
 
         const mergedItems = Array.from(itemsMap.values());
         const previousTotal = roundMoney(Number(current.total || 0));
         const totals = calculateOrderTotals(mergedItems);
         const deltaTotal = roundMoney(totals.revenue - previousTotal);
+
+        // Write phase.
+        if (current.stockApplied) {
+          for (const draft of productDrafts) {
+            tx.update(draft.productRef, {
+              stockActual: draft.currentStock - draft.quantityToAdd,
+              updatedAt: serverTimestamp(),
+            });
+            tx.set(doc(collection(db, "stock_movements")), {
+              productId: draft.productId,
+              tipo: "egreso",
+              cantidad: draft.quantityToAdd,
+              motivo: "ajuste_pedido",
+              orderId,
+              createdAt: serverTimestamp(),
+            });
+          }
+        }
 
         if (current.financeApplied && deltaTotal > 0) {
           tx.set(doc(collection(db, "finance")), {
@@ -524,22 +551,33 @@ export default function OrdersAdmin() {
           return;
         }
 
-        const items = current.items || [];
+        const items = normalizeOrderItems(current.items || []);
+        const productDrafts = [];
         if (current.stockApplied) {
           for (const item of items) {
             const productRef = doc(db, "products", item.productId);
             const productSnap = await tx.get(productRef);
             if (!productSnap.exists()) continue;
             const data = productSnap.data();
-            const currentStock = data.stockActual ?? 0;
-            tx.update(productRef, {
-              stockActual: currentStock + Number(item.cantidad || 0),
+            const currentStock = Number(data.stockActual ?? 0);
+            productDrafts.push({
+              item,
+              productRef,
+              nextStock: currentStock + Number(item.cantidad || 0),
+            });
+          }
+        }
+
+        if (current.stockApplied) {
+          for (const draft of productDrafts) {
+            tx.update(draft.productRef, {
+              stockActual: draft.nextStock,
               updatedAt: serverTimestamp(),
             });
             tx.set(doc(collection(db, "stock_movements")), {
-              productId: item.productId,
+              productId: draft.item.productId,
               tipo: "ingreso",
-              cantidad: Number(item.cantidad || 0),
+              cantidad: Number(draft.item.cantidad || 0),
               motivo: "cancelacion",
               orderId: order.id,
               createdAt: serverTimestamp(),

@@ -44,7 +44,7 @@ service cloud.firestore {
         request.auth.token.admin == true ||
         request.auth.token.role == "super_admin" ||
         request.auth.uid == "GauPQvDIhPWfAvlu55CwmfLB15k1" ||
-        request.auth.token.email == "techking@gmail.com" ||
+        request.auth.token.email == "nexaelectronics@gmail.com" ||
         adminUserRoleIs("super_admin")
       );
     }
@@ -64,6 +64,7 @@ service cloud.firestore {
     function canManageProducts() { return isSuperAdmin() || hasModule("products"); }
     function canManageCategories() { return isSuperAdmin() || hasModule("categories"); }
     function canManageOffers() { return isSuperAdmin() || hasModule("offers"); }
+    function canManageLanding() { return isSuperAdmin() || hasModule("landing"); }
     function canManageCustomers() { return isSuperAdmin() || hasModule("customers"); }
     function canManageOrders() { return isSuperAdmin() || hasModule("orders"); }
     function canManageRemitos() { return isSuperAdmin() || hasModule("remitos"); }
@@ -199,6 +200,15 @@ service cloud.firestore {
       && request.resource.data.stockActual is number
       && request.resource.data.stockActual >= 0
       && (request.resource.data.costoActual is number || !("costoActual" in request.resource.data))
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function isProductStockOnlyUpdate() {
+      return request.writeFields.hasOnly([
+        "stockActual", "updatedAt"
+      ])
+      && request.resource.data.stockActual is number
+      && request.resource.data.stockActual >= 0
       && validServerTimestamp(request.resource.data.updatedAt);
     }
 
@@ -345,6 +355,89 @@ service cloud.firestore {
       && validServerTimestamp(request.resource.data.updatedAt);
     }
 
+    function validOrderUpdateSelf() {
+      return request.resource.data.keys().hasOnly([
+        "customerId", "items", "total", "status", "source",
+        "stockApplied", "financeApplied", "financialSummary",
+        "hasAdjustments", "lastAdjustmentAt", "customerSnapshot",
+        "remitoId", "remitoNumero", "createdAt", "updatedAt"
+      ])
+      && request.resource.data.customerId == request.auth.uid
+      && request.resource.data.customerId == resource.data.customerId
+      && request.resource.data.items is list
+      && request.resource.data.items.size() > 0
+      && request.resource.data.total is number
+      && request.resource.data.total >= 0
+      && request.resource.data.status == "pendiente"
+      && resource.data.status == "pendiente"
+      && request.resource.data.source == "web"
+      && resource.data.source == "web"
+      && request.resource.data.stockApplied == false
+      && request.resource.data.financeApplied == false
+      && (
+        !("financialSummary" in request.resource.data)
+        || request.resource.data.financialSummary == null
+      )
+      && (
+        !("hasAdjustments" in request.resource.data)
+        || request.resource.data.hasAdjustments == false
+      )
+      && (
+        !("lastAdjustmentAt" in request.resource.data)
+        || request.resource.data.lastAdjustmentAt == null
+      )
+      && (
+        !("remitoId" in request.resource.data)
+        || request.resource.data.remitoId == null
+      )
+      && (
+        !("remitoNumero" in request.resource.data)
+        || request.resource.data.remitoNumero == null
+      )
+      && (
+        request.resource.data.customerSnapshot is map
+        || request.resource.data.customerSnapshot == null
+        || !("customerSnapshot" in request.resource.data)
+      )
+      && request.resource.data.createdAt == resource.data.createdAt
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function validLandingHeroBase() {
+      return request.resource.data.keys().hasOnly([
+        "titulo", "subtitulo", "descripcion", "badge",
+        "ctaLabel", "ctaUrl", "imagen", "orden",
+        "activo", "createdAt", "updatedAt"
+      ])
+      && request.resource.data.titulo is string
+      && request.resource.data.titulo.size() >= 3
+      && (request.resource.data.subtitulo is string || !("subtitulo" in request.resource.data))
+      && request.resource.data.descripcion is string
+      && request.resource.data.descripcion.size() >= 10
+      && (request.resource.data.badge is string || !("badge" in request.resource.data))
+      && request.resource.data.ctaLabel is string
+      && request.resource.data.ctaLabel.size() >= 2
+      && request.resource.data.ctaUrl is string
+      && request.resource.data.ctaUrl.size() >= 1
+      && request.resource.data.ctaUrl.size() <= 180
+      && request.resource.data.imagen is string
+      && request.resource.data.imagen.size() > 10
+      && request.resource.data.orden is number
+      && (request.resource.data.activo is bool || !("activo" in request.resource.data));
+    }
+
+    function validLandingHeroCreate() {
+      return validLandingHeroBase()
+      && validServerTimestamp(request.resource.data.createdAt)
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
+    function validLandingHeroUpdate() {
+      return validLandingHeroBase()
+      && request.resource.data.createdAt == resource.data.createdAt
+      && validServerTimestamp(request.resource.data.updatedAt);
+    }
+
     function validRemitoCreate() {
       return request.resource.data.keys().hasOnly([
         "numero", "orderId", "customerId", "total", "createdAt"
@@ -460,7 +553,8 @@ service cloud.firestore {
     match /products/{productId} {
       allow get, list: if true;
       allow create: if canManageProducts() && validProductCreate();
-      allow update: if canManageProducts() && (validProductUpdate() || isProductStockCostUpdate());
+      allow update: if (canManageProducts() && (validProductUpdate() || isProductStockCostUpdate()))
+                    || (canManageOrders() && isProductStockOnlyUpdate());
       allow delete: if canManageProducts();
     }
 
@@ -469,6 +563,13 @@ service cloud.firestore {
       allow create: if canManageOffers() && validOfferCreate();
       allow update: if canManageOffers() && validOfferUpdate();
       allow delete: if canManageOffers();
+    }
+
+    match /landing_heroes/{heroId} {
+      allow get, list: if true;
+      allow create: if canManageLanding() && validLandingHeroCreate();
+      allow update: if canManageLanding() && validLandingHeroUpdate();
+      allow delete: if canManageLanding();
     }
 
     // ----------------------------
@@ -489,8 +590,10 @@ service cloud.firestore {
       allow create: if (canManageOrders() && validOrderCreateAdmin())
                     || (isSignedIn() && validOrderCreateSelf());
       allow get: if canManageOrders() || (isSignedIn() && resource.data.customerId == request.auth.uid);
-      allow list: if canManageOrders();
-      allow update: if canManageOrders() && validOrderUpdateAdmin();
+      allow list: if canManageOrders()
+                  || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow update: if (canManageOrders() && validOrderUpdateAdmin())
+                    || (isSignedIn() && resource.data.customerId == request.auth.uid && validOrderUpdateSelf());
       allow delete: if canManageOrders();
     }
 

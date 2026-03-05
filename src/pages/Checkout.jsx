@@ -13,7 +13,42 @@ import { useCart } from "@/context/CartContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
+import { useCustomerOrders } from "@/hooks/useCustomerOrders";
 import { getProductPricing } from "@/utils/offers";
+
+function getTimestampValue(value) {
+  if (!value) return 0;
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+  return 0;
+}
+
+function formatDateTime(value) {
+  const timeValue = getTimestampValue(value);
+  if (!timeValue) return "-";
+  return new Date(timeValue).toLocaleString("es-AR");
+}
+
+function formatCurrency(value) {
+  return Number(value || 0).toLocaleString("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 2,
+  });
+}
+
+function getOrderStatusMeta(status) {
+  if (status === "confirmado") {
+    return { label: "Confirmado", className: "bg-emerald-500/15 text-emerald-500" };
+  }
+  if (status === "despachado") {
+    return { label: "Despachado", className: "bg-indigo-500/15 text-indigo-500" };
+  }
+  if (status === "cancelado") {
+    return { label: "Cancelado", className: "bg-red-500/15 text-red-500" };
+  }
+  return { label: "Pendiente", className: "bg-amber-500/15 text-amber-600" };
+}
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -22,11 +57,15 @@ export default function Checkout() {
   const { products } = useProducts({ onlyActive: true });
   const { offers } = useOffers({ onlyActive: true });
   const { profile } = useCustomerProfile(user);
+  const customerOrdersAccessId = user?.uid && !isAdmin && !checkingAdmin ? user.uid : "";
+  const { orders: customerOrders, loading: customerOrdersLoading, error: customerOrdersError } =
+    useCustomerOrders(customerOrdersAccessId);
   const { items, clear, updateQty, removeItem } = useCart();
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [expandedOrderId, setExpandedOrderId] = useState("");
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -81,6 +120,24 @@ export default function Checkout() {
   );
 
   const canCheckout = pricedItems.length > 0 && user && profile && !isAdmin && !checkingAdmin;
+  const investedTotal = useMemo(
+    () =>
+      customerOrders
+        .filter((order) => order.status !== "cancelado")
+        .reduce((sum, order) => sum + Number(order.total || 0), 0),
+    [customerOrders]
+  );
+  const completedOrders = useMemo(
+    () =>
+      customerOrders.filter(
+        (order) => order.status === "confirmado" || order.status === "despachado"
+      ).length,
+    [customerOrders]
+  );
+  const pendingOrders = useMemo(
+    () => customerOrders.filter((order) => order.status === "pendiente").length,
+    [customerOrders]
+  );
 
   const customerSnapshot = useMemo(() => {
     if (!profile) return null;
@@ -100,6 +157,12 @@ export default function Checkout() {
       setMode(desired);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!customerOrders.some((order) => order.id === expandedOrderId)) {
+      setExpandedOrderId("");
+    }
+  }, [customerOrders, expandedOrderId]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -200,7 +263,7 @@ export default function Checkout() {
       <div className="max-w-6xl mx-auto grid lg:grid-cols-[1.1fr_0.9fr] gap-10">
         <div className="space-y-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-blue-600">Checkout</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-violet-600">Checkout</p>
             <h1 className="text-3xl md:text-4xl font-semibold tk-theme-text mt-2">
               Finaliza tu compra
             </h1>
@@ -212,7 +275,7 @@ export default function Checkout() {
                 <button
                   onClick={() => setMode("login")}
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] ${
-                    mode === "login" ? "bg-blue-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
+                    mode === "login" ? "bg-violet-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
                   }`}
                 >
                   Ingresar
@@ -220,7 +283,7 @@ export default function Checkout() {
                 <button
                   onClick={() => setMode("register")}
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] ${
-                    mode === "register" ? "bg-blue-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
+                    mode === "register" ? "bg-violet-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
                   }`}
                 >
                   Registrarse
@@ -252,7 +315,7 @@ export default function Checkout() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em]"
+                    className="w-full rounded-2xl bg-violet-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em]"
                   >
                     {loading ? "Ingresando..." : "Ingresar"}
                   </button>
@@ -331,15 +394,15 @@ export default function Checkout() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em]"
+                    className="w-full rounded-2xl bg-violet-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em]"
                   >
                     {loading ? "Creando..." : "Crear cuenta"}
                   </button>
                 </form>
               )}
             </div>
-          ) : (
-            <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg space-y-4">
+            ) : (
+              <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] tk-theme-muted">Cuenta</p>
@@ -349,7 +412,7 @@ export default function Checkout() {
                 </div>
                 <button
                   onClick={() => signOut(auth)}
-                  className="text-xs uppercase tracking-[0.2em] text-blue-600"
+                  className="text-xs uppercase tracking-[0.2em] text-violet-600"
                 >
                   Cerrar sesion
                 </button>
@@ -369,6 +432,126 @@ export default function Checkout() {
                 <p className="text-sm text-red-500">
                   Estas logueado como administrador. Cerra sesion para comprar.
                 </p>
+                )}
+              </div>
+            )}
+
+          {user && !isAdmin && (
+            <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg space-y-5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] tk-theme-muted">Mi cuenta</p>
+                <h2 className="text-2xl font-semibold mt-2">Mis compras</h2>
+                <p className="text-sm tk-theme-muted mt-2">
+                  Historial completo de pedidos y detalle por compra.
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border tk-theme-border bg-[var(--tk-field-bg)] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.18em] tk-theme-muted">Pedidos</p>
+                  <p className="text-xl font-semibold mt-1">{customerOrders.length}</p>
+                </div>
+                <div className="rounded-2xl border tk-theme-border bg-[var(--tk-field-bg)] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.18em] tk-theme-muted">Completados</p>
+                  <p className="text-xl font-semibold mt-1">{completedOrders}</p>
+                </div>
+                <div className="rounded-2xl border tk-theme-border bg-[var(--tk-field-bg)] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.18em] tk-theme-muted">Total invertido</p>
+                  <p className="text-lg font-semibold mt-1">{formatCurrency(investedTotal)}</p>
+                </div>
+              </div>
+
+              {pendingOrders > 0 && (
+                <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-500">
+                  Tienes {pendingOrders} pedido(s) pendiente(s) de confirmacion.
+                </div>
+              )}
+
+              {customerOrdersLoading ? (
+                <div className="py-10 text-sm tk-theme-muted">Cargando tus compras...</div>
+              ) : customerOrdersError ? (
+                <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+                  {customerOrdersError}
+                </div>
+              ) : customerOrders.length === 0 ? (
+                <div className="py-10 text-sm tk-theme-muted">
+                  Aun no tienes pedidos registrados.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {customerOrders.map((order) => {
+                    const statusMeta = getOrderStatusMeta(order.status);
+                    const isExpanded = expandedOrderId === order.id;
+                    const orderItems = Array.isArray(order.items) ? order.items : [];
+
+                    return (
+                      <div
+                        key={order.id}
+                        className="rounded-2xl border tk-theme-border bg-[var(--tk-surface-elevated)] px-4 py-4"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold">Pedido #{order.id.slice(0, 8)}</p>
+                            <p className="text-xs tk-theme-muted mt-1">
+                              {formatDateTime(order.createdAt)}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.2em] ${statusMeta.className}`}
+                            >
+                              {statusMeta.label}
+                            </span>
+                            <span className="px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.2em] bg-violet-500/15 text-violet-500">
+                              {formatCurrency(order.total)}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedOrderId(isExpanded ? "" : order.id)}
+                              className="px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.2em] border tk-theme-border hover:bg-[var(--tk-field-bg)] transition"
+                            >
+                              {isExpanded ? "Ocultar detalle" : "Ver detalle"}
+                            </button>
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="mt-4 pt-4 border-t tk-theme-border space-y-3">
+                            <div className="space-y-2">
+                              {orderItems.length === 0 ? (
+                                <p className="text-sm tk-theme-muted">Sin items disponibles.</p>
+                              ) : (
+                                orderItems.map((item, itemIndex) => (
+                                  <div
+                                    key={`${order.id}-${item.productId || itemIndex}`}
+                                    className="flex items-center justify-between text-sm"
+                                  >
+                                    <div>
+                                      <p className="font-medium">{item.nombre || "Producto"}</p>
+                                      <p className="text-xs tk-theme-muted">
+                                        {Number(item.cantidad || 0)} x {formatCurrency(item.precio)}
+                                      </p>
+                                    </div>
+                                    <p className="font-semibold">
+                                      {formatCurrency(Number(item.cantidad || 0) * Number(item.precio || 0))}
+                                    </p>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+
+                            {order.remitoNumero && (
+                              <p className="text-xs tk-theme-muted">
+                                Remito N° {order.remitoNumero}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}
@@ -442,7 +625,7 @@ export default function Checkout() {
                       </button>
                     </div>
                     {item.pricing?.volumeHintMinUnits && !item.pricing?.hasOffer && (
-                      <p className="text-[11px] text-blue-600 mt-1">
+                      <p className="text-[11px] text-violet-600 mt-1">
                         Mejora desde {item.pricing.volumeHintMinUnits} unidades.
                       </p>
                     )}
@@ -476,7 +659,7 @@ export default function Checkout() {
               <button
                 onClick={handleCheckout}
                 disabled={!canCheckout || loading}
-                className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] disabled:opacity-50"
+                className="w-full rounded-2xl bg-violet-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] disabled:opacity-50"
               >
                 {loading ? "Procesando..." : "Confirmar pedido"}
               </button>
