@@ -71,31 +71,31 @@ export default function ProductDetail() {
     return () => document.removeEventListener("keydown", onEsc);
   }, [zoomOpen]);
 
-  if (!loading && !product) {
+  if (loading) {
     return (
-      <div className="min-h-screen tk-theme-bg pt-28 pb-20 px-6 md:px-16 lg:px-24">
-        <div className="max-w-4xl mx-auto rounded-3xl tk-theme-card p-10 text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-violet-600">Producto</p>
-          <h1 className="text-3xl font-semibold mt-3 tk-theme-text">No encontrado</h1>
-          <p className="text-sm tk-theme-muted mt-3">
-            El producto que intentaste abrir no existe o no esta activo.
-          </p>
-          <Link
-            to="/products"
-            className="inline-flex items-center gap-2 mt-6 rounded-full bg-violet-600 px-5 py-3 text-xs tracking-[0.2em] uppercase text-white"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al catalogo
-          </Link>
-        </div>
+      <div className="min-h-screen tk-theme-bg pt-28 pb-20 flex items-center justify-center">
+        <div className="text-sm tk-theme-muted">Cargando producto...</div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen tk-theme-bg pt-28 pb-20 flex items-center justify-center">
-        <div className="text-sm tk-theme-muted">Cargando producto...</div>
+      <div className="min-h-screen tk-theme-bg pt-28 pb-20 px-6 md:px-16 lg:px-24">
+        <div className="max-w-4xl mx-auto rounded-3xl tk-theme-card p-10 text-center">
+          <p className="text-xs uppercase tracking-[0.3em] text-blue-600">Producto</p>
+          <h1 className="text-3xl font-semibold mt-3 tk-theme-text">No encontrado</h1>
+          <p className="text-sm tk-theme-muted mt-3">
+            El producto que intentaste abrir no existe o no esta activo.
+          </p>
+          <Link
+            to="/products"
+            className="inline-flex items-center gap-2 mt-6 rounded-full bg-blue-600 px-5 py-3 text-xs tracking-[0.2em] uppercase text-white"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Volver al catalogo
+          </Link>
+        </div>
       </div>
     );
   }
@@ -150,7 +150,7 @@ export default function ProductDetail() {
         <div className="max-w-7xl mx-auto">
           <Link
             to="/products"
-            className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase tk-theme-muted hover:text-violet-600"
+            className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase tk-theme-muted hover:text-blue-600"
           >
             <ArrowLeft className="w-4 h-4" />
             Volver al catalogo
@@ -193,7 +193,7 @@ export default function ProductDetail() {
                       type="button"
                       onClick={() => setSelectedImageIndex(index)}
                       className={`rounded-xl overflow-hidden border ${
-                        selectedImageIndex === index ? "border-violet-600" : "tk-theme-border"
+                        selectedImageIndex === index ? "border-blue-600" : "tk-theme-border"
                       }`}
                     >
                       <img src={img} alt={`${product.nombre}-${index + 1}`} className="w-full h-16 object-cover" />
@@ -218,7 +218,7 @@ export default function ProductDetail() {
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold tk-theme-text">{product.nombre}</h1>
                 {product.marca && (
-                  <p className="text-sm uppercase tracking-[0.2em] text-violet-600 mt-2">{product.marca}</p>
+                  <p className="text-sm uppercase tracking-[0.2em] text-blue-600 mt-2">{product.marca}</p>
                 )}
               </div>
 
@@ -257,7 +257,7 @@ export default function ProductDetail() {
                       value={qty}
                       onChange={(event) => handleQtyChange(event.target.value)}
                       disabled={outOfStock}
-                      className="w-14 h-10 text-center text-sm bg-white text-[#0A0A0A] outline-none"
+                      className="w-14 h-10 text-center text-sm bg-transparent tk-theme-text outline-none"
                     />
                     <button
                       type="button"
@@ -273,7 +273,7 @@ export default function ProductDetail() {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={outOfStock}
-                    className="hidden md:flex flex-1 items-center justify-center rounded-2xl bg-violet-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-violet-700 transition disabled:bg-black/20 disabled:text-white/60"
+                    className="hidden md:flex flex-1 items-center justify-center rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:bg-black/20 disabled:text-white/60"
                   >
                     <span className="inline-flex items-center gap-2">
                       <ShoppingBag className="w-4 h-4" />
@@ -284,7 +284,7 @@ export default function ProductDetail() {
 
                 {hasStockLimit && <p className="text-xs tk-theme-muted">Stock disponible: {maxStock}</p>}
                 {pricing.volumeHintMinUnits && (
-                  <p className="text-xs text-violet-600">
+                  <p className="text-xs text-blue-600">
                     Esta oferta mejora desde {pricing.volumeHintMinUnits} unidades.
                   </p>
                 )}
@@ -325,7 +325,7 @@ export default function ProductDetail() {
             type="button"
             onClick={handleAddToCart}
             disabled={outOfStock}
-            className="flex-1 rounded-xl bg-violet-600 text-white py-3 text-xs font-semibold uppercase tracking-[0.2em] disabled:bg-black/20 disabled:text-white/60"
+            className="flex-1 rounded-xl bg-blue-600 text-white py-3 text-xs font-semibold uppercase tracking-[0.2em] disabled:bg-black/20 disabled:text-white/60"
           >
             {outOfStock ? "Sin stock" : `Agregar x${qty}`}
           </button>

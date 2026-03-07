@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -79,36 +79,34 @@ export default function HeroSection() {
   if (slides.length === 0) return null;
 
   const activeSlide = slides[index];
-  const heroHeightClass = isDark
-    ? "min-h-[90vh] md:min-h-[98vh]"
-    : "min-h-[94vh] md:min-h-[106vh]";
+  const heroHeightClass = "min-h-[90vh] md:min-h-screen";
   const contentSpacingClass = isDark ? "pb-14 pt-28 md:pt-32" : "pb-20 pt-32 md:pt-40";
   const titleSizeClass = isDark
     ? "text-4xl md:text-6xl lg:text-7xl"
     : "text-4xl md:text-6xl lg:text-8xl";
   const overlayMainClass = isDark
-    ? "absolute inset-0 bg-gradient-to-r from-[#09051f]/85 via-[#120b2f]/62 to-[#0a0822]/78"
-    : "absolute inset-0 bg-gradient-to-r from-[#09051f]/92 via-[#120b2f]/78 to-[#0a0822]/88";
+    ? "absolute inset-0 bg-gradient-to-r from-[#020c1e]/85 via-[#071530]/62 to-[#020c1e]/78"
+    : "absolute inset-0 bg-gradient-to-r from-[#020c1e]/92 via-[#071530]/78 to-[#020c1e]/88";
   const overlayBottomClass = isDark
-    ? "absolute inset-0 bg-[linear-gradient(to_top,rgba(9,5,31,0.96),rgba(9,5,31,0.28)_38%,rgba(9,5,31,0.12))]"
-    : "absolute inset-0 bg-[linear-gradient(to_top,rgba(9,5,31,0.99),rgba(9,5,31,0.5)_42%,rgba(9,5,31,0.22))]";
+    ? "absolute inset-0 bg-[linear-gradient(to_top,rgba(2,12,30,0.96),rgba(2,12,30,0.28)_38%,rgba(2,12,30,0.12))]"
+    : "absolute inset-0 bg-[linear-gradient(to_top,rgba(2,12,30,0.99),rgba(2,12,30,0.5)_42%,rgba(2,12,30,0.22))]";
   const badgeClass = isDark
-    ? "inline-flex w-fit items-center gap-2 rounded-full border border-fuchsia-300/35 bg-fuchsia-400/15 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-fuchsia-100"
+    ? "inline-flex w-fit items-center gap-2 rounded-full border border-blue-300/35 bg-blue-400/15 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-blue-100"
     : "inline-flex w-fit items-center gap-2 rounded-full border border-white/35 bg-black/40 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] backdrop-blur-sm";
   const subtitleClass = isDark
-    ? "mt-3 text-base uppercase tracking-[0.25em] text-violet-200/90 md:text-lg"
+    ? "mt-3 text-base uppercase tracking-[0.25em] text-blue-200/90 md:text-lg"
     : "mt-3 inline-flex w-fit rounded-full border border-white/20 bg-black/35 px-3 py-1 text-sm uppercase tracking-[0.25em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] md:text-base";
   const descriptionClass = isDark
     ? "max-w-2xl text-sm leading-relaxed text-white/72 md:text-lg"
     : "max-w-2xl text-sm leading-relaxed text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] md:text-lg";
 
   return (
-    <section className={`tk-mobile-section relative ${heroHeightClass} w-full overflow-hidden bg-[#120b2f]`}>
+    <section className={`tk-mobile-section relative ${heroHeightClass} w-full overflow-hidden bg-[#020c1e]`}>
       {!reduceMotion && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-20 left-[-12%] h-[420px] w-[420px] rounded-full bg-fuchsia-500/30 blur-[140px]" />
-          <div className="absolute bottom-[-180px] right-[-10%] h-[520px] w-[520px] rounded-full bg-indigo-500/35 blur-[180px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_38%),radial-gradient(circle_at_80%_80%,rgba(147,51,234,0.22),transparent_40%)]" />
+          <div className="absolute -top-20 left-[-12%] h-[420px] w-[420px] rounded-full bg-blue-500/30 blur-[140px]" />
+          <div className="absolute bottom-[-180px] right-[-10%] h-[520px] w-[520px] rounded-full bg-sky-500/35 blur-[180px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_38%),radial-gradient(circle_at_80%_80%,rgba(37,99,235,0.22),transparent_40%)]" />
         </div>
       )}
 
@@ -158,7 +156,7 @@ export default function HeroSection() {
           transition={reduceMotion ? undefined : { duration: 0.55 }}
           className={badgeClass}
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-300" />
+          <span className="h-1.5 w-1.5 rounded-full bg-blue-300" />
           {activeSlide.badge || "Nuevos ingresos"}
         </motion.div>
 
@@ -205,7 +203,7 @@ export default function HeroSection() {
                 type="button"
                 onClick={() => setIndex(dotIndex)}
                 className={`h-2.5 rounded-full transition-all ${
-                  dotIndex === index ? "w-9 bg-fuchsia-200" : "w-2.5 bg-white/45 hover:bg-white/70"
+                  dotIndex === index ? "w-9 bg-blue-200" : "w-2.5 bg-white/45 hover:bg-white/70"
                 }`}
                 aria-label={`Ir al slide ${dotIndex + 1}`}
               />

@@ -2,6 +2,7 @@ import React from "react";
 import HeroSection from "../components/home/HeroSection";
 import OffersBanner from "../components/home/OffersBanner";
 import FeaturedProducts from "../components/home/FeaturedProducts";
+import TrustBadges from "../components/home/TrustBadges";
 import CategoriesSection from "../components/home/CategoriesSection";
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import NewsletterSection from "../components/home/NewsletterSection";
@@ -13,6 +14,7 @@ export default function Home() {
       <HeroSection />
       <OffersBanner />
       <FeaturedProducts />
+      <TrustBadges />
       <CategoriesSection />
       <TestimonialsSection />
       <NewsletterSection />

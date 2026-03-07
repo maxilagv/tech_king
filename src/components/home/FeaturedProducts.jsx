@@ -28,7 +28,7 @@ export default function FeaturedProducts() {
               initial={reduceMotion ? false : { opacity: 0 }}
               whileInView={reduceMotion ? undefined : { opacity: 1 }}
               viewport={reduceMotion ? undefined : { once: true }}
-              className="text-violet-500 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
+              className="text-blue-500 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
             >
               Lo mas vendido
             </motion.span>
@@ -41,7 +41,7 @@ export default function FeaturedProducts() {
             >
               Productos
               <br />
-              <span className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-500 bg-clip-text text-transparent">
                 destacados
               </span>
             </motion.h2>
@@ -54,7 +54,7 @@ export default function FeaturedProducts() {
           >
             <Link
               to={createPageUrl("Products")}
-              className="tk-theme-muted text-sm tracking-[0.15em] uppercase hover:text-violet-500 transition-colors duration-500 mt-6 md:mt-0 inline-block"
+              className="tk-theme-muted text-sm tracking-[0.15em] uppercase hover:text-blue-500 transition-colors duration-500 mt-6 md:mt-0 inline-block"
             >
               Ver todo -&gt;
             </Link>
@@ -62,8 +62,15 @@ export default function FeaturedProducts() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-sm tk-theme-muted">
-            Cargando destacados...
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-[3/4] rounded-2xl bg-blue-100 dark:bg-blue-900/20 mb-4" />
+                <div className="h-3 rounded bg-blue-100 dark:bg-blue-900/20 w-2/3 mb-2" />
+                <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-full mb-2" />
+                <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-1/3" />
+              </div>
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="py-16 text-center text-sm tk-theme-muted">
@@ -110,10 +117,10 @@ export default function FeaturedProducts() {
                     </div>
 
                     <div className="space-y-2">
-                      <span className="text-violet-600 text-[11px] tracking-[0.25em] uppercase font-semibold">
+                      <span className="text-blue-600 text-[11px] tracking-[0.25em] uppercase font-semibold">
                         {categoryMap[item.categorySlug] || item.categorySlug || "Electronica"}
                       </span>
-                      <h3 className="tk-theme-text text-lg font-medium leading-tight group-hover:text-violet-500 transition-colors duration-300">
+                      <h3 className="tk-theme-text text-lg font-medium leading-tight group-hover:text-blue-500 transition-colors duration-300">
                         {item.nombre}
                       </h3>
                       {pricing.hasOffer ? (

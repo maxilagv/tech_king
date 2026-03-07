@@ -31,9 +31,9 @@ export default function TestimonialsSection() {
   const reduceMotion = useShouldReduceMotion();
 
   return (
-    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-[#130b31] relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-fuchsia-500/12 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/12 rounded-full blur-2xl" />
+    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-[#071530] relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/12 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-sky-500/12 rounded-full blur-2xl" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -43,11 +43,11 @@ export default function TestimonialsSection() {
           transition={reduceMotion ? undefined : { duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-violet-200 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+          <span className="text-blue-200 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
             Testimonios
           </span>
           <h2 className="text-white text-4xl md:text-5xl font-bold tracking-tight">
-            Lo que dicen nuestros <span className="text-fuchsia-300">clientes</span>
+            Lo que dicen nuestros <span className="text-blue-300">clientes</span>
           </h2>
         </motion.div>
 
@@ -59,11 +59,11 @@ export default function TestimonialsSection() {
               whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
               viewport={reduceMotion ? undefined : { once: true }}
               transition={reduceMotion ? undefined : { delay: index * 0.1, duration: 0.5 }}
-              className="bg-white/[0.05] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.08] hover:border-violet-300/25 transition-all duration-300"
+              className="bg-white/[0.05] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.08] hover:border-blue-300/25 transition-all duration-300"
             >
               <div className="flex gap-1 mb-6">
                 {Array.from({ length: testimonial.rating }).map((_, ratingIndex) => (
-                  <Star key={ratingIndex} className="w-4 h-4 fill-violet-300 text-violet-300" />
+                  <Star key={ratingIndex} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
 
@@ -73,7 +73,7 @@ export default function TestimonialsSection() {
                 <img
                   src={testimonial.avatar}
                   alt={testimonial.name}
-                  className="w-10 h-10 rounded-full object-cover ring-2 ring-violet-300/35"
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-300/35"
                   loading="lazy"
                 />
                 <div>

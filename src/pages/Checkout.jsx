@@ -15,6 +15,7 @@ import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
 import { useCustomerOrders } from "@/hooks/useCustomerOrders";
 import { getProductPricing } from "@/utils/offers";
+import { Eye, EyeOff } from "lucide-react";
 
 function getTimestampValue(value) {
   if (!value) return 0;
@@ -66,6 +67,8 @@ export default function Checkout() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [expandedOrderId, setExpandedOrderId] = useState("");
+  const [showLoginPass, setShowLoginPass] = useState(false);
+  const [showRegisterPass, setShowRegisterPass] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -263,7 +266,7 @@ export default function Checkout() {
       <div className="max-w-6xl mx-auto grid lg:grid-cols-[1.1fr_0.9fr] gap-10">
         <div className="space-y-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-violet-600">Checkout</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-blue-600">Checkout</p>
             <h1 className="text-3xl md:text-4xl font-semibold tk-theme-text mt-2">
               Finaliza tu compra
             </h1>
@@ -275,7 +278,7 @@ export default function Checkout() {
                 <button
                   onClick={() => setMode("login")}
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] ${
-                    mode === "login" ? "bg-violet-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
+                    mode === "login" ? "bg-blue-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
                   }`}
                 >
                   Ingresar
@@ -283,7 +286,7 @@ export default function Checkout() {
                 <button
                   onClick={() => setMode("register")}
                   className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] ${
-                    mode === "register" ? "bg-violet-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
+                    mode === "register" ? "bg-blue-600 text-white" : "bg-[var(--tk-field-bg)] tk-theme-muted"
                   }`}
                 >
                   Registrarse
@@ -302,20 +305,29 @@ export default function Checkout() {
                     className="w-full rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
-                  <input
-                    type="password"
-                    value={loginForm.password}
-                    onChange={(event) =>
-                      setLoginForm((prev) => ({ ...prev, password: event.target.value }))
-                    }
-                    placeholder="Contrasena"
-                    className="w-full rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showLoginPass ? "text" : "password"}
+                      value={loginForm.password}
+                      onChange={(event) =>
+                        setLoginForm((prev) => ({ ...prev, password: event.target.value }))
+                      }
+                      placeholder="Contrasena"
+                      className="w-full rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPass((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showLoginPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-2xl bg-violet-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em]"
+                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:opacity-60"
                   >
                     {loading ? "Ingresando..." : "Ingresar"}
                   </button>
@@ -381,20 +393,29 @@ export default function Checkout() {
                     className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
-                  <input
-                    type="password"
-                    value={registerForm.password}
-                    onChange={(event) =>
-                      setRegisterForm((prev) => ({ ...prev, password: event.target.value }))
-                    }
-                    placeholder="Contrasena"
-                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showRegisterPass ? "text" : "password"}
+                      value={registerForm.password}
+                      onChange={(event) =>
+                        setRegisterForm((prev) => ({ ...prev, password: event.target.value }))
+                      }
+                      placeholder="Contrasena"
+                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegisterPass((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showRegisterPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-2xl bg-violet-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em]"
+                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:opacity-60"
                   >
                     {loading ? "Creando..." : "Crear cuenta"}
                   </button>
@@ -412,7 +433,7 @@ export default function Checkout() {
                 </div>
                 <button
                   onClick={() => signOut(auth)}
-                  className="text-xs uppercase tracking-[0.2em] text-violet-600"
+                  className="text-xs uppercase tracking-[0.2em] text-blue-600"
                 >
                   Cerrar sesion
                 </button>
@@ -503,7 +524,7 @@ export default function Checkout() {
                             >
                               {statusMeta.label}
                             </span>
-                            <span className="px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.2em] bg-violet-500/15 text-violet-500">
+                            <span className="px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.2em] bg-blue-500/15 text-blue-500">
                               {formatCurrency(order.total)}
                             </span>
                             <button
@@ -582,7 +603,7 @@ export default function Checkout() {
                   className="flex items-center gap-4 border-b tk-theme-border pb-4"
                 >
                   <img
-                    src={item.imagen}
+                    src={item.imagen || item.imagenes?.[0] || item.image_url || ""}
                     alt={item.nombre}
                     className="w-16 h-16 rounded-xl object-cover"
                   />
@@ -625,7 +646,7 @@ export default function Checkout() {
                       </button>
                     </div>
                     {item.pricing?.volumeHintMinUnits && !item.pricing?.hasOffer && (
-                      <p className="text-[11px] text-violet-600 mt-1">
+                      <p className="text-[11px] text-blue-600 mt-1">
                         Mejora desde {item.pricing.volumeHintMinUnits} unidades.
                       </p>
                     )}
@@ -659,7 +680,7 @@ export default function Checkout() {
               <button
                 onClick={handleCheckout}
                 disabled={!canCheckout || loading}
-                className="w-full rounded-2xl bg-violet-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] disabled:opacity-50"
+                className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] disabled:opacity-50"
               >
                 {loading ? "Procesando..." : "Confirmar pedido"}
               </button>

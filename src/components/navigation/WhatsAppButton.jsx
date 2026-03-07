@@ -44,7 +44,7 @@ export default function WhatsAppButton() {
               href={`https://wa.me/${phoneNumber}?text=Hola,%20me%20gustaria%20hacer%20un%20pedido`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-3 rounded-xl text-sm font-medium hover:from-violet-500 hover:to-fuchsia-400 transition-all duration-300 group"
+              className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-xl text-sm font-medium hover:from-green-400 hover:to-emerald-400 transition-all duration-300 group"
             >
               <MessageCircle className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
               Iniciar conversacion
@@ -55,26 +55,26 @@ export default function WhatsAppButton() {
 
       <motion.button
         onClick={() => setIsExpanded((prev) => !prev)}
-        className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full flex items-center justify-center shadow-lg shadow-violet-500/40 group overflow-hidden"
+        className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/40 group overflow-hidden"
         whileHover={reduceMotion ? undefined : { scale: 1.05 }}
         whileTap={reduceMotion ? undefined : { scale: 0.95 }}
       >
         {!reduceMotion && (
           <>
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-violet-200/40"
+              className="absolute inset-0 rounded-full border-2 border-green-200/40"
               animate={{ scale: [1, 1.4, 1.4], opacity: [0.6, 0, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
             />
             <motion.div
-              className="absolute inset-0 rounded-full border border-violet-200/25"
+              className="absolute inset-0 rounded-full border border-green-200/25"
               animate={{ scale: [1, 1.7, 1.7], opacity: [0.4, 0, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.3 }}
             />
           </>
         )}
 
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-violet-200/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-green-200/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
         <AnimatePresence mode="wait">
           {isExpanded ? (

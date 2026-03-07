@@ -19,20 +19,25 @@ export default function CategoriesSection() {
           transition={reduceMotion ? undefined : { duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-violet-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+          <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
             Categorias
           </span>
           <h2 className="tk-theme-text text-4xl md:text-5xl font-bold tracking-tight">
             Explora por{" "}
-            <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent">
               categoria
             </span>
           </h2>
         </motion.div>
 
         {loading ? (
-          <div className="py-16 text-center text-sm tk-theme-muted">
-            Cargando categorias...
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse aspect-[4/5] rounded-3xl bg-[var(--tk-field-bg)]"
+              />
+            ))}
           </div>
         ) : categories.length === 0 ? (
           <div className="py-16 text-center text-sm tk-theme-muted">

@@ -39,12 +39,12 @@ export default function OffersBanner() {
           }}
         >
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-violet-200">Ofertas activas</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-blue-200">Ofertas activas</p>
             <h2 className="text-2xl md:text-3xl font-bold tk-theme-text mt-2">
               Promociones en tiempo real
             </h2>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-violet-500/25 px-4 py-2 text-violet-100 text-xs tracking-[0.2em] uppercase">
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/25 px-4 py-2 text-blue-100 text-xs tracking-[0.2em] uppercase">
             <Sparkles className="w-4 h-4" />
             Ver ofertas
           </div>
@@ -72,7 +72,7 @@ export default function OffersBanner() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10" />
                 <div className="relative z-10 p-5 h-full flex flex-col justify-end">
-                  <span className="inline-flex w-fit mb-3 px-3 py-1 rounded-full bg-violet-200 text-[10px] tracking-[0.2em] uppercase text-[#120b2f] font-semibold">
+                  <span className="inline-flex w-fit mb-3 px-3 py-1 rounded-full bg-blue-200 text-[10px] tracking-[0.2em] uppercase text-[#020c1e] font-semibold">
                     {getOfferBadge(offer)}
                   </span>
                   <p className="text-white text-lg font-semibold leading-tight">{offer.titulo}</p>

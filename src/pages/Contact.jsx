@@ -32,12 +32,12 @@ export default function Contact() {
   return (
     <div className="tk-theme-bg">
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
-        <div className="absolute bottom-0 right-0 w-[420px] h-[420px] rounded-full bg-violet-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[420px] h-[420px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <motion.span
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={reduceMotion ? undefined : { opacity: 1 }}
-            className="text-violet-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
+            className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
           >
             Contacto
           </motion.span>
@@ -48,7 +48,7 @@ export default function Contact() {
             className="tk-theme-text text-4xl md:text-6xl font-bold tracking-tight mb-4"
           >
             Necesitas
-            <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent"> ayuda?</span>
+            <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent"> ayuda?</span>
           </motion.h1>
           <motion.p
             initial={reduceMotion ? false : { opacity: 0 }}
@@ -73,7 +73,7 @@ export default function Contact() {
                 transition={reduceMotion ? undefined : { delay: index * 0.1, duration: 0.5 }}
                 className="flex items-start gap-4"
               >
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/25">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/25">
                   <item.icon className="w-4 h-4 text-white" />
                 </div>
                 <div>
@@ -116,7 +116,7 @@ export default function Contact() {
                     type="text"
                     value={form.name}
                     onChange={(event) => setForm({ ...form, name: event.target.value })}
-                    className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
+                    className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
                     placeholder="Tu nombre"
                     required
                   />
@@ -127,7 +127,7 @@ export default function Contact() {
                     type="email"
                     value={form.email}
                     onChange={(event) => setForm({ ...form, email: event.target.value })}
-                    className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
+                    className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
                     placeholder="tu@email.com"
                     required
                   />
@@ -139,7 +139,7 @@ export default function Contact() {
                   type="text"
                   value={form.subject}
                   onChange={(event) => setForm({ ...form, subject: event.target.value })}
-                  className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
+                  className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
                   placeholder="Sobre que nos quieres hablar?"
                   required
                 />
@@ -150,7 +150,7 @@ export default function Contact() {
                   value={form.message}
                   onChange={(event) => setForm({ ...form, message: event.target.value })}
                   rows={6}
-                  className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-300 resize-none placeholder:text-[var(--tk-muted)]"
+                  className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 resize-none placeholder:text-[var(--tk-muted)]"
                   placeholder="Cuentanos con detalle"
                   required
                 />
@@ -159,7 +159,7 @@ export default function Contact() {
                 type="submit"
                 whileHover={reduceMotion ? undefined : { scale: 1.01 }}
                 whileTap={reduceMotion ? undefined : { scale: 0.99 }}
-                className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-violet-500 hover:to-fuchsia-400 transition-all duration-300 shadow-lg shadow-violet-500/25"
+                className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-blue-600 to-sky-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-blue-500 hover:to-sky-400 transition-all duration-300 shadow-lg shadow-blue-500/25"
               >
                 {sent ? (
                   "Mensaje enviado"

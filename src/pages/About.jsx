@@ -39,13 +39,13 @@ export default function About() {
           alt="About"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#120b2f]/85 to-[#24124f]/65" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#020c1e]/85 to-[#071530]/65" />
         <div className="absolute inset-0 flex items-center justify-center text-center px-6">
           <div>
             <motion.span
               initial={reduceMotion ? false : { opacity: 0 }}
               animate={reduceMotion ? undefined : { opacity: 1 }}
-              className="text-violet-200 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
+              className="text-blue-200 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
             >
               Nuestra historia
             </motion.span>
@@ -57,7 +57,7 @@ export default function About() {
             >
               Innovacion y
               <br />
-              <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-indigo-300 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-300 via-sky-300 to-cyan-300 bg-clip-text text-transparent">
                 tecnologia
               </span>
             </motion.h1>
@@ -73,12 +73,12 @@ export default function About() {
             viewport={reduceMotion ? undefined : { once: true }}
             transition={reduceMotion ? undefined : { duration: 0.7 }}
           >
-            <span className="text-violet-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+            <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
               Desde 2026
             </span>
             <h2 className="tk-theme-text text-3xl md:text-4xl font-bold tracking-tight mb-6">
               Tecnologia al alcance de
-              <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent"> todos</span>
+              <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent"> todos</span>
             </h2>
             <div className="space-y-4 tk-theme-muted text-sm font-normal leading-relaxed">
               <p>
@@ -107,7 +107,7 @@ export default function About() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-6 -left-6 bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white p-6 rounded-2xl shadow-2xl shadow-violet-500/30">
+            <div className="absolute -bottom-6 -left-6 bg-gradient-to-br from-blue-600 to-sky-500 text-white p-6 rounded-2xl shadow-2xl shadow-blue-500/30">
               <span className="text-3xl font-bold">5000+</span>
               <p className="text-xs text-white/85 tracking-wide uppercase mt-1 font-medium">Productos disponibles</p>
             </div>
@@ -123,12 +123,12 @@ export default function About() {
             viewport={reduceMotion ? undefined : { once: true }}
             className="text-center mb-16"
           >
-            <span className="text-violet-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+            <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
               Valores
             </span>
             <h2 className="tk-theme-text text-3xl md:text-4xl font-bold tracking-tight">
               Lo que nos
-              <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent"> define</span>
+              <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent"> define</span>
             </h2>
           </motion.div>
 
@@ -140,9 +140,9 @@ export default function About() {
                 whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={reduceMotion ? undefined : { once: true }}
                 transition={reduceMotion ? undefined : { delay: index * 0.1, duration: 0.5 }}
-                className="tk-theme-surface p-8 rounded-2xl border tk-theme-border hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300"
+                className="tk-theme-surface p-8 rounded-2xl border tk-theme-border hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center mb-5 shadow-lg shadow-violet-500/25">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center mb-5 shadow-lg shadow-blue-500/25">
                   <value.icon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="tk-theme-text text-base font-semibold mb-2">{value.title}</h3>

@@ -10,10 +10,10 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-[#0f0829] text-white pt-20 pb-8 px-6 md:px-16 lg:px-24">
+    <footer className="relative overflow-hidden bg-[#020c1e] text-white pt-20 pb-8 px-6 md:px-16 lg:px-24">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 right-[-8%] w-[460px] h-[460px] rounded-full bg-fuchsia-500/20 blur-[140px]" />
-        <div className="absolute bottom-[-180px] left-[-12%] w-[520px] h-[520px] rounded-full bg-violet-500/20 blur-[170px]" />
+        <div className="absolute -top-24 right-[-8%] w-[460px] h-[460px] rounded-full bg-blue-500/20 blur-[140px]" />
+        <div className="absolute bottom-[-180px] left-[-12%] w-[520px] h-[520px] rounded-full bg-sky-500/20 blur-[170px]" />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -32,7 +32,7 @@ export default function Footer() {
                 <li key={page}>
                   <Link
                     to={createPageUrl(page)}
-                    className="text-white/60 text-sm hover:text-violet-200 transition-colors duration-300"
+                    className="text-white/60 text-sm hover:text-blue-200 transition-colors duration-300"
                   >
                     {page === "Home"
                       ? "Inicio"
@@ -60,11 +60,11 @@ export default function Footer() {
         <div className="h-px bg-white/[0.08] mb-8" />
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-xs tracking-[0.1em]">
-          <span>© 2026 {BRAND_NAME}. Todos los derechos reservados.</span>
+          <span>&copy; 2026 {BRAND_NAME}. Todos los derechos reservados.</span>
           <div className="flex gap-6">
-            <span className="hover:text-violet-200 cursor-pointer transition-colors">Privacidad</span>
-            <span className="hover:text-violet-200 cursor-pointer transition-colors">Terminos</span>
-            <span className="hover:text-violet-200 cursor-pointer transition-colors">Garantia</span>
+            <span className="hover:text-blue-200 cursor-pointer transition-colors">Privacidad</span>
+            <span className="hover:text-blue-200 cursor-pointer transition-colors">Terminos</span>
+            <span className="hover:text-blue-200 cursor-pointer transition-colors">Garantia</span>
           </div>
         </div>
       </div>

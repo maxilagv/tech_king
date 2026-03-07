@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
 import ProductFilters from "../components/products/ProductFilters";
 import Footer from "../components/common/Footer";
-import { Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
@@ -152,12 +152,12 @@ export default function Products() {
   return (
     <div className="tk-theme-bg">
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-violet-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <motion.span
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={reduceMotion ? undefined : { opacity: 1 }}
-            className="text-violet-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
+            className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
           >
             Catalogo completo
           </motion.span>
@@ -168,7 +168,7 @@ export default function Products() {
             className="tk-theme-text text-4xl md:text-6xl font-bold tracking-tight mb-6"
           >
             Productos{" "}
-            <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent">
               premium
             </span>
           </motion.h1>
@@ -194,8 +194,15 @@ export default function Products() {
       <section className="py-16 md:py-24 px-6 md:px-16 lg:px-24">
         <div className="max-w-7xl mx-auto">
           {loading ? (
-            <div className="flex items-center justify-center py-32">
-              <Loader2 className="w-6 h-6 animate-spin text-violet-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-[3/4] rounded-2xl bg-blue-100 dark:bg-blue-900/20 mb-4" />
+                  <div className="h-3 rounded bg-blue-100 dark:bg-blue-900/20 w-2/3 mb-2" />
+                  <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-full mb-2" />
+                  <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-1/3" />
+                </div>
+              ))}
             </div>
           ) : (
             <>
@@ -215,10 +222,22 @@ export default function Products() {
                 ))}
               </div>
               {normalized.length === 0 && (
-                <div className="text-center py-20">
-                  <p className="tk-theme-muted text-sm">
-                    No hay productos en esta categoria.
+                <div className="text-center py-24 flex flex-col items-center gap-4">
+                  <div className="w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                    <Search className="w-8 h-8 text-blue-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold tk-theme-text">Sin resultados</h3>
+                  <p className="text-sm tk-theme-muted max-w-xs">
+                    {queryParam
+                      ? `No encontramos productos para "${queryParam}". Probá con otro término.`
+                      : "No hay productos en esta categoría."}
                   </p>
+                  <button
+                    onClick={() => handleCategoryChange("all")}
+                    className="mt-2 px-5 py-2.5 rounded-full bg-blue-600 text-white text-xs uppercase tracking-[0.2em] font-semibold hover:bg-blue-700 transition"
+                  >
+                    Ver todos los productos
+                  </button>
                 </div>
               )}
             </>

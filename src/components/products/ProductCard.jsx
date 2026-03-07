@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, Heart, ShoppingBag } from "lucide-react";
+import { Check, Eye, Heart, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { getProductPricing } from "@/utils/offers";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { useTheme } from "@/context/ThemeContext";
+
+const LIKED_KEY = "tk-liked-products";
 
 function parseStock(rawStock) {
   const parsed = Number(rawStock);
@@ -28,8 +30,14 @@ export default function ProductCard({ product, index, offers = [] }) {
   const navigate = useNavigate();
   const reduceMotion = useShouldReduceMotion();
   const { isDark } = useTheme();
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(LIKED_KEY) || "[]");
+      return stored.includes(String(product.id));
+    } catch { return false; }
+  });
   const [selectedQty, setSelectedQty] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
   const { addItem } = useCart();
 
   const name = product.nombre ?? product.name;
@@ -66,6 +74,7 @@ export default function ProductCard({ product, index, offers = [] }) {
     addItem(
       {
         ...product,
+        imagen: previewImage,
         precio: pricing.finalPrice,
         precioOriginal: pricing.basePrice,
         ofertaAplicada: pricing.offer
@@ -83,6 +92,21 @@ export default function ProductCard({ product, index, offers = [] }) {
       },
       selectedQty
     );
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1500);
+  };
+
+  const toggleLike = () => {
+    setIsLiked((prev) => {
+      try {
+        const stored = JSON.parse(localStorage.getItem(LIKED_KEY) || "[]");
+        const next = prev
+          ? stored.filter((id) => id !== String(product.id))
+          : [...stored, String(product.id)];
+        localStorage.setItem(LIKED_KEY, JSON.stringify(next));
+      } catch {}
+      return !prev;
+    });
   };
 
   const handleQtyChange = (value) => {
@@ -115,7 +139,7 @@ export default function ProductCard({ product, index, offers = [] }) {
         <div className="absolute right-3 bottom-3 flex items-center gap-2">
           <button
             type="button"
-            className="pointer-events-auto w-9 h-9 rounded-full bg-white/90 text-[#0A0A0A] flex items-center justify-center hover:bg-violet-600 hover:text-white transition"
+            className="pointer-events-auto w-9 h-9 rounded-full bg-white/90 text-[#0A0A0A] flex items-center justify-center hover:bg-blue-600 hover:text-white transition"
             onClick={() => navigate(detailPath)}
             aria-label="Ver detalle"
           >
@@ -123,7 +147,7 @@ export default function ProductCard({ product, index, offers = [] }) {
           </button>
           <button
             type="button"
-            onClick={() => setIsLiked((prev) => !prev)}
+            onClick={toggleLike}
             className={`pointer-events-auto w-9 h-9 rounded-full flex items-center justify-center transition ${
               isLiked ? "bg-rose-500 text-white" : "bg-white/90 text-[#0A0A0A] hover:bg-rose-500 hover:text-white"
             }`}
@@ -149,7 +173,7 @@ export default function ProductCard({ product, index, offers = [] }) {
 
         {featured && (
           <div className="absolute top-4 right-4">
-            <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-[10px] tracking-[0.15em] uppercase text-white font-semibold shadow-lg shadow-violet-500/40">
+            <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-sky-400 text-[10px] tracking-[0.15em] uppercase text-white font-semibold shadow-lg shadow-blue-500/40">
               Destacado
             </span>
           </div>
@@ -165,13 +189,13 @@ export default function ProductCard({ product, index, offers = [] }) {
       </div>
 
       <div className="space-y-1.5 px-1">
-        <span className="text-violet-600 text-[10px] tracking-[0.2em] uppercase block font-semibold">
+        <span className="text-blue-600 text-[10px] tracking-[0.2em] uppercase block font-semibold">
           {brand || category || "Electronica"}
         </span>
         <button
           type="button"
           onClick={() => navigate(detailPath)}
-          className="text-left tk-theme-text text-base font-semibold leading-tight group-hover:text-violet-600 transition-colors duration-300"
+          className="text-left tk-theme-text text-base font-semibold leading-tight hover:text-blue-600 transition-colors duration-300"
         >
           {name}
         </button>
@@ -221,18 +245,25 @@ export default function ProductCard({ product, index, offers = [] }) {
               type="button"
               onClick={handleAddToCart}
               disabled={outOfStock}
-              className="flex-1 rounded-xl bg-violet-600 text-white text-xs uppercase tracking-[0.2em] py-2 font-semibold hover:bg-violet-700 transition disabled:bg-black/20 disabled:text-white/60 disabled:cursor-not-allowed"
+              className={`flex-1 rounded-xl text-white text-xs uppercase tracking-[0.2em] py-2 font-semibold transition disabled:bg-black/20 disabled:text-white/60 disabled:cursor-not-allowed ${
+                justAdded ? "bg-emerald-600 hover:bg-emerald-600" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
               <span className="inline-flex items-center gap-1.5">
-                <ShoppingBag className="w-3.5 h-3.5" />
-                {outOfStock ? "Sin stock" : "Agregar"}
+                {justAdded ? (
+                  <><Check className="w-3.5 h-3.5" /> Agregado</>
+                ) : outOfStock ? (
+                  "Sin stock"
+                ) : (
+                  <><ShoppingBag className="w-3.5 h-3.5" /> Agregar</>
+                )}
               </span>
             </button>
           </div>
 
           {hasStockLimit && <p className="text-[11px] tk-theme-muted">Stock disponible: {maxStock}</p>}
           {pricing.volumeHintMinUnits && !pricing.hasOffer && (
-            <p className="text-[11px] text-violet-600">
+            <p className="text-[11px] text-blue-600">
               Oferta por volumen desde {pricing.volumeHintMinUnits} unidades.
             </p>
           )}
