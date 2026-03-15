@@ -1,31 +1,72 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
+import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
 import Footer from "../components/common/Footer";
 import {
-  BRAND_ADDRESS,
-  BRAND_GOOGLE_MAPS_EMBED_URL,
-  BRAND_PHONE,
-  BRAND_SUPPORT_EMAIL,
-} from "@/constants/brand";
+  buildContactWhatsAppMessage,
+  createMailHref,
+  createMapsHref,
+  createPhoneHref,
+  createWhatsAppUrl,
+} from "@/utils/businessConfig";
+import { useBusinessConfig } from "@/hooks/useBusinessConfig";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 
-const contactInfo = [
-  { icon: MapPin, label: "Direccion", value: BRAND_ADDRESS },
-  { icon: Phone, label: "Telefono", value: BRAND_PHONE },
-  { icon: Mail, label: "Email", value: BRAND_SUPPORT_EMAIL },
-  { icon: Clock, label: "Horario", value: "Lunes a sabado 10:00 a 20:00" },
-];
-
 export default function Contact() {
-  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const { businessConfig } = useBusinessConfig();
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
   const [sent, setSent] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const reduceMotion = useShouldReduceMotion();
+  const phoneHref = createPhoneHref(businessConfig);
+  const mailHref = createMailHref(businessConfig);
+  const mapsHref = createMapsHref(businessConfig);
+  const generalWhatsAppHref = createWhatsAppUrl(
+    businessConfig,
+    "Hola, quiero recibir asesoramiento sobre productos y precios."
+  );
+
+  const contactInfo = [
+    {
+      icon: MapPin,
+      label: "Direccion",
+      value: businessConfig.address,
+      href: mapsHref,
+      external: true,
+    },
+    {
+      icon: Phone,
+      label: "Telefono",
+      value: businessConfig.phoneDisplay,
+      href: phoneHref,
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      value: businessConfig.supportEmail,
+      href: mailHref,
+    },
+    { icon: Clock, label: "Horario", value: "Lunes a sabado 10:00 a 20:00" },
+  ];
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setSubmitError("");
+    const message = buildContactWhatsAppMessage(businessConfig, form);
+    const whatsappHref = createWhatsAppUrl(businessConfig, message);
+    if (!whatsappHref) {
+      setSubmitError("No hay un numero de WhatsApp configurado.");
+      return;
+    }
+    window.open(whatsappHref, "_blank", "noopener,noreferrer");
     setSent(true);
-    setForm({ name: "", email: "", subject: "", message: "" });
+    setForm({ name: "", email: "", phone: "", subject: "", message: "" });
     window.setTimeout(() => setSent(false), 4000);
   };
 
@@ -56,7 +97,7 @@ export default function Contact() {
             transition={reduceMotion ? undefined : { delay: 0.2 }}
             className="tk-theme-muted text-sm max-w-md mx-auto"
           >
-            Nuestro equipo de soporte esta disponible para ayudarte con productos, garantias y pedidos.
+            Nuestro equipo te responde por WhatsApp y por email para ayudarte con productos, pedidos y garantia.
           </motion.p>
         </div>
       </section>
@@ -80,10 +121,31 @@ export default function Contact() {
                   <span className="tk-theme-muted text-xs tracking-[0.15em] uppercase block mb-1">
                     {item.label}
                   </span>
-                  <p className="tk-theme-text text-sm">{item.value}</p>
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      target={item.external ? "_blank" : undefined}
+                      rel={item.external ? "noopener noreferrer" : undefined}
+                      className="tk-theme-text text-sm hover:text-blue-600 transition-colors"
+                    >
+                      {item.value}
+                    </a>
+                  ) : (
+                    <p className="tk-theme-text text-sm">{item.value}</p>
+                  )}
                 </div>
               </motion.div>
             ))}
+
+            <a
+              href={generalWhatsAppHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-green-500/25"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Hablar por WhatsApp
+            </a>
 
             <motion.div
               initial={reduceMotion ? false : { opacity: 0, y: 20 }}
@@ -93,7 +155,7 @@ export default function Contact() {
             >
               <iframe
                 title="Mapa Nexastore"
-                src={BRAND_GOOGLE_MAPS_EMBED_URL}
+                src={businessConfig.mapsEmbedUrl}
                 className="w-full h-full border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
@@ -109,7 +171,7 @@ export default function Contact() {
             className="lg:col-span-3"
           >
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 <div>
                   <label className="tk-theme-muted text-xs tracking-[0.15em] uppercase block mb-2">Nombre</label>
                   <input
@@ -130,6 +192,16 @@ export default function Contact() {
                     className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
                     placeholder="tu@email.com"
                     required
+                  />
+                </div>
+                <div>
+                  <label className="tk-theme-muted text-xs tracking-[0.15em] uppercase block mb-2">Telefono</label>
+                  <input
+                    type="text"
+                    value={form.phone}
+                    onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                    className="w-full px-4 py-3.5 rounded-xl border tk-theme-border tk-theme-surface tk-theme-text text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 placeholder:text-[var(--tk-muted)]"
+                    placeholder="+54 9 11..."
                   />
                 </div>
               </div>
@@ -155,6 +227,14 @@ export default function Contact() {
                   required
                 />
               </div>
+              <p className="text-xs tk-theme-muted">
+                Al enviar, abriremos WhatsApp con tu mensaje listo para que lo mandes al numero de soporte.
+              </p>
+              {submitError && (
+                <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+                  {submitError}
+                </div>
+              )}
               <motion.button
                 type="submit"
                 whileHover={reduceMotion ? undefined : { scale: 1.01 }}
@@ -162,10 +242,10 @@ export default function Contact() {
                 className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-blue-600 to-sky-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-blue-500 hover:to-sky-400 transition-all duration-300 shadow-lg shadow-blue-500/25"
               >
                 {sent ? (
-                  "Mensaje enviado"
+                  "WhatsApp listo"
                 ) : (
                   <>
-                    Enviar mensaje
+                    Enviar por WhatsApp
                     <Send className="w-3.5 h-3.5" />
                   </>
                 )}

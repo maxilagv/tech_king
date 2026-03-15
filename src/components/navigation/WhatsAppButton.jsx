@@ -1,16 +1,21 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
-import { BRAND_WHATSAPP } from "@/constants/brand";
+import { useBusinessConfig } from "@/hooks/useBusinessConfig";
+import { createWhatsAppUrl } from "@/utils/businessConfig";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 
 export default function WhatsAppButton() {
   const [isExpanded, setIsExpanded] = useState(false);
   const reduceMotion = useShouldReduceMotion();
-  const phoneNumber = BRAND_WHATSAPP;
+  const { businessConfig } = useBusinessConfig();
+  const whatsappHref = createWhatsAppUrl(
+    businessConfig,
+    "Hola, me gustaria hacer un pedido."
+  );
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-3">
+    <div className="relative flex flex-col items-end gap-3">
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -18,7 +23,7 @@ export default function WhatsAppButton() {
             animate={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: 10, scale: 0.97 }}
             transition={reduceMotion ? undefined : { duration: 0.25 }}
-            className="bg-white rounded-2xl shadow-2xl shadow-black/10 p-4 sm:p-5 w-[min(18rem,88vw)] border border-black/5"
+            className="absolute bottom-full right-0 mb-3 bg-white rounded-2xl shadow-2xl shadow-black/10 p-4 sm:p-5 w-[min(18rem,88vw)] border border-black/5"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -41,7 +46,7 @@ export default function WhatsAppButton() {
             </p>
 
             <a
-              href={`https://wa.me/${phoneNumber}?text=Hola,%20me%20gustaria%20hacer%20un%20pedido`}
+              href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-xl text-sm font-medium hover:from-green-400 hover:to-emerald-400 transition-all duration-300 group"

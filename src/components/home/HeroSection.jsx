@@ -6,21 +6,7 @@ import { useLandingHeroes } from "@/hooks/useLandingHeroes";
 import { LANDING_HERO_FALLBACK_SLIDES } from "@/constants/brand";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { useTheme } from "@/context/ThemeContext";
-
-function normalizeSlide(slide, index) {
-  return {
-    id: slide.id || `slide-${index}`,
-    titulo: String(slide.titulo || "").trim(),
-    subtitulo: String(slide.subtitulo || "").trim(),
-    descripcion: String(slide.descripcion || "").trim(),
-    badge: String(slide.badge || "").trim(),
-    ctaLabel: String(slide.ctaLabel || "Ver catalogo").trim(),
-    ctaUrl: String(slide.ctaUrl || "/products").trim(),
-    imagen: String(slide.imagen || "").trim(),
-    orden: Number(slide.orden || index),
-    activo: slide.activo !== false,
-  };
-}
+import { normalizeLandingHeroSlide } from "@/utils/landingHeroes";
 
 function SlideAction({ slide }) {
   const isExternal = /^https?:\/\//i.test(slide.ctaUrl);
@@ -49,6 +35,28 @@ function SlideAction({ slide }) {
   );
 }
 
+function HeroSlideImage({ slide }) {
+  return (
+    <picture>
+      {slide.imagenMobile && (
+        <source
+          media="(max-width: 767px)"
+          srcSet={slide.imagenMobile}
+          sizes="100vw"
+        />
+      )}
+      <img
+        src={slide.imagenDesktop}
+        alt={slide.titulo || "Hero"}
+        className="h-full w-full object-cover"
+        fetchPriority="high"
+        decoding="async"
+        sizes="100vw"
+      />
+    </picture>
+  );
+}
+
 export default function HeroSection() {
   const { heroes } = useLandingHeroes({ onlyActive: true });
   const reduceMotion = useShouldReduceMotion();
@@ -56,8 +64,8 @@ export default function HeroSection() {
   const slides = useMemo(() => {
     const source = heroes.length > 0 ? heroes : LANDING_HERO_FALLBACK_SLIDES;
     return source
-      .map((slide, index) => normalizeSlide(slide, index))
-      .filter((slide) => slide.activo && slide.imagen)
+      .map((slide, index) => normalizeLandingHeroSlide(slide, index))
+      .filter((slide) => slide.activo && slide.imagenDesktop)
       .sort((a, b) => a.orden - b.orden);
   }, [heroes]);
 
@@ -112,14 +120,7 @@ export default function HeroSection() {
 
       {reduceMotion ? (
         <div className="absolute inset-0">
-          <img
-            src={activeSlide.imagen}
-            alt={activeSlide.titulo || "Hero"}
-            className="h-full w-full object-cover"
-            fetchpriority="high"
-            decoding="async"
-            sizes="100vw"
-          />
+          <HeroSlideImage slide={activeSlide} />
           <div className={overlayMainClass} />
           <div className={overlayBottomClass} />
         </div>
@@ -133,14 +134,7 @@ export default function HeroSection() {
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0"
           >
-            <img
-              src={activeSlide.imagen}
-              alt={activeSlide.titulo || "Hero"}
-              className="h-full w-full object-cover"
-              fetchpriority="high"
-              decoding="async"
-              sizes="100vw"
-            />
+            <HeroSlideImage slide={activeSlide} />
             <div className={overlayMainClass} />
             <div className={overlayBottomClass} />
           </motion.div>

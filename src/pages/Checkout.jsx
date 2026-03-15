@@ -121,6 +121,13 @@ export default function Checkout() {
     () => pricedItems.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0),
     [pricedItems]
   );
+  const priceChanges = useMemo(
+    () =>
+      pricedItems.filter(
+        (item) => Math.abs(Number(item.unitPrice || 0) - Number(item.precio || 0)) >= 0.01
+      ),
+    [pricedItems]
+  );
 
   const canCheckout = pricedItems.length > 0 && user && profile && !isAdmin && !checkingAdmin;
   const investedTotal = useMemo(
@@ -597,6 +604,12 @@ export default function Checkout() {
             <div className="py-10 text-sm tk-theme-muted">No hay productos en el carrito.</div>
           ) : (
             <div className="mt-6 space-y-4">
+              {priceChanges.length > 0 && (
+                <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-600">
+                  Detectamos cambios de precio desde que agregaste productos al carrito. El
+                  resumen ya muestra los valores actualizados antes de confirmar.
+                </div>
+              )}
               {pricedItems.map((item) => (
                 <div
                   key={item.id}
@@ -621,6 +634,11 @@ export default function Checkout() {
                     ) : (
                       <p className="text-xs tk-theme-muted">
                         ${Number(item.unitPrice || 0).toFixed(2)} c/u
+                      </p>
+                    )}
+                    {Math.abs(Number(item.unitPrice || 0) - Number(item.precio || 0)) >= 0.01 && (
+                      <p className="text-[11px] text-amber-600">
+                        Antes: ${Number(item.precio || 0).toFixed(2)} c/u
                       </p>
                     )}
                     <div className="flex items-center gap-2 mt-2">

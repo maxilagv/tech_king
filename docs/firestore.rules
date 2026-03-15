@@ -69,6 +69,7 @@ service cloud.firestore {
     function canManageCustomers() { return isSuperAdmin() || hasModule("customers"); }
     function canManageOrders() { return isSuperAdmin() || hasModule("orders"); }
     function canManageRemitos() { return isSuperAdmin() || hasModule("remitos"); }
+    function canManagePricing() { return isSuperAdmin() || hasModule("pricing"); }
     function canManageUsers() { return isSuperAdmin(); }
 
     function isOwner(uid) {
@@ -146,7 +147,7 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
         "nombre", "descripcion", "precio", "categorySlug",
         "imagenes", "destacado", "stockActual", "marca",
-        "costoActual",
+        "costoActual", "priceLocked",
         "activo", "createdAt", "updatedAt"
       ])
       && request.resource.data.nombre is string
@@ -163,6 +164,7 @@ service cloud.firestore {
       && (request.resource.data.descripcion is string || !("descripcion" in request.resource.data))
       && (request.resource.data.marca is string || !("marca" in request.resource.data))
       && (request.resource.data.destacado is bool || !("destacado" in request.resource.data))
+      && (request.resource.data.priceLocked is bool || !("priceLocked" in request.resource.data))
       && (request.resource.data.activo is bool || !("activo" in request.resource.data))
       && validServerTimestamp(request.resource.data.createdAt)
       && validServerTimestamp(request.resource.data.updatedAt);
@@ -172,7 +174,8 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
         "nombre", "descripcion", "precio", "categorySlug",
         "imagenes", "destacado", "stockActual", "marca",
-        "costoActual",
+        "costoActual", "priceLocked",
+        "lastPriceBatchId", "lastPriceUpdatedAt", "lastPriceUpdatedBy",
         "activo", "createdAt", "updatedAt"
       ])
       && request.resource.data.nombre is string
@@ -189,6 +192,13 @@ service cloud.firestore {
       && (request.resource.data.descripcion is string || !("descripcion" in request.resource.data))
       && (request.resource.data.marca is string || !("marca" in request.resource.data))
       && (request.resource.data.destacado is bool || !("destacado" in request.resource.data))
+      && (request.resource.data.priceLocked is bool || !("priceLocked" in request.resource.data))
+      && (request.resource.data.lastPriceBatchId is string || !("lastPriceBatchId" in request.resource.data))
+      && (request.resource.data.lastPriceUpdatedBy is string || !("lastPriceUpdatedBy" in request.resource.data))
+      && (
+        validServerTimestamp(request.resource.data.lastPriceUpdatedAt)
+        || !("lastPriceUpdatedAt" in request.resource.data)
+      )
       && (request.resource.data.activo is bool || !("activo" in request.resource.data))
       && request.resource.data.createdAt == resource.data.createdAt
       && validServerTimestamp(request.resource.data.updatedAt);
@@ -633,6 +643,15 @@ service cloud.firestore {
       allow get, list: if canManageRemitos();
       allow create: if canManageRemitos() && validRemitoCreate();
       allow update, delete: if isSuperAdmin();
+    }
+
+    match /price_batches/{batchId} {
+      allow get, list: if canManagePricing();
+      allow create, update, delete: if canManagePricing();
+
+      match /items/{itemId} {
+        allow read, write: if canManagePricing();
+      }
     }
 
     match /counters/remito {

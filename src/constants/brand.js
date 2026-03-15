@@ -5,8 +5,11 @@ export const BRAND_LOGO_URL =
 
 export const BRAND_SUPPORT_EMAIL = "soporte@nexastore.com";
 export const BRAND_ADMIN_EMAIL_PLACEHOLDER = "admin@nexastore.com";
-export const BRAND_PHONE = "+54 11 4123-4567";
-export const BRAND_WHATSAPP = "5491141234567";
+export const BRAND_PHONE = "+54 9 11 5000-3209";
+export const BRAND_PHONE_E164 = "+5491150003209";
+export const BRAND_WHATSAPP = "5491150003209";
+export const BRAND_WHATSAPP_MESSAGE_TEMPLATE =
+  "Hola, soy {{name}}. Mi email es {{email}}. Consulta: {{subject}}. Mensaje: {{message}}";
 export const BRAND_ADDRESS = "Av corrientes 2332";
 export const BRAND_GOOGLE_MAPS_EMBED_URL =
   "https://www.google.com/maps?q=Av+Corrientes+2332,+Buenos+Aires,+Argentina&output=embed";

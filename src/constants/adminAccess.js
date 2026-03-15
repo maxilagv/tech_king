@@ -8,6 +8,7 @@ export const ADMIN_MODULES = Object.freeze([
   { id: "remitos", label: "Remitos", path: "/admin/remitos", employeeAllowed: true },
   { id: "suppliers", label: "Proveedores", path: "/admin/proveedores", employeeAllowed: false },
   { id: "costs", label: "Costos", path: "/admin/costos", employeeAllowed: false },
+  { id: "pricing", label: "Precios", path: "/admin/precios", employeeAllowed: false },
   { id: "stock", label: "Stock", path: "/admin/stock", employeeAllowed: false },
   { id: "finance", label: "Finanzas", path: "/admin/finanzas", employeeAllowed: false },
   { id: "users", label: "Usuarios", path: "/admin/usuarios", employeeAllowed: false },

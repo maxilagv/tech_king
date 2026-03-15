@@ -3,12 +3,14 @@ import { collection, doc, serverTimestamp, setDoc, updateDoc } from "firebase/fi
 import { db } from "@/api/firebase";
 import { useOrders } from "@/hooks/useOrders";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useBusinessConfig } from "@/hooks/useBusinessConfig";
 import { generateRemitoPdf } from "@/utils/remito";
 import { getNextCounter } from "@/utils/counters";
 
 export default function RemitosAdmin() {
   const { orders, loading } = useOrders();
   const { customers } = useCustomers();
+  const { businessConfig } = useBusinessConfig();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -47,7 +49,7 @@ export default function RemitosAdmin() {
         updatedAt: serverTimestamp(),
       });
 
-      await generateRemitoPdf({ numero, order, customer });
+      await generateRemitoPdf({ numero, order, customer, businessConfig });
       setMessage(`Remito #${numero} generado.`);
     } catch (err) {
       setError(err.message || "No se pudo generar el remito.");

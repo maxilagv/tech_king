@@ -4,9 +4,9 @@ import { createPageUrl } from "@/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, Search, X } from "lucide-react";
 import HamburgerMenu from "./components/navigation/HamburgerMenu";
-import WhatsAppButton from "./components/navigation/WhatsAppButton";
 import CartNotice from "./components/navigation/CartNotice";
 import ThemeToggleButton from "./components/navigation/ThemeToggleButton";
+import FloatingActions from "./components/navigation/FloatingActions";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { BRAND_LOGO_URL, BRAND_NAME } from "@/constants/brand";
@@ -26,12 +26,16 @@ export default function Layout({ children, currentPageName }) {
   const searchInputRef = useRef(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [scrolled, setScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const reduceMotion = useShouldReduceMotion();
   const { isDark } = useTheme();
+  const isLandingRoute = location.pathname === createPageUrl("Home");
+  const scrolled = scrollY > 60;
+  const showBackToTop = isLandingRoute && scrollY > 640;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => setScrollY(window.scrollY);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -322,8 +326,7 @@ export default function Layout({ children, currentPageName }) {
         {children}
       </main>
 
-      {/* WhatsApp Floating Button */}
-      <WhatsAppButton />
+      <FloatingActions showBackToTop={showBackToTop} />
       <CartNotice />
     </div>
   );

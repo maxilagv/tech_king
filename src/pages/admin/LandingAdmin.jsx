@@ -12,6 +12,10 @@ import { db } from "@/api/firebase";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 import { useLandingHeroes } from "@/hooks/useLandingHeroes";
 import { BRAND_CLOUDINARY_ROOT } from "@/constants/brand";
+import {
+  resolveLandingHeroDesktopImage,
+  resolveLandingHeroMobileImage,
+} from "@/utils/landingHeroes";
 
 const emptyForm = {
   titulo: "",
@@ -20,7 +24,8 @@ const emptyForm = {
   badge: "",
   ctaLabel: "",
   ctaUrl: "/products",
-  imagen: "",
+  imagenDesktop: "",
+  imagenMobile: "",
   orden: "",
   activo: true,
 };
@@ -52,7 +57,11 @@ export default function LandingAdmin() {
       badge: hero.badge || "",
       ctaLabel: hero.ctaLabel || "",
       ctaUrl: hero.ctaUrl || "/products",
-      imagen: hero.imagen || "",
+      imagenDesktop: resolveLandingHeroDesktopImage(hero),
+      imagenMobile:
+        resolveLandingHeroMobileImage(hero) === resolveLandingHeroDesktopImage(hero)
+          ? ""
+          : resolveLandingHeroMobileImage(hero),
       orden: hero.orden ?? "",
       activo: hero.activo !== false,
     });
@@ -65,7 +74,7 @@ export default function LandingAdmin() {
     if (!form.descripcion.trim()) return "La descripcion es obligatoria.";
     if (!form.ctaLabel.trim()) return "El texto del boton es obligatorio.";
     if (!form.ctaUrl.trim()) return "La URL del boton es obligatoria.";
-    if (!form.imagen) return "La imagen es obligatoria.";
+    if (!form.imagenDesktop) return "La imagen desktop es obligatoria.";
     const orderValue = Number(form.orden || 0);
     if (!Number.isFinite(orderValue) || orderValue < 0) {
       return "El orden debe ser un numero mayor o igual a 0.";
@@ -91,7 +100,9 @@ export default function LandingAdmin() {
       badge: form.badge.trim(),
       ctaLabel: form.ctaLabel.trim(),
       ctaUrl: form.ctaUrl.trim(),
-      imagen: form.imagen,
+      imagen: form.imagenDesktop,
+      imagenDesktop: form.imagenDesktop,
+      imagenMobile: form.imagenMobile || form.imagenDesktop,
       orden: Number(form.orden || 0),
       activo: Boolean(form.activo),
       updatedAt: serverTimestamp(),
@@ -145,6 +156,10 @@ export default function LandingAdmin() {
           </h2>
           <p className="text-sm text-white/60 mt-2">
             Gestiona los heroes principales de la home.
+          </p>
+          <p className="text-xs text-white/45 mt-2">
+            Cada slide puede tener una imagen desktop y otra mobile. Si la mobile queda vacia,
+            se usa la desktop automaticamente.
           </p>
         </div>
 
@@ -241,12 +256,25 @@ export default function LandingAdmin() {
           </div>
         </div>
 
-        <ImageUploadField
-          label="Imagen del hero"
-          value={form.imagen}
-          onChange={(value) => handleChange("imagen", value)}
-          folder={`${BRAND_CLOUDINARY_ROOT}/landing`}
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <ImageUploadField
+            label="Imagen desktop"
+            value={form.imagenDesktop}
+            onChange={(value) => handleChange("imagenDesktop", value)}
+            folder={`${BRAND_CLOUDINARY_ROOT}/landing/desktop`}
+          />
+          <ImageUploadField
+            label="Imagen mobile"
+            value={form.imagenMobile}
+            onChange={(value) => handleChange("imagenMobile", value)}
+            folder={`${BRAND_CLOUDINARY_ROOT}/landing/mobile`}
+          />
+        </div>
+
+        <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-xs text-white/60 md:grid-cols-2">
+          <p>Desktop recomendado: formato horizontal amplio, ideal 1920x1080 o similar.</p>
+          <p>Mobile recomendado: formato vertical o centrado, ideal 1080x1350 o similar.</p>
+        </div>
 
         {message && (
           <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
@@ -293,51 +321,76 @@ export default function LandingAdmin() {
           </div>
         ) : (
           <div className="mt-6 space-y-3">
-            {heroes.map((hero) => (
-              <div
-                key={hero.id}
-                className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-14 rounded-xl overflow-hidden bg-white/10">
-                    {hero.imagen && (
-                      <img src={hero.imagen} alt={hero.titulo} className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{hero.titulo}</p>
-                    <p className="text-xs text-white/50">{hero.subtitulo || "Sin subtitulo"}</p>
-                    <p className="text-[11px] text-white/40 mt-1">Orden {Number(hero.orden || 0)}</p>
-                  </div>
-                </div>
+            {heroes.map((hero) => {
+              const desktopImage = resolveLandingHeroDesktopImage(hero);
+              const mobileImage = resolveLandingHeroMobileImage(hero);
+              const hasCustomMobile =
+                Boolean(hero.imagenMobile) && hero.imagenMobile !== desktopImage;
 
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs uppercase tracking-[0.2em] ${
-                      hero.activo !== false
-                        ? "bg-emerald-500/15 text-emerald-200"
-                        : "bg-white/10 text-white/50"
-                    }`}
-                  >
-                    {hero.activo !== false ? "Activo" : "Inactivo"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(hero)}
-                    className="p-2 rounded-xl border border-white/10 hover:bg-white/10 transition"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(hero.id)}
-                    className="p-2 rounded-xl border border-white/10 hover:bg-white/10 transition text-red-200"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+              return (
+                <div
+                  key={hero.id}
+                  className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-2">
+                      <div className="w-20 h-14 rounded-xl overflow-hidden bg-white/10">
+                        {desktopImage && (
+                          <img
+                            src={desktopImage}
+                            alt={`${hero.titulo} desktop`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/10">
+                        {mobileImage && (
+                          <img
+                            src={mobileImage}
+                            alt={`${hero.titulo} mobile`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{hero.titulo}</p>
+                      <p className="text-xs text-white/50">{hero.subtitulo || "Sin subtitulo"}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-white/40">
+                        <span>Orden {Number(hero.orden || 0)}</span>
+                        <span>{hasCustomMobile ? "Mobile custom" : "Mobile usa desktop"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs uppercase tracking-[0.2em] ${
+                        hero.activo !== false
+                          ? "bg-emerald-500/15 text-emerald-200"
+                          : "bg-white/10 text-white/50"
+                      }`}
+                    >
+                      {hero.activo !== false ? "Activo" : "Inactivo"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(hero)}
+                      className="p-2 rounded-xl border border-white/10 hover:bg-white/10 transition"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(hero.id)}
+                      className="p-2 rounded-xl border border-white/10 hover:bg-white/10 transition text-red-200"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

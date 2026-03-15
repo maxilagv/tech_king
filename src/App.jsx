@@ -26,6 +26,7 @@ import PurchaseCostsAdmin from "./pages/admin/PurchaseCostsAdmin";
 import OffersAdmin from "./pages/admin/OffersAdmin";
 import UsersAdmin from "./pages/admin/UsersAdmin";
 import LandingAdmin from "./pages/admin/LandingAdmin";
+import PricingAdmin from "./pages/admin/PricingAdmin";
 import AdminHome from "./components/admin/AdminHome";
 import { auth } from "@/api/firebase";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -83,6 +84,7 @@ function AppContent() {
         <Route path="remitos" element={moduleElement("remitos", <RemitosAdmin />)} />
         <Route path="proveedores" element={moduleElement("suppliers", <SuppliersAdmin />)} />
         <Route path="costos" element={moduleElement("costs", <PurchaseCostsAdmin />)} />
+        <Route path="precios" element={moduleElement("pricing", <PricingAdmin />)} />
         <Route path="stock" element={moduleElement("stock", <StockAdmin />)} />
         <Route path="finanzas" element={moduleElement("finance", <FinanceAdmin />)} />
         <Route path="usuarios" element={moduleElement("users", <UsersAdmin />)} />

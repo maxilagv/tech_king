@@ -9,6 +9,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { getProductPricing } from "@/utils/offers";
 
 function normalizeSearchText(value) {
   return String(value || "")
@@ -45,6 +46,10 @@ export default function Products() {
   const activeCategory = rawCategoryParam ? rawCategoryParam : "all";
   const queryParam = searchParams.get("q") || "";
   const normalizedQuery = normalizeSearchText(queryParam);
+  const sortOrder = searchParams.get("sort") || "default";
+  const priceMin = searchParams.get("priceMin") || "";
+  const priceMax = searchParams.get("priceMax") || "";
+
   const { categories } = useCategories({ onlyActive: true });
   const { products, loading } = useProducts({ onlyActive: true });
   const { offers } = useOffers({ onlyActive: true });
@@ -104,41 +109,75 @@ export default function Products() {
       });
     }
 
-    if (!normalizedQuery) {
-      return byCategory;
-    }
-
-    return byCategory.filter((product) => {
-      const categoryLabel =
-        categoryMap[product.categorySlug] ||
-        categoryMap[product.categoryId] ||
-        product.categoryLabel ||
-        "";
-      const haystack = buildSearchableText(product, categoryLabel);
-      return haystack.includes(normalizedQuery);
-    });
-  }, [activeCategory, activeCategoryAliases, categoryMap, normalizedQuery, offeredProductIds, products]);
-
-  const normalized = useMemo(
-    () =>
-      filtered.map((product) => ({
-        ...product,
-        categoryLabel:
+    if (normalizedQuery) {
+      byCategory = byCategory.filter((product) => {
+        const categoryLabel =
           categoryMap[product.categorySlug] ||
           categoryMap[product.categoryId] ||
-          product.categoryLabel,
-      })),
-    [filtered, categoryMap]
-  );
+          product.categoryLabel ||
+          "";
+        const haystack = buildSearchableText(product, categoryLabel);
+        return haystack.includes(normalizedQuery);
+      });
+    }
+
+    return byCategory;
+  }, [activeCategory, activeCategoryAliases, categoryMap, normalizedQuery, offeredProductIds, products]);
+
+  const normalized = useMemo(() => {
+    let list = filtered.map((product) => ({
+      ...product,
+      categoryLabel:
+        categoryMap[product.categorySlug] ||
+        categoryMap[product.categoryId] ||
+        product.categoryLabel,
+    }));
+
+    // ── Price range filter ──
+    const min = priceMin !== "" ? Number(priceMin) : null;
+    const max = priceMax !== "" ? Number(priceMax) : null;
+    if (min !== null || max !== null) {
+      list = list.filter((product) => {
+        const pricing = getProductPricing(product, offers, 1);
+        const price = pricing.finalPrice;
+        if (min !== null && price < min) return false;
+        if (max !== null && price > max) return false;
+        return true;
+      });
+    }
+
+    // ── Sort ──
+    if (sortOrder === "az") {
+      list = [...list].sort((a, b) =>
+        (a.nombre || a.name || "").localeCompare(b.nombre || b.name || "", "es", { sensitivity: "base" })
+      );
+    } else if (sortOrder === "za") {
+      list = [...list].sort((a, b) =>
+        (b.nombre || b.name || "").localeCompare(a.nombre || a.name || "", "es", { sensitivity: "base" })
+      );
+    } else if (sortOrder === "price_asc") {
+      list = [...list].sort((a, b) => {
+        const pa = getProductPricing(a, offers, 1).finalPrice;
+        const pb = getProductPricing(b, offers, 1).finalPrice;
+        return pa - pb;
+      });
+    } else if (sortOrder === "price_desc") {
+      list = [...list].sort((a, b) => {
+        const pa = getProductPricing(a, offers, 1).finalPrice;
+        const pb = getProductPricing(b, offers, 1).finalPrice;
+        return pb - pa;
+      });
+    }
+
+    return list;
+  }, [filtered, categoryMap, sortOrder, priceMin, priceMax, offers]);
 
   const hasActiveOffers = offers.length > 0;
 
   const handleCategoryChange = (nextCategory) => {
     const nextParams = new URLSearchParams(searchParams);
     const sanitizedQuery = normalizeSearchText(nextParams.get("q"));
-    if (!sanitizedQuery) {
-      nextParams.delete("q");
-    }
+    if (!sanitizedQuery) nextParams.delete("q");
 
     if (nextCategory === "all") {
       nextParams.delete("category");
@@ -146,6 +185,31 @@ export default function Products() {
       nextParams.set("category", nextCategory);
     }
 
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const handleSortChange = (nextSort) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextSort === "default") {
+      nextParams.delete("sort");
+    } else {
+      nextParams.set("sort", nextSort);
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const handlePriceChange = (min, max) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (min === "" || min == null) {
+      nextParams.delete("priceMin");
+    } else {
+      nextParams.set("priceMin", min);
+    }
+    if (max === "" || max == null) {
+      nextParams.delete("priceMax");
+    } else {
+      nextParams.set("priceMax", max);
+    }
     setSearchParams(nextParams, { replace: true });
   };
 
@@ -187,6 +251,11 @@ export default function Products() {
             onCategoryChange={handleCategoryChange}
             categories={categories}
             includeOffers={hasActiveOffers}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            priceMin={priceMin}
+            priceMax={priceMax}
+            onPriceChange={handlePriceChange}
           />
         </div>
       </section>
@@ -230,7 +299,7 @@ export default function Products() {
                   <p className="text-sm tk-theme-muted max-w-xs">
                     {queryParam
                       ? `No encontramos productos para "${queryParam}". Probá con otro término.`
-                      : "No hay productos en esta categoría."}
+                      : "No hay productos en esta categoría o rango de precio."}
                   </p>
                   <button
                     onClick={() => handleCategoryChange("all")}

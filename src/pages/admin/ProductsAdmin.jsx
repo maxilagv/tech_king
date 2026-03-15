@@ -12,6 +12,7 @@ import { db } from "@/api/firebase";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
+import { useBusinessConfig } from "@/hooks/useBusinessConfig";
 import ProductImagesField from "@/components/admin/ProductImagesField";
 import { exportCatalogTablePdf, exportCatalogVisualPdf } from "@/utils/catalogPdf";
 
@@ -24,6 +25,7 @@ const emptyForm = {
   destacado: false,
   stockActual: "",
   marca: "",
+  priceLocked: false,
   activo: true,
 };
 
@@ -31,6 +33,7 @@ export default function ProductsAdmin() {
   const { products, loading } = useProducts();
   const { categories } = useCategories();
   const { offers } = useOffers({ onlyActive: true });
+  const { businessConfig } = useBusinessConfig();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -64,6 +67,7 @@ export default function ProductsAdmin() {
       destacado: product.destacado ?? false,
       stockActual: product.stockActual ?? "",
       marca: product.marca || "",
+      priceLocked: product.priceLocked ?? false,
       activo: product.activo ?? true,
     });
   };
@@ -99,6 +103,7 @@ export default function ProductsAdmin() {
       destacado: Boolean(form.destacado),
       stockActual: form.stockActual === "" ? 0 : Number(form.stockActual),
       marca: form.marca.trim() || "",
+      priceLocked: Boolean(form.priceLocked),
       activo: Boolean(form.activo),
       updatedAt: serverTimestamp(),
     };
@@ -181,6 +186,7 @@ export default function ProductsAdmin() {
           products: sortedProducts,
           offers,
           categoryMap,
+          businessConfig,
           filename: `catalogo-nexastore-tabla-${dateLabel}.pdf`,
         });
       } else {
@@ -188,6 +194,7 @@ export default function ProductsAdmin() {
           products: sortedProducts,
           offers,
           categoryMap,
+          businessConfig,
           filename: `catalogo-nexastore-visual-${dateLabel}.pdf`,
         });
       }
@@ -210,7 +217,7 @@ export default function ProductsAdmin() {
             {editingId ? "Editar producto" : "Nuevo producto"}
           </h2>
           <p className="text-sm text-white/50 mt-1">
-            Imagen obligatoria, precio y stock controlado.
+            Imagen obligatoria, precio, stock y bloqueo de remarcacion.
           </p>
         </div>
 
@@ -301,6 +308,15 @@ export default function ProductsAdmin() {
                 className="w-4 h-4 accent-cyan-400"
               />
               <span className="text-sm text-white/70">Destacado</span>
+            </label>
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={form.priceLocked}
+                onChange={(event) => handleChange("priceLocked", event.target.checked)}
+                className="w-4 h-4 accent-cyan-400"
+              />
+              <span className="text-sm text-white/70">Bloquear remarcacion</span>
             </label>
             <label className="flex items-center gap-3">
               <input
@@ -416,6 +432,11 @@ export default function ProductsAdmin() {
                   {product.destacado && (
                     <span className="px-3 py-1 rounded-full text-xs uppercase tracking-[0.2em] bg-cyan-500/15 text-cyan-200">
                       Destacado
+                    </span>
+                  )}
+                  {product.priceLocked && (
+                    <span className="px-3 py-1 rounded-full text-xs uppercase tracking-[0.2em] bg-amber-500/15 text-amber-200">
+                      Precio bloqueado
                     </span>
                   )}
                   <button

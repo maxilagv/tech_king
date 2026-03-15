@@ -1,12 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
-  BRAND_ADDRESS,
   BRAND_LOGO_URL,
   BRAND_NAME,
-  BRAND_PHONE,
-  BRAND_SUPPORT_EMAIL,
 } from "@/constants/brand";
+import { normalizeBusinessConfig } from "@/utils/businessConfig";
 
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString("es-AR", {
@@ -53,11 +51,12 @@ function customerLine(customer) {
   return `${first} ${last}`.trim() || fallback;
 }
 
-export async function generateRemitoPdf({ numero, order, customer }) {
+export async function generateRemitoPdf({ numero, order, customer, businessConfig: businessConfigOverride }) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 14;
   const contentW = pageW - margin * 2;
+  const businessConfig = normalizeBusinessConfig(businessConfigOverride);
 
   const logoData = await fetchImageDataUrl(BRAND_LOGO_URL);
   const statusText = String(order?.status || "confirmado").toUpperCase();
@@ -79,7 +78,11 @@ export async function generateRemitoPdf({ numero, order, customer }) {
   doc.setFontSize(10);
   doc.text("Comprobante de entrega", margin + 26, 31);
   doc.setFontSize(8.5);
-  doc.text(`${BRAND_SUPPORT_EMAIL}  |  ${BRAND_PHONE}  |  ${BRAND_ADDRESS}`, margin + 26, 37);
+  doc.text(
+    `${businessConfig.supportEmail}  |  ${businessConfig.phoneDisplay}  |  ${businessConfig.address}`,
+    margin + 26,
+    37
+  );
 
   doc.setFillColor(246, 242, 255);
   doc.roundedRect(pageW - margin - 62, 54, 62, 34, 2, 2, "F");

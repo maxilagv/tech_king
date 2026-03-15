@@ -1,12 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getProductPricing } from "@/utils/offers";
+import { normalizeBusinessConfig } from "@/utils/businessConfig";
 import {
-  BRAND_ADDRESS,
   BRAND_LOGO_URL,
   BRAND_NAME,
-  BRAND_PHONE,
-  BRAND_SUPPORT_EMAIL,
 } from "@/constants/brand";
 
 const PRIMARY_RGB = [86, 63, 156];
@@ -54,7 +52,7 @@ async function getBrandLogoDataUrl() {
   return brandLogoCache;
 }
 
-function drawHeader(doc, { title, subtitle, logoDataUrl }) {
+function drawHeader(doc, { title, subtitle, logoDataUrl, businessConfig }) {
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 12;
 
@@ -72,7 +70,11 @@ function drawHeader(doc, { title, subtitle, logoDataUrl }) {
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.6);
-  doc.text(`${BRAND_SUPPORT_EMAIL}  |  ${BRAND_PHONE}`, margin + 18, 25);
+  doc.text(
+    `${businessConfig.supportEmail}  |  ${businessConfig.phoneDisplay}`,
+    margin + 18,
+    25
+  );
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10.5);
@@ -208,7 +210,7 @@ function drawQuickStats(doc, y, stats) {
   return y + cardH + 5;
 }
 
-function drawSummaryCard(doc, y, stats) {
+function drawSummaryCard(doc, y, stats, businessConfig) {
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 12;
   const cardW = pageW - margin * 2;
@@ -229,23 +231,26 @@ function drawSummaryCard(doc, y, stats) {
   doc.text(`Categorias: ${stats.categoriesCount}`, margin + 63, y + 12.3);
   doc.text(`Con oferta: ${stats.withOffers}`, margin + 106, y + 12.3);
   doc.text(`Stock total: ${stats.totalStock}`, margin + 4, y + 18.2);
-  doc.text(`Emitido por ${BRAND_NAME} | ${BRAND_ADDRESS}`, margin + 4, y + 22.2);
+  doc.text(`Emitido por ${BRAND_NAME} | ${businessConfig.address}`, margin + 4, y + 22.2);
 }
 
 export async function exportCatalogTablePdf({
   products = [],
   offers = [],
   categoryMap = {},
+  businessConfig: businessConfigOverride,
   filename = "catalogo-nexastore-tabla.pdf",
 }) {
   const doc = new jsPDF();
   const orderedProducts = sortProductsByCategory(products, categoryMap);
   const logoDataUrl = await getBrandLogoDataUrl();
   const stats = getCatalogStats(orderedProducts, offers, categoryMap);
+  const businessConfig = normalizeBusinessConfig(businessConfigOverride);
   const headerStartY = drawHeader(doc, {
     title: "Catalogo profesional",
     subtitle: "Listado de precios, stock y estado",
     logoDataUrl,
+    businessConfig,
   });
   const tableStartY = drawQuickStats(doc, headerStartY + 1, stats);
 
@@ -296,6 +301,7 @@ export async function exportCatalogTablePdf({
           title: "Catalogo profesional",
           subtitle: "Listado de precios, stock y estado",
           logoDataUrl,
+          businessConfig,
         });
         drawQuickStats(doc, nextStart + 1, stats);
       }
@@ -310,10 +316,11 @@ export async function exportCatalogTablePdf({
       title: "Catalogo profesional",
       subtitle: "Resumen final",
       logoDataUrl,
+      businessConfig,
     });
     summaryY = drawQuickStats(doc, nextStart + 1, stats);
   }
-  drawSummaryCard(doc, summaryY, stats);
+  drawSummaryCard(doc, summaryY, stats, businessConfig);
 
   const totalPages = doc.getNumberOfPages();
   for (let page = 1; page <= totalPages; page += 1) {
@@ -400,11 +407,13 @@ export async function exportCatalogVisualPdf({
   products = [],
   offers = [],
   categoryMap = {},
+  businessConfig: businessConfigOverride,
   filename = "catalogo-nexastore-visual.pdf",
 }) {
   const doc = new jsPDF();
   const orderedProducts = sortProductsByCategory(products, categoryMap);
   const logoDataUrl = await getBrandLogoDataUrl();
+  const businessConfig = normalizeBusinessConfig(businessConfigOverride);
   const imageCache = new Map();
 
   const getCachedImage = async (url) => {
@@ -423,6 +432,7 @@ export async function exportCatalogVisualPdf({
       title: "Catalogo visual",
       subtitle: "Tarjetas compactas con precio final",
       logoDataUrl,
+      businessConfig,
     }) + 1;
   const startY = getVisualStartY();
   const gapX = 3;

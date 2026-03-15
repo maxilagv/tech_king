@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag, Sparkles } from "lucide-react";
 import Footer from "@/components/common/Footer";
+import ProductCard from "@/components/products/ProductCard";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
@@ -70,6 +71,27 @@ export default function ProductDetail() {
     document.addEventListener("keydown", onEsc);
     return () => document.removeEventListener("keydown", onEsc);
   }, [zoomOpen]);
+
+  // ── Related products (same category, excl. current, max 6) ──
+  // Must be declared before any conditional returns to follow Rules of Hooks.
+  const categoryMapForRelated = useMemo(
+    () => Object.fromEntries(categories.map((cat) => [cat.slug || cat.id, cat.nombre])),
+    [categories]
+  );
+  const relatedProducts = useMemo(() => {
+    if (!product?.categorySlug) return [];
+    return products
+      .filter(
+        (p) =>
+          String(p.id) !== String(product.id) &&
+          p.categorySlug === product.categorySlug
+      )
+      .slice(0, 6)
+      .map((p) => ({
+        ...p,
+        categoryLabel: categoryMapForRelated[p.categorySlug] || p.categorySlug,
+      }));
+  }, [products, product, categoryMapForRelated]);
 
   if (loading) {
     return (
@@ -331,6 +353,32 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
+
+      {/* ── También podría interesarte ── */}
+      {relatedProducts.length > 0 && (
+        <section className="py-16 px-6 md:px-16 lg:px-24">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center gap-2 mb-8">
+              <Sparkles className="w-5 h-5 text-blue-500" />
+              <h2 className="text-xl md:text-2xl font-bold tk-theme-text">
+                También podría interesarte
+              </h2>
+            </div>
+
+            {/* Horizontal scroll strip */}
+            <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+              {relatedProducts.map((related, i) => (
+                <div
+                  key={related.id}
+                  className="min-w-[240px] max-w-[240px] snap-start flex-shrink-0"
+                >
+                  <ProductCard product={related} index={i} offers={offers} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>

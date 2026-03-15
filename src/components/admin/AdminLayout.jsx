@@ -37,6 +37,7 @@ const MODULE_ICON_BY_ID = {
   remitos: FileText,
   suppliers: Building2,
   costs: BadgeDollarSign,
+  pricing: BadgeDollarSign,
   stock: Warehouse,
   finance: BadgeDollarSign,
   users: UserCog,

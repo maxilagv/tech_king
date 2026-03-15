@@ -41,6 +41,15 @@
       "type": "string",
       "description": "Product brand"
     },
+    "priceLocked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Excludes the product from mass price updates"
+    },
+    "lastPriceBatchId": {
+      "type": "string",
+      "description": "Last price batch applied to this product"
+    },
     "specs": {
       "type": "object",
       "description": "Product specifications",

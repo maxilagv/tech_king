@@ -23,6 +23,21 @@ function toPositiveInt(value) {
   return qty > 0 ? qty : 0;
 }
 
+function sanitizeQuantityInput(value) {
+  const digits = String(value ?? "").replace(/\D+/g, "");
+  if (!digits) return "";
+  return digits.replace(/^0+/, "");
+}
+
+function normalizeDraftQuantity(value) {
+  const qty = toPositiveInt(value);
+  return String(qty > 0 ? qty : 1);
+}
+
+function createDraftItem() {
+  return { productId: "", cantidad: "1" };
+}
+
 function normalizeDraftItems(items) {
   const map = new Map();
   for (const item of items || []) {
@@ -114,18 +129,18 @@ export default function OrdersAdmin() {
 
   const [manualOrder, setManualOrder] = useState({
     customerId: "",
-    items: [{ productId: "", cantidad: 1 }],
+    items: [createDraftItem()],
   });
   const [adjustDraft, setAdjustDraft] = useState({
     orderId: "",
-    items: [{ productId: "", cantidad: 1 }],
+    items: [createDraftItem()],
   });
   const [savingAdjustment, setSavingAdjustment] = useState(false);
 
   const addItemRow = () => {
     setManualOrder((prev) => ({
       ...prev,
-      items: [...prev.items, { productId: "", cantidad: 1 }],
+      items: [...prev.items, createDraftItem()],
     }));
   };
 
@@ -146,17 +161,17 @@ export default function OrdersAdmin() {
   };
 
   const openAdjustDraft = (orderId) => {
-    setAdjustDraft({ orderId, items: [{ productId: "", cantidad: 1 }] });
+    setAdjustDraft({ orderId, items: [createDraftItem()] });
   };
 
   const closeAdjustDraft = () => {
-    setAdjustDraft({ orderId: "", items: [{ productId: "", cantidad: 1 }] });
+    setAdjustDraft({ orderId: "", items: [createDraftItem()] });
   };
 
   const addAdjustItemRow = () => {
     setAdjustDraft((prev) => ({
       ...prev,
-      items: [...prev.items, { productId: "", cantidad: 1 }],
+      items: [...prev.items, createDraftItem()],
     }));
   };
 
@@ -179,7 +194,7 @@ export default function OrdersAdmin() {
   const manualTotal = manualOrder.items.reduce((sum, item) => {
     const product = productMap[item.productId];
     if (!product) return sum;
-    return sum + Number(product.precio || 0) * Number(item.cantidad || 0);
+    return sum + Number(product.precio || 0) * toPositiveInt(item.cantidad);
   }, 0);
 
   const createManualOrder = async () => {
@@ -680,10 +695,16 @@ export default function OrdersAdmin() {
               <label className="block">
                 <span className="text-xs uppercase tracking-[0.25em] text-white/60">Cantidad</span>
                 <input
-                  type="number"
-                  min="1"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={item.cantidad}
-                  onChange={(event) => updateItemRow(index, "cantidad", Number(event.target.value))}
+                  onChange={(event) =>
+                    updateItemRow(index, "cantidad", sanitizeQuantityInput(event.target.value))
+                  }
+                  onBlur={(event) =>
+                    updateItemRow(index, "cantidad", normalizeDraftQuantity(event.target.value))
+                  }
                   className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
                 />
               </label>
@@ -843,11 +864,23 @@ export default function OrdersAdmin() {
                             Cantidad
                           </span>
                           <input
-                            type="number"
-                            min="1"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={item.cantidad}
                             onChange={(event) =>
-                              updateAdjustItemRow(index, "cantidad", Number(event.target.value))
+                              updateAdjustItemRow(
+                                index,
+                                "cantidad",
+                                sanitizeQuantityInput(event.target.value)
+                              )
+                            }
+                            onBlur={(event) =>
+                              updateAdjustItemRow(
+                                index,
+                                "cantidad",
+                                normalizeDraftQuantity(event.target.value)
+                              )
                             }
                             className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
                           />

@@ -2,13 +2,21 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  BRAND_ADDRESS,
   BRAND_NAME,
-  BRAND_PHONE,
-  BRAND_SUPPORT_EMAIL,
 } from "@/constants/brand";
+import { useBusinessConfig } from "@/hooks/useBusinessConfig";
+import {
+  createMailHref,
+  createMapsHref,
+  createPhoneHref,
+} from "@/utils/businessConfig";
 
 export default function Footer() {
+  const { businessConfig } = useBusinessConfig();
+  const phoneHref = createPhoneHref(businessConfig);
+  const mailHref = createMailHref(businessConfig);
+  const mapsHref = createMapsHref(businessConfig);
+
   return (
     <footer className="relative overflow-hidden bg-[#020c1e] text-white pt-20 pb-8 px-6 md:px-16 lg:px-24">
       <div className="absolute inset-0 pointer-events-none">
@@ -50,9 +58,26 @@ export default function Footer() {
           <div>
             <h4 className="text-xs tracking-[0.2em] uppercase text-white/60 mb-6">Contacto</h4>
             <ul className="space-y-3 text-white/60 text-sm">
-              <li>{BRAND_SUPPORT_EMAIL}</li>
-              <li>{BRAND_PHONE}</li>
-              <li>{BRAND_ADDRESS}</li>
+              <li>
+                <a href={mailHref} className="hover:text-blue-200 transition-colors duration-300">
+                  {businessConfig.supportEmail}
+                </a>
+              </li>
+              <li>
+                <a href={phoneHref} className="hover:text-blue-200 transition-colors duration-300">
+                  {businessConfig.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={mapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-200 transition-colors duration-300"
+                >
+                  {businessConfig.address}
+                </a>
+              </li>
             </ul>
           </div>
         </div>
