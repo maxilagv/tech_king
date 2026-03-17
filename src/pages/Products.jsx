@@ -220,6 +220,14 @@ export default function Products() {
         title="Catálogo de Productos — Cargadores, Auriculares y Electrónica"
         description="Explorá el catálogo completo de Nexastore. Cargadores, auriculares bluetooth, accesorios para celular y electrónica. Precios mayoristas y minoristas. Envíos a todo Argentina."
         canonical="/products"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Inicio", item: "https://nexastore.com/" },
+            { "@type": "ListItem", position: 2, name: "Productos", item: "https://nexastore.com/products" },
+          ],
+        }}
       />
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />

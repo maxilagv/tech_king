@@ -220,6 +220,15 @@ export default function ProductDetail() {
         <meta name="twitter:description" content={productDescription} />
         <meta name="twitter:image" content={productImage} />
         <script type="application/ld+json">{JSON.stringify(productJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Inicio", item: `${BRAND_URL}/` },
+            { "@type": "ListItem", position: 2, name: "Productos", item: `${BRAND_URL}/products` },
+            { "@type": "ListItem", position: 3, name: product.nombre, item: `${BRAND_URL}/products/${productId}` },
+          ],
+        })}</script>
       </Helmet>
       <section className="pt-28 pb-28 md:pb-14 px-6 md:px-16 lg:px-24">
         <div className="max-w-7xl mx-auto">

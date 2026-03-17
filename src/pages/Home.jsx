@@ -7,6 +7,9 @@ import CategoriesSection from "../components/home/CategoriesSection";
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import NewsletterSection from "../components/home/NewsletterSection";
 import Footer from "../components/common/Footer";
+import BrandsSection from "../components/home/BrandsSection";
+import WhyNexa from "../components/home/WhyNexa";
+import FlashDeals from "../components/home/FlashDeals";
 import PageSEO from "@/components/seo/PageSEO";
 
 const HOME_JSON_LD = {
@@ -58,9 +61,12 @@ export default function Home() {
         jsonLd={HOME_JSON_LD}
       />
       <HeroSection />
-      <OffersBanner />
-      <FeaturedProducts />
       <TrustBadges />
+      <OffersBanner />
+      <FlashDeals />
+      <FeaturedProducts />
+      <BrandsSection />
+      <WhyNexa />
       <CategoriesSection />
       <TestimonialsSection />
       <NewsletterSection />
