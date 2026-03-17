@@ -10,6 +10,7 @@ import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { getProductPricing } from "@/utils/offers";
+import PageSEO from "@/components/seo/PageSEO";
 
 function normalizeSearchText(value) {
   return String(value || "")
@@ -215,6 +216,11 @@ export default function Products() {
 
   return (
     <div className="tk-theme-bg">
+      <PageSEO
+        title="Catálogo de Productos — Cargadores, Auriculares y Electrónica"
+        description="Explorá el catálogo completo de Nexastore. Cargadores, auriculares bluetooth, accesorios para celular y electrónica. Precios mayoristas y minoristas. Envíos a todo Argentina."
+        canonical="/products"
+      />
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto text-center relative z-10">

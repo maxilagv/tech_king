@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
 import Footer from "../components/common/Footer";
+import PageSEO from "@/components/seo/PageSEO";
 import {
   buildContactWhatsAppMessage,
   createMailHref,
@@ -72,6 +73,11 @@ export default function Contact() {
 
   return (
     <div className="tk-theme-bg">
+      <PageSEO
+        title="Contacto — Nexastore Once, Buenos Aires"
+        description="Contactá a Nexastore por WhatsApp o email. Local en Av. Corrientes 2332, Once, Buenos Aires. Lunes a sábado 10:00–20:00. Atención personalizada en cargadores, auriculares y electrónica."
+        canonical="/contact"
+      />
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
         <div className="absolute bottom-0 right-0 w-[420px] h-[420px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto text-center relative z-10">

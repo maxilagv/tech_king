@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E '\\\\.\\(html|txt|xml|css\\)$')",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

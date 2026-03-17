@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag, Sparkles } from "lucide-react";
 import Footer from "@/components/common/Footer";
 import ProductCard from "@/components/products/ProductCard";
@@ -8,7 +9,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { useCart } from "@/context/CartContext";
 import { getProductPricing } from "@/utils/offers";
-import { BRAND_NAME } from "@/constants/brand";
+import { BRAND_NAME, BRAND_URL } from "@/constants/brand";
 
 function parseStock(rawStock) {
   const parsed = Number(rawStock);
@@ -166,8 +167,60 @@ export default function ProductDetail() {
     setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  // ── SEO dinámico por producto ──
+  const productImage =
+    (Array.isArray(product.imagenes) && product.imagenes[0]) ||
+    product.image_url ||
+    "https://i.postimg.cc/HxK9cS11/Chat-GPT-Image-5-mar-2026-12-07-28-p-m.png";
+
+  const productDescription = product.descripcion
+    ? `${product.descripcion.slice(0, 140)}. Comprá en Nexastore Once con envíos a todo Argentina.`
+    : `Comprá ${product.nombre}${product.marca ? ` de ${product.marca}` : ""} en Nexastore. Electrónica en Once, Buenos Aires. Envíos a todo Argentina.`;
+
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.nombre,
+    description: product.descripcion || productDescription,
+    image: productImage,
+    brand: product.marca
+      ? { "@type": "Brand", name: product.marca }
+      : undefined,
+    offers: {
+      "@type": "Offer",
+      url: `${BRAND_URL}/products/${productId}`,
+      priceCurrency: "ARS",
+      price: pricing.finalPrice.toFixed(2),
+      availability:
+        outOfStock
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+      seller: {
+        "@type": "Organization",
+        name: BRAND_NAME,
+      },
+    },
+  };
+
   return (
     <div className="tk-theme-bg tk-theme-text min-h-screen">
+      <Helmet>
+        <title>{`${product.nombre}${product.marca ? ` — ${product.marca}` : ""} | ${BRAND_NAME}`}</title>
+        <meta name="description" content={productDescription} />
+        <link rel="canonical" href={`${BRAND_URL}/products/${productId}`} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${product.nombre} | ${BRAND_NAME}`} />
+        <meta property="og:description" content={productDescription} />
+        <meta property="og:image" content={productImage} />
+        <meta property="og:url" content={`${BRAND_URL}/products/${productId}`} />
+        <meta property="og:locale" content="es_AR" />
+        <meta property="og:site_name" content={BRAND_NAME} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${product.nombre} | ${BRAND_NAME}`} />
+        <meta name="twitter:description" content={productDescription} />
+        <meta name="twitter:image" content={productImage} />
+        <script type="application/ld+json">{JSON.stringify(productJsonLd)}</script>
+      </Helmet>
       <section className="pt-28 pb-28 md:pb-14 px-6 md:px-16 lg:px-24">
         <div className="max-w-7xl mx-auto">
           <Link

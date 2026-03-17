@@ -4,6 +4,7 @@ import { Award, Heart, Leaf, Truck } from "lucide-react";
 import Footer from "../components/common/Footer";
 import { BRAND_NAME } from "@/constants/brand";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import PageSEO from "@/components/seo/PageSEO";
 
 const values = [
   {
@@ -33,6 +34,11 @@ export default function About() {
 
   return (
     <div className="tk-theme-bg">
+      <PageSEO
+        title="Quiénes Somos — Nexastore Once, Buenos Aires"
+        description="Conocé la historia de Nexastore. Somos una tienda de electrónica en Once, Buenos Aires, especializada en cargadores, auriculares y accesorios con garantía oficial y envíos a todo Argentina."
+        canonical="/about"
+      />
       <section className="relative h-[70vh] overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&q=80"

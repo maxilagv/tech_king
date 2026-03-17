@@ -417,7 +417,8 @@ service cloud.firestore {
     function validLandingHeroBase() {
       return request.resource.data.keys().hasOnly([
         "titulo", "subtitulo", "descripcion", "badge",
-        "ctaLabel", "ctaUrl", "imagen", "orden",
+        "ctaLabel", "ctaUrl", "imagen", "imagenDesktop",
+        "imagenMobile", "orden",
         "activo", "createdAt", "updatedAt"
       ])
       && request.resource.data.titulo is string
@@ -431,8 +432,22 @@ service cloud.firestore {
       && request.resource.data.ctaUrl is string
       && request.resource.data.ctaUrl.size() >= 1
       && request.resource.data.ctaUrl.size() <= 180
-      && request.resource.data.imagen is string
-      && request.resource.data.imagen.size() > 10
+      && (
+        (request.resource.data.imagen is string && request.resource.data.imagen.size() > 10)
+        || !("imagen" in request.resource.data)
+      )
+      && (
+        (request.resource.data.imagenDesktop is string && request.resource.data.imagenDesktop.size() > 10)
+        || !("imagenDesktop" in request.resource.data)
+      )
+      && (
+        (request.resource.data.imagenMobile is string && request.resource.data.imagenMobile.size() > 10)
+        || !("imagenMobile" in request.resource.data)
+      )
+      && (
+        ("imagenDesktop" in request.resource.data && request.resource.data.imagenDesktop is string && request.resource.data.imagenDesktop.size() > 10)
+        || ("imagen" in request.resource.data && request.resource.data.imagen is string && request.resource.data.imagen.size() > 10)
+      )
       && request.resource.data.orden is number
       && (request.resource.data.activo is bool || !("activo" in request.resource.data));
     }

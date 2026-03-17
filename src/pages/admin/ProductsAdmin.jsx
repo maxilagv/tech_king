@@ -5,7 +5,7 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
-  updateDoc,
+  setDoc,
 } from "firebase/firestore";
 import { Download, Pencil, Trash2 } from "lucide-react";
 import { db } from "@/api/firebase";
@@ -29,6 +29,28 @@ const emptyForm = {
   activo: true,
 };
 
+function buildPreservedProductFields(product) {
+  const preserved = {};
+
+  if ("createdAt" in product) {
+    preserved.createdAt = product.createdAt;
+  }
+  if (typeof product.costoActual === "number") {
+    preserved.costoActual = product.costoActual;
+  }
+  if (typeof product.lastPriceBatchId === "string") {
+    preserved.lastPriceBatchId = product.lastPriceBatchId;
+  }
+  if (typeof product.lastPriceUpdatedBy === "string") {
+    preserved.lastPriceUpdatedBy = product.lastPriceUpdatedBy;
+  }
+  if (product.lastPriceUpdatedAt) {
+    preserved.lastPriceUpdatedAt = product.lastPriceUpdatedAt;
+  }
+
+  return preserved;
+}
+
 export default function ProductsAdmin() {
   const { products, loading } = useProducts();
   const { categories } = useCategories();
@@ -36,6 +58,7 @@ export default function ProductsAdmin() {
   const { businessConfig } = useBusinessConfig();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [editingPreservedFields, setEditingPreservedFields] = useState({});
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState("");
   const [formError, setFormError] = useState("");
@@ -49,6 +72,7 @@ export default function ProductsAdmin() {
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setEditingPreservedFields({});
     setFormError("");
   };
 
@@ -58,6 +82,7 @@ export default function ProductsAdmin() {
 
   const handleEdit = (product) => {
     setEditingId(product.id);
+    setEditingPreservedFields(buildPreservedProductFields(product));
     setForm({
       nombre: product.nombre || "",
       descripcion: product.descripcion || "",
@@ -110,7 +135,14 @@ export default function ProductsAdmin() {
 
     try {
       if (editingId) {
-        await updateDoc(doc(db, "products", editingId), payload);
+        await setDoc(
+          doc(db, "products", editingId),
+          {
+            ...payload,
+            ...editingPreservedFields,
+          },
+          { merge: false }
+        );
       } else {
         await addDoc(collection(db, "products"), {
           ...payload,
