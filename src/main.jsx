@@ -6,6 +6,9 @@ import App from "./App";
 import "./index.css";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { inject } from "@vercel/analytics";
+
+inject();
 
 const queryClient = new QueryClient();
 
