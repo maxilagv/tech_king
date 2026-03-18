@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { signOut } from "firebase/auth";
 import Layout from "./Layout";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
@@ -29,8 +28,6 @@ import LandingAdmin from "./pages/admin/LandingAdmin";
 import PricingAdmin from "./pages/admin/PricingAdmin";
 import QRAdmin from "./pages/admin/QRAdmin";
 import AdminHome from "./components/admin/AdminHome";
-import { auth } from "@/api/firebase";
-import { useAdminAccess } from "@/hooks/useAdminAccess";
 
 const routes = [
   { path: "/", name: "Home", element: <Home /> },
@@ -46,14 +43,6 @@ function AppContent() {
     getPageNameFromPath(location.pathname) ||
     (location.pathname.startsWith("/products/") ? "Products" : "Home");
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const { isAdmin, checking, authLoading } = useAdminAccess();
-
-  useEffect(() => {
-    if (isAdminRoute) return;
-    if (!checking && !authLoading && isAdmin) {
-      signOut(auth);
-    }
-  }, [isAdminRoute, isAdmin, checking, authLoading]);
 
   const moduleElement = (moduleId, element) => (
     <RequireAdminModule moduleId={moduleId}>{element}</RequireAdminModule>

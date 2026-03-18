@@ -29,6 +29,13 @@ const emptyForm = {
   activo: true,
 };
 
+function getProductWriteErrorMessage(error) {
+  if (error?.code === "permission-denied") {
+    return "Firebase rechazo la operacion por permisos insuficientes. Revisa que la sesion siga activa y que el usuario tenga habilitado el modulo Productos.";
+  }
+  return error?.message || "No se pudo guardar el producto.";
+}
+
 function buildPreservedProductFields(product) {
   const preserved = {};
 
@@ -151,7 +158,7 @@ export default function ProductsAdmin() {
       }
       resetForm();
     } catch (err) {
-      setFormError(err.message || "No se pudo guardar el producto.");
+      setFormError(getProductWriteErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -163,7 +170,7 @@ export default function ProductsAdmin() {
     try {
       await deleteDoc(doc(db, "products", productId));
     } catch (err) {
-      setFormError(err.message || "No se pudo borrar el producto.");
+      setFormError(getProductWriteErrorMessage(err));
     }
   };
 
