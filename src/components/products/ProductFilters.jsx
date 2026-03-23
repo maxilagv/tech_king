@@ -51,7 +51,7 @@ export default function ProductFilters({
   const hasPriceFilter = priceMin !== "" || priceMax !== "";
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="relative z-20 flex flex-col items-center gap-4">
       {/* ── Category pills ── */}
       <div className="flex flex-wrap gap-2 justify-center">
         {filters.map((cat) => (
@@ -85,7 +85,7 @@ export default function ProductFilters({
       {/* ── Sort + Price row ── */}
       <div className="flex flex-wrap items-center justify-center gap-3 mt-1">
         {/* Sort dropdown */}
-        <div className="relative">
+        <div className="relative z-30">
           <button
             type="button"
             id="sort-trigger"
@@ -103,9 +103,9 @@ export default function ProductFilters({
           {sortOpen && (
             <>
               {/* click-away overlay */}
-              <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+              <div className="fixed inset-0 z-[70]" onClick={() => setSortOpen(false)} />
               <div
-                className={`absolute left-0 top-full mt-2 z-50 min-w-[170px] rounded-2xl border shadow-xl overflow-hidden ${
+                className={`absolute left-0 top-full mt-2 z-[80] min-w-[170px] rounded-2xl border shadow-xl overflow-hidden ${
                   isDark ? "bg-[#111] border-white/10" : "bg-white border-black/8"
                 }`}
               >

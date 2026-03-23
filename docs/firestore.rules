@@ -654,6 +654,11 @@ service cloud.firestore {
       allow update, delete: if isSuperAdmin();
     }
 
+    match /order_notifications/{id} {
+      allow get, list: if canManageOrders();
+      allow create, update, delete: if isSuperAdmin();
+    }
+
     match /remitos/{id} {
       allow get, list: if canManageRemitos();
       allow create: if canManageRemitos() && validRemitoCreate();

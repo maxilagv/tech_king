@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { collection, doc, runTransaction, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/api/firebase";
 import { useOrders } from "@/hooks/useOrders";
+import { useOrderNotifications } from "@/hooks/useOrderNotifications";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useProducts } from "@/hooks/useProducts";
 
@@ -94,8 +95,34 @@ function calculateOrderTotals(items) {
   return { revenue, cost, grossProfit, marginPct };
 }
 
+function getOwnerNotificationMeta(notification) {
+  if (!notification) {
+    return {
+      label: "Aviso dueño sin registro",
+      className: "bg-white/10 text-white/60",
+    };
+  }
+  if (notification.status === "sent") {
+    return {
+      label: "Aviso dueño enviado",
+      className: "bg-emerald-500/15 text-emerald-200",
+    };
+  }
+  if (notification.status === "failed") {
+    return {
+      label: "Aviso dueño fallido",
+      className: "bg-red-500/15 text-red-200",
+    };
+  }
+  return {
+    label: `Aviso dueño ${notification.status || "pendiente"}`,
+    className: "bg-amber-500/15 text-amber-200",
+  };
+}
+
 export default function OrdersAdmin() {
   const { orders, loading } = useOrders();
+  const { notifications } = useOrderNotifications();
   const { customers } = useCustomers();
   const { products } = useProducts();
   const [message, setMessage] = useState("");
@@ -125,6 +152,14 @@ export default function OrdersAdmin() {
         ])
       ),
     [products]
+  );
+
+  const notificationMap = useMemo(
+    () =>
+      Object.fromEntries(
+        notifications.map((notification) => [notification.orderId || notification.id, notification])
+      ),
+    [notifications]
   );
 
   const [manualOrder, setManualOrder] = useState({
@@ -767,6 +802,22 @@ export default function OrdersAdmin() {
                 key={order.id}
                 className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"
               >
+                {order.source === "web" && (
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <span
+                      className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.2em] ${
+                        getOwnerNotificationMeta(notificationMap[order.id]).className
+                      }`}
+                    >
+                      {getOwnerNotificationMeta(notificationMap[order.id]).label}
+                    </span>
+                    {notificationMap[order.id]?.lastError && (
+                      <span className="text-[11px] text-red-200/80">
+                        {notificationMap[order.id].lastError}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold">#{order.id.slice(0, 8)}</p>

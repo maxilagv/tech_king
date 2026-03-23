@@ -1,10 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import {
-  BRAND_LOGO_URL,
-  BRAND_NAME,
-} from "@/constants/brand";
+import { BRAND_NAME } from "@/constants/brand";
 import { normalizeBusinessConfig } from "@/utils/businessConfig";
+import { getBrandLogoDataUrl, getImageTypeFromDataUrl } from "@/utils/brandAssets";
 
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString("es-AR", {
@@ -27,23 +25,6 @@ function formatDateTime(value) {
   return new Date(ts).toLocaleString("es-AR");
 }
 
-async function fetchImageDataUrl(url) {
-  if (!url) return null;
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
-
 function customerLine(customer) {
   const first = String(customer?.nombre || "").trim();
   const last = String(customer?.apellido || "").trim();
@@ -58,7 +39,7 @@ export async function generateRemitoPdf({ numero, order, customer, businessConfi
   const contentW = pageW - margin * 2;
   const businessConfig = normalizeBusinessConfig(businessConfigOverride);
 
-  const logoData = await fetchImageDataUrl(BRAND_LOGO_URL);
+  const logoData = await getBrandLogoDataUrl();
   const statusText = String(order?.status || "confirmado").toUpperCase();
   const orderCode = `#${String(order?.id || "").slice(0, 8)}`;
   const issueDate = formatDateTime(order?.createdAt);
@@ -67,7 +48,7 @@ export async function generateRemitoPdf({ numero, order, customer, businessConfi
   doc.roundedRect(margin, 12, contentW, 36, 3, 3, "F");
 
   if (logoData) {
-    doc.addImage(logoData, "PNG", margin + 4, 16, 18, 18);
+    doc.addImage(logoData, getImageTypeFromDataUrl(logoData), margin + 4, 16, 18, 18);
   }
 
   doc.setTextColor(255, 255, 255);

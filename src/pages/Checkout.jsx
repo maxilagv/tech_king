@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "@/api/firebase";
+import { notifyOwnerAboutOrder } from "@/api/orderNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useCustomerProfile } from "@/hooks/useCustomerProfile";
 import { useCart } from "@/context/CartContext";
@@ -15,6 +16,11 @@ import { useOffers } from "@/hooks/useOffers";
 import { useProducts } from "@/hooks/useProducts";
 import { useCustomerOrders } from "@/hooks/useCustomerOrders";
 import { getProductPricing } from "@/utils/offers";
+import {
+  getCustomerPhoneError,
+  isValidCustomerPhone,
+  normalizeCustomerPhone,
+} from "@/utils/customerPhone";
 import { Eye, EyeOff } from "lucide-react";
 
 function getTimestampValue(value) {
@@ -51,6 +57,17 @@ function getOrderStatusMeta(status) {
   return { label: "Pendiente", className: "bg-amber-500/15 text-amber-600" };
 }
 
+function buildCustomerForm(source = {}, fallbackEmail = "") {
+  return {
+    nombre: source.nombre || "",
+    apellido: source.apellido || "",
+    dni: source.dni || "",
+    direccion: source.direccion || "",
+    telefono: source.telefono || "",
+    email: source.email || fallbackEmail || "",
+  };
+}
+
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -69,6 +86,8 @@ export default function Checkout() {
   const [expandedOrderId, setExpandedOrderId] = useState("");
   const [showLoginPass, setShowLoginPass] = useState(false);
   const [showRegisterPass, setShowRegisterPass] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -80,6 +99,7 @@ export default function Checkout() {
     email: "",
     password: "",
   });
+  const [profileForm, setProfileForm] = useState(() => buildCustomerForm());
 
   const productMap = useMemo(
     () => new Map(products.map((product) => [String(product.id), product])),
@@ -129,7 +149,14 @@ export default function Checkout() {
     [pricedItems]
   );
 
-  const canCheckout = pricedItems.length > 0 && user && profile && !isAdmin && !checkingAdmin;
+  const hasValidCustomerPhone = isValidCustomerPhone(profile?.telefono);
+  const canCheckout =
+    pricedItems.length > 0 &&
+    user &&
+    profile &&
+    hasValidCustomerPhone &&
+    !isAdmin &&
+    !checkingAdmin;
   const investedTotal = useMemo(
     () =>
       customerOrders
@@ -156,7 +183,7 @@ export default function Checkout() {
       apellido: profile.apellido || "",
       dni: profile.dni || "",
       direccion: profile.direccion || "",
-      telefono: profile.telefono || "",
+      telefono: normalizeCustomerPhone(profile.telefono || ""),
       email: profile.email || user?.email || "",
     };
   }, [profile, user]);
@@ -173,6 +200,20 @@ export default function Checkout() {
       setExpandedOrderId("");
     }
   }, [customerOrders, expandedOrderId]);
+
+  useEffect(() => {
+    setProfileForm(buildCustomerForm(profile || {}, user?.email || ""));
+  }, [profile, user]);
+
+  useEffect(() => {
+    if (!user || isAdmin) {
+      setEditingProfile(false);
+      return;
+    }
+    if (!profile || !isValidCustomerPhone(profile.telefono)) {
+      setEditingProfile(true);
+    }
+  }, [user, isAdmin, profile]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -192,6 +233,12 @@ export default function Checkout() {
     event.preventDefault();
     setError("");
     setMessage("");
+    const normalizedPhone = normalizeCustomerPhone(registerForm.telefono);
+    const phoneError = getCustomerPhoneError(normalizedPhone);
+    if (phoneError) {
+      setError(phoneError);
+      return;
+    }
     setLoading(true);
     try {
       const credential = await createUserWithEmailAndPassword(
@@ -204,7 +251,7 @@ export default function Checkout() {
         apellido: registerForm.apellido.trim(),
         dni: registerForm.dni.trim(),
         direccion: registerForm.direccion.trim(),
-        telefono: registerForm.telefono.trim(),
+        telefono: normalizedPhone,
         email: registerForm.email.trim(),
         tipo: "cliente",
         createdAt: serverTimestamp(),
@@ -215,6 +262,54 @@ export default function Checkout() {
       setError("No se pudo registrar. Verifica los datos.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async (event) => {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+
+    if (!user) {
+      setError("Debes iniciar sesion.");
+      return;
+    }
+
+    const normalizedPhone = normalizeCustomerPhone(profileForm.telefono);
+    const phoneError = getCustomerPhoneError(normalizedPhone);
+    if (phoneError) {
+      setError(phoneError);
+      return;
+    }
+
+    if (!profileForm.nombre.trim() || !profileForm.apellido.trim()) {
+      setError("Nombre y apellido son obligatorios.");
+      return;
+    }
+
+    setSavingProfile(true);
+    try {
+      await setDoc(
+        doc(db, "customers", user.uid),
+        {
+          nombre: profileForm.nombre.trim(),
+          apellido: profileForm.apellido.trim(),
+          dni: profileForm.dni.trim(),
+          direccion: profileForm.direccion.trim(),
+          telefono: normalizedPhone,
+          email: (profileForm.email || user.email || "").trim(),
+          tipo: profile?.tipo || "cliente",
+          createdAt: profile?.createdAt || serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      setEditingProfile(false);
+      setMessage("Tus datos fueron actualizados.");
+    } catch (err) {
+      setError("No se pudo guardar tu perfil.");
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -233,6 +328,11 @@ export default function Checkout() {
       setError("Debes completar tu registro para comprar.");
       return;
     }
+    if (!hasValidCustomerPhone) {
+      setError("Debes cargar un telefono valido antes de confirmar tu pedido.");
+      setEditingProfile(true);
+      return;
+    }
     if (isAdmin) {
       setError("La cuenta de administrador no puede comprar desde la tienda.");
       return;
@@ -246,7 +346,7 @@ export default function Checkout() {
         cantidad: item.cantidad,
       }));
 
-      await addDoc(collection(db, "orders"), {
+      const orderRef = await addDoc(collection(db, "orders"), {
         customerId: user.uid,
         items: orderItems,
         total: Number(checkoutTotal.toFixed(2)),
@@ -258,6 +358,12 @@ export default function Checkout() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      try {
+        await notifyOwnerAboutOrder({ orderId: orderRef.id, user });
+      } catch (notificationError) {
+        console.error("Owner notification failed", notificationError);
+      }
 
       clear();
       setMessage("Pedido generado. Te contactaremos para confirmar.");
@@ -382,13 +488,22 @@ export default function Checkout() {
                     className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                   />
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
                     value={registerForm.telefono}
                     onChange={(event) =>
                       setRegisterForm((prev) => ({ ...prev, telefono: event.target.value }))
                     }
+                    onBlur={(event) =>
+                      setRegisterForm((prev) => ({
+                        ...prev,
+                        telefono: normalizeCustomerPhone(event.target.value),
+                      }))
+                    }
                     placeholder="Telefono"
                     className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    required
                   />
                   <input
                     type="email"
@@ -429,40 +544,145 @@ export default function Checkout() {
                 </form>
               )}
             </div>
-            ) : (
-              <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg space-y-4">
-              <div className="flex items-center justify-between">
+          ) : (
+            <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg space-y-4">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] tk-theme-muted">Cuenta</p>
                   <h2 className="text-lg font-semibold">
-                    {profile ? `${profile.nombre} ${profile.apellido}` : user.email}
+                    {profile ? `${profile.nombre} ${profile.apellido}`.trim() : user.email}
                   </h2>
                 </div>
-                <button
-                  onClick={() => signOut(auth)}
-                  className="text-xs uppercase tracking-[0.2em] text-blue-600"
-                >
-                  Cerrar sesion
-                </button>
+                <div className="flex items-center gap-3">
+                  {!isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingProfile((prev) => !prev)}
+                      className="text-xs uppercase tracking-[0.2em] tk-theme-muted hover:text-blue-600"
+                    >
+                      {editingProfile ? "Ocultar datos" : profile ? "Editar datos" : "Completar datos"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => signOut(auth)}
+                    className="text-xs uppercase tracking-[0.2em] text-blue-600"
+                  >
+                    Cerrar sesion
+                  </button>
+                </div>
               </div>
+
               <p className="text-sm tk-theme-muted">
                 Direccion: {profile?.direccion || "No informada"}
               </p>
               <p className="text-sm tk-theme-muted">
                 Telefono: {profile?.telefono || "No informado"}
               </p>
+
               {!profile && (
-                <p className="text-sm text-red-500">
-                  Falta completar el perfil. Registrate con tus datos para poder comprar.
-                </p>
+                <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-600">
+                  Completa tus datos para poder comprar.
+                </div>
               )}
+
+              {profile && !hasValidCustomerPhone && (
+                <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-600">
+                  Debes cargar un telefono valido para confirmar pedidos.
+                </div>
+              )}
+
               {isAdmin && (
                 <p className="text-sm text-red-500">
                   Estas logueado como administrador. Cerra sesion para comprar.
                 </p>
-                )}
-              </div>
-            )}
+              )}
+
+              {editingProfile && !isAdmin && (
+                <form
+                  onSubmit={handleSaveProfile}
+                  className="grid gap-3 pt-4 border-t tk-theme-border"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={profileForm.nombre}
+                      onChange={(event) =>
+                        setProfileForm((prev) => ({ ...prev, nombre: event.target.value }))
+                      }
+                      placeholder="Nombre"
+                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      required
+                    />
+                    <input
+                      type="text"
+                      value={profileForm.apellido}
+                      onChange={(event) =>
+                        setProfileForm((prev) => ({ ...prev, apellido: event.target.value }))
+                      }
+                      placeholder="Apellido"
+                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={profileForm.dni}
+                      onChange={(event) =>
+                        setProfileForm((prev) => ({ ...prev, dni: event.target.value }))
+                      }
+                      placeholder="DNI"
+                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    />
+                    <input
+                      type="email"
+                      value={profileForm.email}
+                      onChange={(event) =>
+                        setProfileForm((prev) => ({ ...prev, email: event.target.value }))
+                      }
+                      placeholder="Email"
+                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      required
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={profileForm.direccion}
+                    onChange={(event) =>
+                      setProfileForm((prev) => ({ ...prev, direccion: event.target.value }))
+                    }
+                    placeholder="Direccion"
+                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                  />
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={profileForm.telefono}
+                    onChange={(event) =>
+                      setProfileForm((prev) => ({ ...prev, telefono: event.target.value }))
+                    }
+                    onBlur={(event) =>
+                      setProfileForm((prev) => ({
+                        ...prev,
+                        telefono: normalizeCustomerPhone(event.target.value),
+                      }))
+                    }
+                    placeholder="Telefono"
+                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:opacity-60"
+                  >
+                    {savingProfile ? "Guardando..." : profile ? "Guardar cambios" : "Guardar datos"}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
 
           {user && !isAdmin && (
             <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 shadow-lg space-y-5">
@@ -688,6 +908,11 @@ export default function Checkout() {
               {user && !profile && (
                 <p className="text-xs text-red-500">
                   Completa tu registro para poder comprar.
+                </p>
+              )}
+              {user && profile && !hasValidCustomerPhone && (
+                <p className="text-xs text-red-500">
+                  Debes cargar un telefono valido para confirmar tu pedido.
                 </p>
               )}
               {isAdmin && (

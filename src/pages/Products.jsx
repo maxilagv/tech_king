@@ -11,6 +11,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { getProductPricing } from "@/utils/offers";
 import PageSEO from "@/components/seo/PageSEO";
+import { BRAND_URL } from "@/constants/brand";
 
 function normalizeSearchText(value) {
   return String(value || "")
@@ -224,12 +225,12 @@ export default function Products() {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Inicio", item: "https://nexastore.com/" },
-            { "@type": "ListItem", position: 2, name: "Productos", item: "https://nexastore.com/products" },
+            { "@type": "ListItem", position: 1, name: "Inicio", item: `${BRAND_URL}/` },
+            { "@type": "ListItem", position: 2, name: "Productos", item: `${BRAND_URL}/products` },
           ],
         }}
       />
-      <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
+      <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-visible">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <motion.span

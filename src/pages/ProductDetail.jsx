@@ -9,7 +9,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { useCart } from "@/context/CartContext";
 import { getProductPricing } from "@/utils/offers";
-import { BRAND_NAME, BRAND_URL } from "@/constants/brand";
+import { BRAND_NAME, BRAND_OG_IMAGE_URL, BRAND_URL } from "@/constants/brand";
 
 function parseStock(rawStock) {
   const parsed = Number(rawStock);
@@ -171,7 +171,7 @@ export default function ProductDetail() {
   const productImage =
     (Array.isArray(product.imagenes) && product.imagenes[0]) ||
     product.image_url ||
-    "https://i.postimg.cc/HxK9cS11/Chat-GPT-Image-5-mar-2026-12-07-28-p-m.png";
+    BRAND_OG_IMAGE_URL;
 
   const productDescription = product.descripcion
     ? `${product.descripcion.slice(0, 140)}. Comprá en Nexastore Once con envíos a todo Argentina.`

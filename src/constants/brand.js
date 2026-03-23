@@ -1,10 +1,12 @@
 export const BRAND_NAME = "Nexastore";
 
 // URL de producción — actualizar si el dominio cambia
-export const BRAND_URL = "https://nexastore.com";
+export const BRAND_URL = "https://nexastore.com.ar";
 
-export const BRAND_LOGO_URL =
-  "https://i.postimg.cc/3J0RjYzG/Chat-GPT-Image-5-mar-2026-03-17-40-p-m.png";
+export const BRAND_LOGO_URL = "/brand/nexastore-logo.png";
+export const BRAND_FAVICON_URL = "/brand/nexastore-logo.png";
+export const BRAND_OG_IMAGE_URL =
+  "https://i.postimg.cc/HxK9cS11/Chat-GPT-Image-5-mar-2026-12-07-28-p-m.png";
 
 export const BRAND_SUPPORT_EMAIL = "soporte@nexastore.com";
 export const BRAND_ADMIN_EMAIL_PLACEHOLDER = "admin@nexastore.com";

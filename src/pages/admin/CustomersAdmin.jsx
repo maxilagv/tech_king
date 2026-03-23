@@ -10,6 +10,10 @@ import {
 import { Pencil, Trash2 } from "lucide-react";
 import { db } from "@/api/firebase";
 import { useCustomers } from "@/hooks/useCustomers";
+import {
+  getCustomerPhoneError,
+  normalizeCustomerPhone,
+} from "@/utils/customerPhone";
 
 const emptyForm = {
   nombre: "",
@@ -58,13 +62,20 @@ export default function CustomersAdmin() {
       return;
     }
 
+    const normalizedPhone = normalizeCustomerPhone(form.telefono);
+    const phoneError = getCustomerPhoneError(normalizedPhone);
+    if (phoneError) {
+      setFormError(phoneError);
+      return;
+    }
+
     setSaving(true);
     const payload = {
       nombre: form.nombre.trim(),
       apellido: form.apellido.trim(),
       dni: form.dni.trim(),
       direccion: form.direccion.trim(),
-      telefono: form.telefono.trim(),
+      telefono: normalizedPhone,
       email: form.email.trim(),
       tipo: "manual",
       updatedAt: serverTimestamp(),
@@ -149,10 +160,14 @@ export default function CustomersAdmin() {
           <label className="block">
             <span className="text-xs uppercase tracking-[0.25em] text-white/60">Telefono</span>
             <input
-              type="text"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               value={form.telefono}
               onChange={(event) => handleChange("telefono", event.target.value)}
+              onBlur={(event) => handleChange("telefono", normalizeCustomerPhone(event.target.value))}
               className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none"
+              required
             />
           </label>
         </div>

@@ -1,9 +1,8 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { BRAND_NAME, BRAND_URL } from "@/constants/brand";
+import { BRAND_NAME, BRAND_OG_IMAGE_URL, BRAND_URL } from "@/constants/brand";
 
-const DEFAULT_IMAGE =
-  "https://i.postimg.cc/HxK9cS11/Chat-GPT-Image-5-mar-2026-12-07-28-p-m.png";
+const DEFAULT_IMAGE = BRAND_OG_IMAGE_URL;
 
 /**
  * Componente SEO reutilizable para todas las páginas públicas.

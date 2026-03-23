@@ -10,6 +10,7 @@ import {
   BRAND_URL,
   BRAND_WHATSAPP,
 } from "@/constants/brand";
+import { getBrandLogoDataUrl, getImageTypeFromDataUrl } from "@/utils/brandAssets";
 
 // ─── Destinos predefinidos ────────────────────────────────────────────────────
 const QR_PRESETS = [
@@ -120,6 +121,7 @@ export default function QRAdmin() {
     setIsDownloadingPdf(true);
     try {
       const qrDataUrl = canvas.toDataURL("image/png", 1.0);
+      const logoDataUrl = await getBrandLogoDataUrl();
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
       const pageW = 210;
@@ -136,7 +138,18 @@ export default function QRAdmin() {
       // ── Logo de la marca (imagen) ──
       const logoSize = 28;
       const logoX = (pageW - logoSize) / 2;
-      pdf.addImage(BRAND_LOGO_URL, "PNG", logoX, 20, logoSize, logoSize, undefined, "FAST");
+      if (logoDataUrl) {
+        pdf.addImage(
+          logoDataUrl,
+          getImageTypeFromDataUrl(logoDataUrl),
+          logoX,
+          20,
+          logoSize,
+          logoSize,
+          undefined,
+          "FAST"
+        );
+      }
 
       // ── Nombre de la marca ──
       pdf.setFont("helvetica", "bold");

@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /checkout
 
 # Sitemap
-Sitemap: https://nexastore.com/sitemap.xml
+Sitemap: https://nexastore.com.ar/sitemap.xml

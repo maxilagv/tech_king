@@ -58,6 +58,13 @@ function buildPreservedProductFields(product) {
   return preserved;
 }
 
+function getTimestampValue(value) {
+  if (!value) return 0;
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+  return 0;
+}
+
 export default function ProductsAdmin() {
   const { products, loading } = useProducts();
   const { categories } = useCategories();
@@ -70,6 +77,7 @@ export default function ProductsAdmin() {
   const [exporting, setExporting] = useState("");
   const [formError, setFormError] = useState("");
   const [query, setQuery] = useState("");
+  const [lastSavedProductId, setLastSavedProductId] = useState("");
 
   const categoryOptions = useMemo(
     () => categories.filter((cat) => cat.activo !== false),
@@ -142,19 +150,22 @@ export default function ProductsAdmin() {
 
     try {
       if (editingId) {
+        const savedProductId = editingId;
         await setDoc(
-          doc(db, "products", editingId),
+          doc(db, "products", savedProductId),
           {
             ...payload,
             ...editingPreservedFields,
           },
           { merge: false }
         );
+        setLastSavedProductId(savedProductId);
       } else {
-        await addDoc(collection(db, "products"), {
+        const newProductRef = await addDoc(collection(db, "products"), {
           ...payload,
           createdAt: serverTimestamp(),
         });
+        setLastSavedProductId(newProductRef.id);
       }
       resetForm();
     } catch (err) {
@@ -174,10 +185,30 @@ export default function ProductsAdmin() {
     }
   };
 
-  const filtered = products.filter((product) => {
-    const text = `${product.nombre || ""} ${product.marca || ""}`.toLowerCase();
-    return text.includes(query.toLowerCase());
-  });
+  const filtered = useMemo(() => {
+    const normalizedQuery = query.toLowerCase().trim();
+    return products
+      .filter((product) => {
+        const text = `${product.nombre || ""} ${product.marca || ""}`.toLowerCase();
+        return text.includes(normalizedQuery);
+      })
+      .sort((a, b) => {
+        if (lastSavedProductId) {
+          if (a.id === lastSavedProductId) return -1;
+          if (b.id === lastSavedProductId) return 1;
+        }
+
+        const updatedDiff = getTimestampValue(b.updatedAt) - getTimestampValue(a.updatedAt);
+        if (updatedDiff !== 0) return updatedDiff;
+
+        const createdDiff = getTimestampValue(b.createdAt) - getTimestampValue(a.createdAt);
+        if (createdDiff !== 0) return createdDiff;
+
+        return String(a.nombre || "").localeCompare(String(b.nombre || ""), "es", {
+          sensitivity: "base",
+        });
+      });
+  }, [products, query, lastSavedProductId]);
 
   const categoryMap = Object.fromEntries(
     categories.map((cat) => [cat.slug || cat.id, cat.nombre])
@@ -468,6 +499,11 @@ export default function ProductsAdmin() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {product.id === lastSavedProductId && (
+                    <span className="px-3 py-1 rounded-full text-xs uppercase tracking-[0.2em] bg-emerald-500/15 text-emerald-200">
+                      Recien actualizado
+                    </span>
+                  )}
                   {product.destacado && (
                     <span className="px-3 py-1 rounded-full text-xs uppercase tracking-[0.2em] bg-cyan-500/15 text-cyan-200">
                       Destacado

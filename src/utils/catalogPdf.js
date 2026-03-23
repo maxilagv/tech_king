@@ -2,10 +2,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getProductPricing } from "@/utils/offers";
 import { normalizeBusinessConfig } from "@/utils/businessConfig";
+import { BRAND_NAME } from "@/constants/brand";
 import {
-  BRAND_LOGO_URL,
-  BRAND_NAME,
-} from "@/constants/brand";
+  fetchImageDataUrl,
+  getBrandLogoDataUrl,
+  getImageTypeFromDataUrl,
+} from "@/utils/brandAssets";
 
 const PRIMARY_RGB = [86, 63, 156];
 const DARK_RGB = [24, 15, 56];
@@ -24,34 +26,6 @@ function normalizeCategory(categorySlug, categoryMap) {
   return categoryMap[categorySlug] || categorySlug || "Sin categoria";
 }
 
-async function fetchImageDataUrl(url) {
-  if (!url) return null;
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
-
-function getImageType(dataUrl) {
-  return String(dataUrl || "").includes("image/png") ? "PNG" : "JPEG";
-}
-
-let brandLogoCache;
-async function getBrandLogoDataUrl() {
-  if (brandLogoCache !== undefined) return brandLogoCache;
-  brandLogoCache = await fetchImageDataUrl(BRAND_LOGO_URL);
-  return brandLogoCache;
-}
-
 function drawHeader(doc, { title, subtitle, logoDataUrl, businessConfig }) {
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 12;
@@ -60,7 +34,7 @@ function drawHeader(doc, { title, subtitle, logoDataUrl, businessConfig }) {
   doc.roundedRect(margin, 10, pageW - margin * 2, 30, 3, 3, "F");
 
   if (logoDataUrl) {
-    doc.addImage(logoDataUrl, getImageType(logoDataUrl), margin + 3, 14, 12, 12);
+    doc.addImage(logoDataUrl, getImageTypeFromDataUrl(logoDataUrl), margin + 3, 14, 12, 12);
   }
 
   doc.setTextColor(255, 255, 255);
@@ -143,7 +117,7 @@ function drawImageContain(doc, imageData, x, y, maxW, maxH) {
     const drawY = y + (maxH - drawH) / 2;
     doc.addImage(
       imageData,
-      getImageType(imageData),
+      getImageTypeFromDataUrl(imageData),
       drawX,
       drawY,
       drawW,
@@ -152,7 +126,16 @@ function drawImageContain(doc, imageData, x, y, maxW, maxH) {
       "FAST"
     );
   } catch {
-    doc.addImage(imageData, getImageType(imageData), x, y, maxW, maxH, undefined, "FAST");
+    doc.addImage(
+      imageData,
+      getImageTypeFromDataUrl(imageData),
+      x,
+      y,
+      maxW,
+      maxH,
+      undefined,
+      "FAST"
+    );
   }
 }
 
