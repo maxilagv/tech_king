@@ -127,6 +127,31 @@ export default function OrdersAdmin() {
   const { products } = useProducts();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [dateFilter, setDateFilter] = useState("");
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      if (statusFilter !== "todos" && order.status !== statusFilter) return false;
+      if (dateFilter) {
+        let orderDateStr = "";
+        try {
+          // Utilizar la zona horaria local simulando YYYY-MM-DD
+          const dateObj = order.createdAt?.toDate 
+            ? order.createdAt.toDate() 
+            : new Date(order.createdAt);
+            
+          const tzOffset = (new Date()).getTimezoneOffset() * 60000; // offset en ms
+          const localISOTime = (new Date(dateObj - tzOffset)).toISOString().slice(0, -1);
+          orderDateStr = localISOTime.split("T")[0];
+        } catch {
+          // ignored
+        }
+        if (orderDateStr !== dateFilter) return false;
+      }
+      return true;
+    });
+  }, [orders, statusFilter, dateFilter]);
 
   const customerMap = useMemo(
     () =>
@@ -786,18 +811,55 @@ export default function OrdersAdmin() {
       )}
 
       <div className="rounded-3xl bg-white/10 border border-white/10 p-6 backdrop-blur-xl">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Pedidos</p>
-          <h2 className="text-2xl font-semibold mt-2">Listado de pedidos</h2>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Pedidos</p>
+            <h2 className="text-2xl font-semibold mt-2">Listado de pedidos</h2>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="block">
+              <span className="sr-only">Estado</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm outline-none cursor-pointer hover:bg-white/10 transition"
+              >
+                <option value="todos">Todos los estados</option>
+                {statusOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="sr-only">Fecha</span>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm outline-none [color-scheme:dark]"
+              />
+            </label>
+            {(statusFilter !== "todos" || dateFilter) && (
+              <button 
+                onClick={() => { setStatusFilter("todos"); setDateFilter(""); }}
+                className="px-4 py-2 rounded-2xl border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition text-sm"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
 
         {loading ? (
           <div className="py-12 text-sm text-white/50">Cargando pedidos...</div>
         ) : orders.length === 0 ? (
           <div className="py-12 text-sm text-white/50">No hay pedidos registrados.</div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="py-12 text-sm text-white/50">No se encontraron pedidos con estos filtros.</div>
         ) : (
           <div className="mt-6 space-y-4">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <div
                 key={order.id}
                 className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"
@@ -826,11 +888,20 @@ export default function OrdersAdmin() {
                         ? `${order.customerSnapshot.nombre || ""} ${order.customerSnapshot.apellido || ""}`.trim()
                         : customerMap[order.customerId] || order.customerId}
                     </p>
-                    <p className="text-xs text-white/50 uppercase tracking-[0.2em]">
-                      {order.source || "web"}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-white/50 uppercase tracking-[0.2em]">
+                        {order.source || "web"}
+                      </p>
+                      {order.createdAt && (
+                        <p className="text-[11px] text-white/40 border-l border-white/20 pl-2">
+                          {order.createdAt.toDate 
+                            ? order.createdAt.toDate().toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) 
+                            : new Date(order.createdAt).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" })}
+                        </p>
+                      )}
+                    </div>
                     {order.hasAdjustments && (
-                      <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">
+                      <p className="text-xs uppercase tracking-[0.2em] text-cyan-200 mt-1">
                         Ajustado
                       </p>
                     )}

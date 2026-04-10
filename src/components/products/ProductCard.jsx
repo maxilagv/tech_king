@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Check, Eye, Heart, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { getProductPricing } from "@/utils/offers";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { useTheme } from "@/context/ThemeContext";
+import { createProductSlug } from "@/utils";
 
 const LIKED_KEY = "tk-liked-products";
 
@@ -44,7 +44,7 @@ export default function ProductCard({ product, index, offers = [] }) {
   const category = product.categoryLabel ?? product.categorySlug ?? product.category;
   const featured = product.destacado ?? product.featured;
   const brand = product.marca ?? product.brand;
-  const detailPath = `/products/${product.id}`;
+  const detailPath = `/products/${createProductSlug(product)}`;
 
   const images = useMemo(() => {
     const list = Array.isArray(product.imagenes) ? product.imagenes.filter(Boolean) : [];
@@ -114,17 +114,8 @@ export default function ProductCard({ product, index, offers = [] }) {
     setSelectedQty(clampQty(value, max));
   };
 
-  const cardAnimationProps = reduceMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 18 },
-        whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true, margin: "0px 0px -20px 0px" },
-        transition: { delay: Math.min(index, 6) * 0.04, duration: 0.35 },
-      };
-
   return (
-    <motion.div className="group" {...cardAnimationProps}>
+    <div className="product-card group h-full flex flex-col">
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden tk-theme-soft mb-4">
         <img
           src={previewImage}
@@ -272,6 +263,6 @@ export default function ProductCard({ product, index, offers = [] }) {
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

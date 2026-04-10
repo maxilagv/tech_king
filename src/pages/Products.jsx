@@ -1,5 +1,9 @@
-import React, { useMemo } from "react";
-import { motion } from "framer-motion";
+import React, { useMemo, useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
 import ProductFilters from "../components/products/ProductFilters";
@@ -215,8 +219,58 @@ export default function Products() {
     setSearchParams(nextParams, { replace: true });
   };
 
+  const containerRef = useRef(null);
+
+  useGSAP(() => {
+    if (reduceMotion) return;
+
+    gsap.set(".products-hero", { opacity: 0, y: 30 });
+    gsap.to(".products-hero", {
+      opacity: 1,
+      y: 0,
+      duration: 1,
+      stagger: 0.1,
+      ease: "power4.out"
+    });
+  }, { scope: containerRef, dependencies: [reduceMotion] });
+
+  useGSAP(() => {
+    if (reduceMotion || normalized.length === 0) return;
+
+    gsap.set(".product-card", { opacity: 0 });
+    let mm = gsap.matchMedia();
+
+    mm.add("(min-width: 768px)", () => {
+      ScrollTrigger.batch(".product-card", {
+        start: "top 85%",
+        onEnter: (elements) => {
+          gsap.fromTo(elements, 
+            { opacity: 0, y: 50, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, stagger: 0.1, duration: 0.8, ease: "power4.out", overwrite: true }
+          );
+        },
+        once: true
+      });
+    });
+
+    mm.add("(max-width: 767px)", () => {
+      ScrollTrigger.batch(".product-card", {
+        start: "top 90%",
+        onEnter: (elements) => {
+          gsap.fromTo(elements, 
+            { opacity: 0, y: 20, scale: 0.98 },
+            { opacity: 1, y: 0, scale: 1, stagger: 0.05, duration: 0.5, ease: "power3.out", overwrite: true }
+          );
+        },
+        once: true
+      });
+    });
+
+    return () => mm.revert();
+  }, { scope: containerRef, dependencies: [reduceMotion, normalized] });
+
   return (
-    <div className="tk-theme-bg">
+    <div ref={containerRef} className="tk-theme-bg">
       <PageSEO
         title="Catálogo de Productos — Cargadores, Auriculares y Electrónica"
         description="Explorá el catálogo completo de Nexastore. Cargadores, auriculares bluetooth, accesorios para celular y electrónica. Precios mayoristas y minoristas. Envíos a todo Argentina."
@@ -233,33 +287,25 @@ export default function Products() {
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-visible">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <motion.span
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={reduceMotion ? undefined : { opacity: 1 }}
-            className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
+          <span
+            className="products-hero text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
           >
             Catalogo completo
-          </motion.span>
-          <motion.h1
-            initial={reduceMotion ? false : { opacity: 0, y: 30 }}
-            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={reduceMotion ? undefined : { delay: 0.1, duration: 0.6 }}
-            className="tk-theme-text text-4xl md:text-6xl font-bold tracking-tight mb-6"
+          </span>
+          <h1
+            className="products-hero tk-theme-text text-4xl md:text-6xl font-bold tracking-tight mb-6"
           >
             Productos{" "}
             <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent">
               premium
             </span>
-          </motion.h1>
-          <motion.p
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={reduceMotion ? undefined : { opacity: 1 }}
-            transition={reduceMotion ? undefined : { delay: 0.2 }}
-            className="tk-theme-muted text-sm font-normal max-w-md mx-auto mb-10"
+          </h1>
+          <p
+            className="products-hero tk-theme-muted text-sm font-normal max-w-md mx-auto mb-10"
           >
             Tecnologia de ultima generacion con garantia oficial. Los mejores precios y envios
             gratis a partir de 200.000 ARS.
-          </motion.p>
+          </p>
 
           <ProductFilters
             activeCategory={activeCategory}

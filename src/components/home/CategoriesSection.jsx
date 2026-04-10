@@ -1,37 +1,79 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCategories } from "@/hooks/useCategories";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+
 export default function CategoriesSection() {
   const { categories, loading } = useCategories({ onlyActive: true });
   const reduceMotion = useShouldReduceMotion();
+  const sectionRef = useRef(null);
+
+  useGSAP(() => {
+    if (reduceMotion) return;
+
+    gsap.set(".cat-header", { opacity: 0, y: 30 });
+    
+    // Header Animation
+    gsap.to(".cat-header", {
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top 80%",
+        toggleActions: "play none none none"
+      },
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: "power2.out"
+    });
+
+  }, { scope: sectionRef, dependencies: [reduceMotion] });
+
+  useGSAP(() => {
+    if (reduceMotion || categories.length === 0) return;
+
+    gsap.set(".category-card", { opacity: 0, y: 50 });
+
+    // Cards Animation
+    gsap.to(".category-card", {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      stagger: 0.15,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: ".categories-grid",
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+
+  }, { scope: sectionRef, dependencies: [categories, reduceMotion] });
 
   return (
-    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-surface">
+    <section ref={sectionRef} className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-surface">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 30 }}
-          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={reduceMotion ? undefined : { once: true }}
-          transition={reduceMotion ? undefined : { duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+        <div className="text-center mb-16">
+          <span className="cat-header text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
             Categorias
           </span>
-          <h2 className="tk-theme-text text-4xl md:text-5xl font-bold tracking-tight">
+          <h2 className="cat-header tk-theme-text text-4xl md:text-5xl font-bold tracking-tight">
             Explora por{" "}
             <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent">
               categoria
             </span>
           </h2>
-        </motion.div>
+        </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="categories-grid grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
@@ -40,11 +82,11 @@ export default function CategoriesSection() {
             ))}
           </div>
         ) : categories.length === 0 ? (
-          <div className="py-16 text-center text-sm tk-theme-muted">
+          <div className="categories-grid py-16 text-center text-sm tk-theme-muted">
             No hay categorias cargadas.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="categories-grid grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {categories.map((cat, i) => {
               const categoryKey = cat.slug || cat.id;
               const targetUrl = categoryKey
@@ -52,13 +94,7 @@ export default function CategoriesSection() {
                 : createPageUrl("Products");
 
               return (
-              <motion.div
-                key={cat.id}
-                initial={reduceMotion ? false : { opacity: 0, y: 50 }}
-                whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={reduceMotion ? undefined : { once: true }}
-                transition={reduceMotion ? undefined : { delay: i * 0.15, duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-              >
+              <div key={cat.id} className="category-card">
                 <Link
                   to={targetUrl}
                   className="group relative block aspect-[4/5] rounded-3xl overflow-hidden"
@@ -87,12 +123,9 @@ export default function CategoriesSection() {
                           </p>
                         )}
                       </div>
-                      <motion.div
-                        className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-all duration-500"
-                        whileHover={reduceMotion ? undefined : { scale: 1.1 }}
-                      >
+                      <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0 group-hover:bg-white/10 group-hover:scale-110 transition-all duration-500">
                         <span className="text-white text-xl font-light">-&gt;</span>
-                      </motion.div>
+                      </div>
                     </div>
                   </div>
 
@@ -102,7 +135,7 @@ export default function CategoriesSection() {
                     </span>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
               );
             })}
           </div>

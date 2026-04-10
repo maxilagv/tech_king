@@ -1,4 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag, Sparkles } from "lucide-react";
@@ -9,6 +14,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { useCart } from "@/context/CartContext";
 import { getProductPricing } from "@/utils/offers";
+import { createProductSlug, slugify } from "@/utils";
 import { BRAND_NAME, BRAND_OG_IMAGE_URL, BRAND_URL } from "@/constants/brand";
 
 function parseStock(rawStock) {
@@ -35,10 +41,20 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [zoomOpen, setZoomOpen] = useState(false);
 
-  const product = useMemo(
-    () => products.find((item) => String(item.id) === String(productId)) || null,
-    [products, productId]
-  );
+  const product = useMemo(() => {
+    return products.find(item => {
+      // Coincidencia directa por ID estricto (retrocompatibilidad)
+      if (String(item.id) === String(productId)) return true;
+      
+      // Coincidencia por "Clean Slug" híbrido completo `nombre-1a2b3c`
+      if (createProductSlug(item) === productId) return true;
+      
+      // Coincidencia retroactiva sólo por nombre slugificado (por si la url es re-escribible)
+      if (slugify(item.nombre || "") === productId) return true;
+      
+      return false;
+    }) || null;
+  }, [products, productId]);
 
   useEffect(() => {
     setSelectedImageIndex(0);
@@ -93,6 +109,95 @@ export default function ProductDetail() {
         categoryLabel: categoryMapForRelated[p.categorySlug] || p.categorySlug,
       }));
   }, [products, product, categoryMapForRelated]);
+
+  const containerRef = useRef(null);
+
+  useGSAP(() => {
+    if (!product) return;
+    
+    let mm = gsap.matchMedia();
+
+    // Desktop
+    mm.add("(min-width: 768px)", () => {
+      gsap.set(".detail-left-col", { opacity: 0, x: -30, scale: 0.98 });
+      gsap.set(".detail-right-col > *", { opacity: 0, y: 20 });
+      
+      const tl = gsap.timeline();
+      tl.to(".detail-left-col", {
+        opacity: 1,
+        x: 0,
+        scale: 1,
+        duration: 0.8,
+        ease: "power4.out"
+      })
+      .to(".detail-right-col > *", {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.08,
+        ease: "power3.out"
+      }, "-=0.5");
+    });
+
+    // Mobile (sutil y mucho más ágil)
+    mm.add("(max-width: 767px)", () => {
+      gsap.set(".detail-left-col", { opacity: 0, y: 15 });
+      gsap.set(".detail-right-col > *", { opacity: 0, y: 10 });
+      
+      const tl = gsap.timeline();
+      tl.to(".detail-left-col", {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        ease: "power3.out"
+      })
+      .to(".detail-right-col > *", {
+        opacity: 1,
+        y: 0,
+        duration: 0.4,
+        stagger: 0.04,
+        ease: "power3.out"
+      }, "-=0.3");
+    });
+
+    return () => mm.revert();
+  }, { scope: containerRef, dependencies: [product] });
+
+  useGSAP(() => {
+    if (relatedProducts.length === 0) return;
+    
+    let mm = gsap.matchMedia();
+
+    mm.add("(min-width: 768px)", () => {
+      gsap.set(".product-card", { opacity: 0 });
+      ScrollTrigger.batch(".product-card", {
+        start: "top 90%",
+        onEnter: (elements) => {
+          gsap.fromTo(elements,
+            { opacity: 0, y: 40, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, stagger: 0.1, duration: 0.8, ease: "power4.out", overwrite: true }
+          );
+        },
+        once: true
+      });
+    });
+
+    mm.add("(max-width: 767px)", () => {
+      gsap.set(".product-card", { opacity: 0 });
+      ScrollTrigger.batch(".product-card", {
+        start: "top 95%",
+        onEnter: (elements) => {
+          gsap.fromTo(elements,
+            { opacity: 0, y: 20, scale: 0.98 },
+            { opacity: 1, y: 0, scale: 1, stagger: 0.05, duration: 0.5, ease: "power3.out", overwrite: true }
+          );
+        },
+        once: true
+      });
+    });
+
+    return () => mm.revert();
+  }, { scope: containerRef, dependencies: [relatedProducts] });
 
   if (loading) {
     return (
@@ -203,7 +308,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="tk-theme-bg tk-theme-text min-h-screen">
+    <div ref={containerRef} className="tk-theme-bg tk-theme-text min-h-screen">
       <Helmet>
         <title>{`${product.nombre}${product.marca ? ` — ${product.marca}` : ""} | ${BRAND_NAME}`}</title>
         <meta name="description" content={productDescription} />
@@ -241,7 +346,7 @@ export default function ProductDetail() {
           </Link>
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-4">
+            <div className="detail-left-col space-y-4">
               <div className="relative rounded-3xl overflow-hidden border tk-theme-border tk-theme-soft">
                 <img
                   src={images[selectedImageIndex]}
@@ -287,7 +392,7 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <div className="rounded-3xl border tk-theme-border tk-theme-surface p-6 md:p-8 shadow-sm space-y-5">
+            <div className="detail-right-col rounded-3xl border tk-theme-border tk-theme-surface p-6 md:p-8 shadow-sm space-y-5">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 rounded-full bg-[var(--tk-field-bg)] text-[10px] tracking-[0.2em] uppercase tk-theme-muted">
                   {categoryLabel}
@@ -393,7 +498,7 @@ export default function ProductDetail() {
         </div>
       )}
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[75] border-t tk-theme-border bg-[var(--tk-surface-elevated)] backdrop-blur px-4 py-3">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[75] border-t tk-theme-border bg-[var(--tk-surface-elevated)] backdrop-blur px-5 py-3 shadow-[0_-5px_25px_rgba(0,0,0,0.15)] dark:shadow-[0_-5px_25px_rgba(0,0,0,0.5)]">
         <div className="max-w-7xl mx-auto flex items-center gap-3">
           <div className="min-w-0">
             {pricing.hasOffer ? (

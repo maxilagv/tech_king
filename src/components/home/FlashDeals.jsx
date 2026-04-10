@@ -5,6 +5,7 @@ import { Clock, Zap } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useOffers } from "@/hooks/useOffers";
 import { getProductPricing } from "@/utils/offers";
+import { createProductSlug } from "@/utils";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 
 function getSecondsUntilMidnight() {
@@ -147,7 +148,7 @@ export default function FlashDeals() {
                   viewport={reduceMotion ? undefined : { once: true }}
                   transition={reduceMotion ? undefined : { delay: i * 0.08, duration: 0.55 }}
                 >
-                  <Link to={`/products/${item.id}`} className="group block">
+                  <Link to={`/products/${createProductSlug(item)}`} className="group block">
                     <div className="relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 group-hover:border-yellow-400/30 transition-all duration-300">
                       <img
                         src={item.imagenes?.[0] || "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=600&q=80"}

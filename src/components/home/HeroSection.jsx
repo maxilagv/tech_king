@@ -1,12 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useLandingHeroes } from "@/hooks/useLandingHeroes";
-import { LANDING_HERO_FALLBACK_SLIDES } from "@/constants/brand";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { useTheme } from "@/context/ThemeContext";
 import { normalizeLandingHeroSlide } from "@/utils/landingHeroes";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 function SlideAction({ slide }) {
   const isExternal = /^https?:\/\//i.test(slide.ctaUrl);
@@ -16,7 +18,7 @@ function SlideAction({ slide }) {
         href={slide.ctaUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.22em] text-white hover:bg-white/20 transition"
+        className="hero-text-elem inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.22em] text-white hover:bg-white/20 transition-colors"
       >
         {slide.ctaLabel}
         <ArrowRight className="w-4 h-4" />
@@ -27,7 +29,7 @@ function SlideAction({ slide }) {
   return (
     <Link
       to={slide.ctaUrl}
-      className="inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.22em] text-white hover:bg-white/20 transition"
+      className="hero-text-elem inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.22em] text-white hover:bg-white/20 transition-colors"
     >
       {slide.ctaLabel}
       <ArrowRight className="w-4 h-4" />
@@ -35,7 +37,7 @@ function SlideAction({ slide }) {
   );
 }
 
-function HeroSlideImage({ slide }) {
+function HeroSlideImage({ slide, imageRef }) {
   return (
     <picture>
       {slide.imagenMobile && (
@@ -46,9 +48,10 @@ function HeroSlideImage({ slide }) {
         />
       )}
       <img
+        ref={imageRef}
         src={slide.imagenDesktop}
         alt={slide.titulo || "Hero"}
-        className="h-full w-full object-cover"
+        className="hero-image h-full w-full object-cover origin-center"
         fetchPriority="high"
         decoding="async"
         sizes="100vw"
@@ -61,9 +64,11 @@ export default function HeroSection() {
   const { heroes } = useLandingHeroes({ onlyActive: true });
   const reduceMotion = useShouldReduceMotion();
   const { isDark } = useTheme();
+  const sectionRef = useRef(null);
+  const imageRef = useRef(null);
+
   const slides = useMemo(() => {
-    const source = heroes.length > 0 ? heroes : LANDING_HERO_FALLBACK_SLIDES;
-    return source
+    return heroes
       .map((slide, index) => normalizeLandingHeroSlide(slide, index))
       .filter((slide) => slide.activo && slide.imagenDesktop)
       .sort((a, b) => a.orden - b.orden);
@@ -84,6 +89,40 @@ export default function HeroSection() {
     return () => window.clearInterval(timer);
   }, [slides.length, reduceMotion]);
 
+  useGSAP(() => {
+    if (reduceMotion || slides.length === 0) return;
+
+    // Reset properties to ensure clean animation state across renders
+    gsap.set(".hero-text-elem", { opacity: 0, y: 30, rotationX: 10 });
+    if (imageRef.current) {
+        gsap.set(imageRef.current, { scale: 1.05, opacity: 0 });
+    }
+
+    const tl = gsap.timeline();
+
+    // Background Image Animation
+    if (imageRef.current) {
+        tl.to(imageRef.current, {
+            scale: 1,
+            opacity: 1,
+            duration: 1.2,
+            ease: "power3.out"
+        }, 0);
+    }
+
+    // Text Elements Stagger Animation
+    tl.to(".hero-text-elem", {
+        y: 0,
+        opacity: 1,
+        rotationX: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.out",
+        clearProps: "transform" // clear props after animation to prevent issues with other CSS rules
+    }, "-=0.8");
+
+  }, { scope: sectionRef, dependencies: [index, reduceMotion, slides.length] });
+
   if (slides.length === 0) return null;
 
   const activeSlide = slides[index];
@@ -99,17 +138,17 @@ export default function HeroSection() {
     ? "absolute inset-0 bg-[linear-gradient(to_top,rgba(2,12,30,0.96),rgba(2,12,30,0.28)_38%,rgba(2,12,30,0.12))]"
     : "absolute inset-0 bg-[linear-gradient(to_top,rgba(2,12,30,0.99),rgba(2,12,30,0.5)_42%,rgba(2,12,30,0.22))]";
   const badgeClass = isDark
-    ? "inline-flex w-fit items-center gap-2 rounded-full border border-blue-300/35 bg-blue-400/15 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-blue-100"
-    : "inline-flex w-fit items-center gap-2 rounded-full border border-white/35 bg-black/40 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] backdrop-blur-sm";
+    ? "hero-text-elem inline-flex w-fit items-center gap-2 rounded-full border border-blue-300/35 bg-blue-400/15 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-blue-100"
+    : "hero-text-elem inline-flex w-fit items-center gap-2 rounded-full border border-white/35 bg-black/40 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] backdrop-blur-sm";
   const subtitleClass = isDark
-    ? "mt-3 text-base uppercase tracking-[0.25em] text-blue-200/90 md:text-lg"
-    : "mt-3 inline-flex w-fit rounded-full border border-white/20 bg-black/35 px-3 py-1 text-sm uppercase tracking-[0.25em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] md:text-base";
+    ? "hero-text-elem mt-3 text-base uppercase tracking-[0.25em] text-blue-200/90 md:text-lg"
+    : "hero-text-elem mt-3 inline-flex w-fit rounded-full border border-white/20 bg-black/35 px-3 py-1 text-sm uppercase tracking-[0.25em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] md:text-base";
   const descriptionClass = isDark
-    ? "max-w-2xl text-sm leading-relaxed text-white/72 md:text-lg"
-    : "max-w-2xl text-sm leading-relaxed text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] md:text-lg";
+    ? "hero-text-elem max-w-2xl text-sm leading-relaxed text-white/72 md:text-lg"
+    : "hero-text-elem max-w-2xl text-sm leading-relaxed text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] md:text-lg";
 
   return (
-    <section className={`tk-mobile-section relative ${heroHeightClass} w-full overflow-hidden bg-[#020c1e]`}>
+    <section ref={sectionRef} className={`tk-mobile-section relative ${heroHeightClass} w-full overflow-hidden bg-[#020c1e]`}>
       {!reduceMotion && (
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-20 left-[-12%] h-[420px] w-[420px] rounded-full bg-blue-500/30 blur-[140px]" />
@@ -118,78 +157,48 @@ export default function HeroSection() {
         </div>
       )}
 
-      {reduceMotion ? (
-        <div className="absolute inset-0">
-          <HeroSlideImage slide={activeSlide} />
-          <div className={overlayMainClass} />
-          <div className={overlayBottomClass} />
-        </div>
-      ) : (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeSlide.id}
-            initial={{ opacity: 0.15, scale: 1.04 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0.12, scale: 1.02 }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0"
-          >
-            <HeroSlideImage slide={activeSlide} />
-            <div className={overlayMainClass} />
-            <div className={overlayBottomClass} />
-          </motion.div>
-        </AnimatePresence>
-      )}
+      <div className="absolute inset-0">
+        <HeroSlideImage slide={activeSlide} imageRef={imageRef} />
+        <div className={overlayMainClass} />
+        <div className={overlayBottomClass} />
+      </div>
 
       <div
         className={`relative z-10 mx-auto flex ${heroHeightClass} max-w-7xl flex-col justify-end px-6 ${contentSpacingClass} md:px-16 lg:px-24`}
+        style={{ perspective: "1000px" }}
       >
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={reduceMotion ? undefined : { duration: 0.55 }}
-          className={badgeClass}
-        >
+        <div className={badgeClass}>
           <span className="h-1.5 w-1.5 rounded-full bg-blue-300" />
           {activeSlide.badge || "Nuevos ingresos"}
-        </motion.div>
+        </div>
 
-        <motion.h1
+        <h1
           key={`${activeSlide.id}-title`}
-          initial={reduceMotion ? false : { opacity: 0, y: 26 }}
-          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={reduceMotion ? undefined : { delay: 0.12, duration: 0.7 }}
-          className={`mt-5 max-w-5xl font-semibold leading-[0.92] tracking-tight text-white ${titleSizeClass}`}
+          className={`hero-text-elem mt-5 max-w-5xl font-semibold leading-[0.92] tracking-tight text-white ${titleSizeClass}`}
         >
           {activeSlide.titulo}
-        </motion.h1>
+        </h1>
 
         {activeSlide.subtitulo && (
-          <motion.p
+          <p
             key={`${activeSlide.id}-subtitle`}
-            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={reduceMotion ? undefined : { delay: 0.18, duration: 0.7 }}
             className={subtitleClass}
           >
             {activeSlide.subtitulo}
-          </motion.p>
+          </p>
         )}
 
-        <motion.div
+        <div
           key={`${activeSlide.id}-desc`}
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={reduceMotion ? undefined : { delay: 0.24, duration: 0.7 }}
           className="mt-7 flex flex-col gap-7 md:flex-row md:items-end md:justify-between"
         >
           <p className={descriptionClass}>
             {activeSlide.descripcion}
           </p>
           <SlideAction slide={activeSlide} />
-        </motion.div>
+        </div>
 
-        <div className="mt-8 md:mt-10 flex items-center justify-between gap-4">
+        <div className="hero-text-elem mt-8 md:mt-10 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             {slides.map((slide, dotIndex) => (
               <button
