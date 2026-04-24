@@ -16,6 +16,7 @@ import { useCart } from "@/context/CartContext";
 import { getProductPricing } from "@/utils/offers";
 import { createProductSlug, slugify } from "@/utils";
 import { BRAND_NAME, BRAND_OG_IMAGE_URL, BRAND_URL } from "@/constants/brand";
+import { getCloudinaryUrl } from "@/utils/cloudinary";
 
 function parseStock(rawStock) {
   const parsed = Number(rawStock);
@@ -349,10 +350,14 @@ export default function ProductDetail() {
             <div className="detail-left-col space-y-4">
               <div className="relative rounded-3xl overflow-hidden border tk-theme-border tk-theme-soft">
                 <img
-                  src={images[selectedImageIndex]}
+                  src={getCloudinaryUrl(images[selectedImageIndex], { width: 1200, format: "auto", quality: "auto" })}
                   alt={product.nombre}
                   className="w-full h-[420px] md:h-[560px] object-cover cursor-zoom-in"
                   onClick={() => setZoomOpen(true)}
+                  loading="eager"
+                  decoding="async"
+                  width="1200"
+                  height="560"
                 />
                 {images.length > 1 && (
                   <>
@@ -385,7 +390,7 @@ export default function ProductDetail() {
                         selectedImageIndex === index ? "border-blue-600" : "tk-theme-border"
                       }`}
                     >
-                      <img src={img} alt={`${product.nombre}-${index + 1}`} className="w-full h-16 object-cover" />
+                      <img src={getCloudinaryUrl(img, { width: 200, format: "auto", quality: "auto" })} alt={`${product.nombre}-${index + 1}`} className="w-full h-16 object-cover" loading="lazy" />
                     </button>
                   ))}
                 </div>

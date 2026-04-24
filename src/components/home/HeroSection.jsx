@@ -5,6 +5,7 @@ import { useLandingHeroes } from "@/hooks/useLandingHeroes";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { useTheme } from "@/context/ThemeContext";
 import { normalizeLandingHeroSlide } from "@/utils/landingHeroes";
+import { getCloudinaryUrl, getCloudinarySrcSet } from "@/utils/cloudinary";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -38,23 +39,35 @@ function SlideAction({ slide }) {
 }
 
 function HeroSlideImage({ slide, imageRef }) {
+  // Apply Cloudinary auto-format (WebP/AVIF) + quality + responsive sizes
+  const desktopSrc = getCloudinaryUrl(slide.imagenDesktop, { width: 1920, quality: "auto", format: "auto" });
+  const mobileSrc = slide.imagenMobile
+    ? getCloudinaryUrl(slide.imagenMobile, { width: 900, quality: "auto", format: "auto" })
+    : null;
+  const desktopSrcSet = getCloudinarySrcSet(slide.imagenDesktop, [800, 1200, 1920]);
+
   return (
     <picture>
-      {slide.imagenMobile && (
+      {mobileSrc && (
         <source
           media="(max-width: 767px)"
-          srcSet={slide.imagenMobile}
+          srcSet={getCloudinarySrcSet(slide.imagenMobile, [480, 768, 900])}
           sizes="100vw"
+          type="image/webp"
         />
       )}
       <img
         ref={imageRef}
-        src={slide.imagenDesktop}
+        src={desktopSrc}
+        srcSet={desktopSrcSet}
         alt={slide.titulo || "Hero"}
         className="hero-image h-full w-full object-cover origin-center"
         fetchPriority="high"
+        loading="eager"
         decoding="async"
         sizes="100vw"
+        width="1920"
+        height="1080"
       />
     </picture>
   );
@@ -123,7 +136,17 @@ export default function HeroSection() {
 
   }, { scope: sectionRef, dependencies: [index, reduceMotion, slides.length] });
 
-  if (slides.length === 0) return null;
+  // While heroes are loading from Firestore, show a placeholder that:
+  // - reserves the exact same space as the hero (prevents CLS)
+  // - matches the background color so there's no flash
+  if (slides.length === 0) {
+    return (
+      <div
+        aria-hidden="true"
+        className="tk-mobile-section relative min-h-[90vh] md:min-h-screen w-full bg-[#020c1e]"
+      />
+    );
+  }
 
   const activeSlide = slides[index];
   const heroHeightClass = "min-h-[90vh] md:min-h-screen";

@@ -131,6 +131,9 @@ export default function Layout({ children, currentPageName }) {
               alt={BRAND_NAME}
               className="w-11 h-11 md:w-12 md:h-12 rounded-xl object-cover border border-white/25 shadow-lg shadow-black/20"
               decoding="async"
+              loading="eager"
+              width="48"
+              height="48"
             />
             <span className={`text-xl font-semibold transition-colors duration-300 ${
               isHome

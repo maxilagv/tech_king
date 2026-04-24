@@ -7,6 +7,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { getProductPricing } from "@/utils/offers";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { getCloudinaryUrl, getCloudinarySrcSet } from "@/utils/cloudinary";
 
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -146,13 +147,24 @@ export default function FeaturedProducts() {
                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-5 tk-theme-surface">
                       <img
                         src={
-                          item.imagenes?.[0] ||
-                          "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=900&q=80"
+                          getCloudinaryUrl(
+                            item.imagenes?.[0] ||
+                            "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=900&q=80",
+                            { width: 600, format: "auto", quality: "auto" }
+                          )
                         }
+                        srcSet={
+                          item.imagenes?.[0]
+                            ? getCloudinarySrcSet(item.imagenes[0], [300, 600, 900])
+                            : undefined
+                        }
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         alt={item.nombre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                         loading="lazy"
                         decoding="async"
+                        width="600"
+                        height="800"
                       />
                       <div className="absolute inset-0 bg-[#0A0A0A]/0 group-hover:bg-[#0A0A0A]/20 transition-all duration-500" />
                       {pricing.hasOffer && (

@@ -3,8 +3,9 @@ export const BRAND_NAME = "Nexastore";
 // URL de producción — actualizar si el dominio cambia
 export const BRAND_URL = "https://nexastore.com.ar";
 
-export const BRAND_LOGO_URL = "/brand/nexastore-logo.png";
-export const BRAND_FAVICON_URL = "/brand/nexastore-logo.png";
+// WebP version (88×88px) — replaces the 177KB PNG. Keep PNG as fallback for og:image only.
+export const BRAND_LOGO_URL = "/brand/nexastore-logo.webp";
+export const BRAND_FAVICON_URL = "/brand/nexastore-logo.png"; // PNG kept for favicon compatibility
 export const BRAND_OG_IMAGE_URL =
   "https://i.postimg.cc/HxK9cS11/Chat-GPT-Image-5-mar-2026-12-07-28-p-m.png";
 

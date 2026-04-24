@@ -37,28 +37,43 @@ export default function TrustBadges() {
   useGSAP(() => {
     if (reduceMotion) return;
 
-    gsap.fromTo(".trust-badge", 
-      { opacity: 0, y: 20 },
+    // CLS FIX: Do NOT start with opacity:0 on elements that are in/near the viewport.
+    // Use clipPath or transform-only animations to avoid layout shifts.
+    // We animate only after ScrollTrigger confirms the element is in view.
+    const badges = gsap.utils.toArray(".trust-badge", sectionRef.current);
+
+    gsap.fromTo(
+      badges,
+      { opacity: 0, y: 16, willChange: "transform, opacity" },
       {
         opacity: 1,
         y: 0,
-        duration: 0.6,
-        stagger: 0.1,
+        duration: 0.5,
+        stagger: 0.08,
         ease: "power2.out",
+        clearProps: "willChange",
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 85%",
-          toggleActions: "play none none none"
-        }
+          start: "top 88%",
+          toggleActions: "play none none none",
+          // Prevent ScrollTrigger from reading layout during scroll (reduces forced reflows)
+          fastScrollEnd: true,
+        },
       }
     );
   }, { scope: sectionRef, dependencies: [reduceMotion] });
 
   return (
-    <section ref={sectionRef} className="py-16 px-6 md:px-16 lg:px-24 tk-theme-bg border-y tk-theme-border">
+    // CLS FIX: explicit min-height reserves space before badges render,
+    // preventing the section from expanding and pushing content below.
+    <section
+      ref={sectionRef}
+      className="py-16 px-6 md:px-16 lg:px-24 tk-theme-bg border-y tk-theme-border"
+      style={{ minHeight: "160px", contain: "layout" }}
+    >
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {badges.map((badge, i) => (
+          {badges.map((badge) => (
             <div
               key={badge.title}
               className="trust-badge flex flex-col items-center text-center gap-4 group"

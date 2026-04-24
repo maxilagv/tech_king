@@ -1,34 +1,39 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Layout from "./Layout";
-import Home from "./pages/Home";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Checkout from "./pages/Checkout";
 import { getPageNameFromPath } from "./utils";
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminLayout from "./components/admin/AdminLayout";
-import RequireAdmin from "./components/admin/RequireAdmin";
-import RequireAdminModule from "./components/admin/RequireAdminModule";
-import CategoriesAdmin from "./pages/admin/CategoriesAdmin";
-import ProductsAdmin from "./pages/admin/ProductsAdmin";
-import CustomersAdmin from "./pages/admin/CustomersAdmin";
-import OrdersAdmin from "./pages/admin/OrdersAdmin";
-import StockAdmin from "./pages/admin/StockAdmin";
-import FinanceAdmin from "./pages/admin/FinanceAdmin";
-import RemitosAdmin from "./pages/admin/RemitosAdmin";
-import SuppliersAdmin from "./pages/admin/SuppliersAdmin";
-import PurchaseCostsAdmin from "./pages/admin/PurchaseCostsAdmin";
-import OffersAdmin from "./pages/admin/OffersAdmin";
-import UsersAdmin from "./pages/admin/UsersAdmin";
-import LandingAdmin from "./pages/admin/LandingAdmin";
-import PricingAdmin from "./pages/admin/PricingAdmin";
-import QRAdmin from "./pages/admin/QRAdmin";
-import AdminHome from "./components/admin/AdminHome";
 
+// ─── Public pages — lazy loaded ────────────────────────────────────────────────
+const Home = lazy(() => import("./pages/Home"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+
+// ─── Admin pages — lazy loaded (never in initial bundle) ───────────────────────
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const RequireAdmin = lazy(() => import("./components/admin/RequireAdmin"));
+const RequireAdminModule = lazy(() => import("./components/admin/RequireAdminModule"));
+const CategoriesAdmin = lazy(() => import("./pages/admin/CategoriesAdmin"));
+const ProductsAdmin = lazy(() => import("./pages/admin/ProductsAdmin"));
+const CustomersAdmin = lazy(() => import("./pages/admin/CustomersAdmin"));
+const OrdersAdmin = lazy(() => import("./pages/admin/OrdersAdmin"));
+const StockAdmin = lazy(() => import("./pages/admin/StockAdmin"));
+const FinanceAdmin = lazy(() => import("./pages/admin/FinanceAdmin"));
+const RemitosAdmin = lazy(() => import("./pages/admin/RemitosAdmin"));
+const SuppliersAdmin = lazy(() => import("./pages/admin/SuppliersAdmin"));
+const PurchaseCostsAdmin = lazy(() => import("./pages/admin/PurchaseCostsAdmin"));
+const OffersAdmin = lazy(() => import("./pages/admin/OffersAdmin"));
+const UsersAdmin = lazy(() => import("./pages/admin/UsersAdmin"));
+const LandingAdmin = lazy(() => import("./pages/admin/LandingAdmin"));
+const PricingAdmin = lazy(() => import("./pages/admin/PricingAdmin"));
+const QRAdmin = lazy(() => import("./pages/admin/QRAdmin"));
+const AdminHome = lazy(() => import("./components/admin/AdminHome"));
+
+// ─── Route helpers ─────────────────────────────────────────────────────────────
 const routes = [
   { path: "/", name: "Home", element: <Home /> },
   { path: "/products", name: "Products", element: <Products /> },
@@ -36,6 +41,16 @@ const routes = [
   { path: "/about", name: "About", element: <About /> },
   { path: "/contact", name: "Contact", element: <Contact /> },
 ];
+
+// Minimal fallback — no layout shift, no spinner flicker
+function PageFallback() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{ minHeight: "100vh", background: "var(--tk-bg, #020c1e)" }}
+    />
+  );
+}
 
 function AppContent() {
   const location = useLocation();
@@ -45,44 +60,50 @@ function AppContent() {
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   const moduleElement = (moduleId, element) => (
-    <RequireAdminModule moduleId={moduleId}>{element}</RequireAdminModule>
+    <Suspense fallback={<PageFallback />}>
+      <RequireAdminModule moduleId={moduleId}>{element}</RequireAdminModule>
+    </Suspense>
   );
 
   const content = (
-    <Routes>
-      {routes.map((route) => (
-        <Route key={route.path} path={route.path} element={route.element} />
-      ))}
-      <Route path="/products/:productId" element={<ProductDetail />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route
-        path="/admin"
-        element={
-          <RequireAdmin>
-            <AdminLayout />
-          </RequireAdmin>
-        }
-      >
-        <Route index element={<AdminHome />} />
-        <Route path="dashboard" element={moduleElement("users", <AdminDashboard />)} />
-        <Route path="productos" element={moduleElement("products", <ProductsAdmin />)} />
-        <Route path="categorias" element={moduleElement("categories", <CategoriesAdmin />)} />
-        <Route path="ofertas" element={moduleElement("offers", <OffersAdmin />)} />
-        <Route path="landing" element={moduleElement("landing", <LandingAdmin />)} />
-        <Route path="qr" element={moduleElement("qr", <QRAdmin />)} />
-        <Route path="pedidos" element={moduleElement("orders", <OrdersAdmin />)} />
-        <Route path="clientes" element={moduleElement("customers", <CustomersAdmin />)} />
-        <Route path="remitos" element={moduleElement("remitos", <RemitosAdmin />)} />
-        <Route path="proveedores" element={moduleElement("suppliers", <SuppliersAdmin />)} />
-        <Route path="costos" element={moduleElement("costs", <PurchaseCostsAdmin />)} />
-        <Route path="precios" element={moduleElement("pricing", <PricingAdmin />)} />
-        <Route path="stock" element={moduleElement("stock", <StockAdmin />)} />
-        <Route path="finanzas" element={moduleElement("finance", <FinanceAdmin />)} />
-        <Route path="usuarios" element={moduleElement("users", <UsersAdmin />)} />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Route>
-      <Route path="*" element={<Home />} />
-    </Routes>
+    <Suspense fallback={<PageFallback />}>
+      <Routes>
+        {routes.map((route) => (
+          <Route key={route.path} path={route.path} element={route.element} />
+        ))}
+        <Route path="/products/:productId" element={<ProductDetail />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <RequireAdmin>
+                <AdminLayout />
+              </RequireAdmin>
+            </Suspense>
+          }
+        >
+          <Route index element={<AdminHome />} />
+          <Route path="dashboard" element={moduleElement("users", <AdminDashboard />)} />
+          <Route path="productos" element={moduleElement("products", <ProductsAdmin />)} />
+          <Route path="categorias" element={moduleElement("categories", <CategoriesAdmin />)} />
+          <Route path="ofertas" element={moduleElement("offers", <OffersAdmin />)} />
+          <Route path="landing" element={moduleElement("landing", <LandingAdmin />)} />
+          <Route path="qr" element={moduleElement("qr", <QRAdmin />)} />
+          <Route path="pedidos" element={moduleElement("orders", <OrdersAdmin />)} />
+          <Route path="clientes" element={moduleElement("customers", <CustomersAdmin />)} />
+          <Route path="remitos" element={moduleElement("remitos", <RemitosAdmin />)} />
+          <Route path="proveedores" element={moduleElement("suppliers", <SuppliersAdmin />)} />
+          <Route path="costos" element={moduleElement("costs", <PurchaseCostsAdmin />)} />
+          <Route path="precios" element={moduleElement("pricing", <PricingAdmin />)} />
+          <Route path="stock" element={moduleElement("stock", <StockAdmin />)} />
+          <Route path="finanzas" element={moduleElement("finance", <FinanceAdmin />)} />
+          <Route path="usuarios" element={moduleElement("users", <UsersAdmin />)} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Route>
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </Suspense>
   );
 
   if (isAdminRoute) {
