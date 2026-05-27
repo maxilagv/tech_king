@@ -70,6 +70,7 @@ service cloud.firestore {
     function canManageOrders() { return isSuperAdmin() || hasModule("orders"); }
     function canManageRemitos() { return isSuperAdmin() || hasModule("remitos"); }
     function canManagePricing() { return isSuperAdmin() || hasModule("pricing"); }
+    function canManageBlogs() { return isSuperAdmin() || hasModule("blogs"); }
     function canManageUsers() { return isSuperAdmin(); }
 
     function isOwner(uid) {
@@ -596,6 +597,11 @@ service cloud.firestore {
       allow create: if canManageLanding() && validLandingHeroCreate();
       allow update: if canManageLanding() && validLandingHeroUpdate();
       allow delete: if canManageLanding();
+    }
+
+    match /blogs/{blogId} {
+      allow get, list: if true;
+      allow create, update, delete: if canManageBlogs();
     }
 
     // ----------------------------

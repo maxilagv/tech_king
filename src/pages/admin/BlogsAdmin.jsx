@@ -31,6 +31,28 @@ import ImageUploadField from "@/components/admin/ImageUploadField";
 import { slugify } from "@/utils";
 import { BRAND_NAME } from "@/constants/brand";
 
+function parseListText(text) {
+  if (!text) return [];
+  
+  let rawItems = [];
+  if (text.includes("\n")) {
+    rawItems = text.split("\n");
+  } else {
+    // Reemplaza puntos seguidos de espacio(s) y una letra mayúscula con un salto de línea
+    const cleanedText = text.replace(/\.\s+(?=[A-ZÁÉÍÓÚÑ])/g, ".\n");
+    rawItems = cleanedText.split("\n");
+  }
+
+  return rawItems
+    .map((item) => {
+      return item
+        .trim()
+        .replace(/^[•\-\*\d+\.\)]+\s*/, "") // Limpiar viñetas o números al inicio
+        .trim();
+    })
+    .filter((item) => item.length > 0);
+}
+
 const emptyForm = {
   title: "",
   slug: "",
@@ -680,8 +702,33 @@ export default function BlogsAdmin() {
                             )}
 
                             {block.type === "list" && (
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Bloque de Lista Viñetas</span>
+                                
+                                {/* Pegar texto de autogeneración */}
+                                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                                  <div className="flex items-center gap-1.5 text-cyan-300">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Auto-crear lista desde texto copiado</span>
+                                  </div>
+                                  <textarea
+                                    className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-xs outline-none min-h-[60px] placeholder:text-white/25 text-white resize-y"
+                                    placeholder="Pega aquí tu lista de texto (ej: Monitor...  Teclado...  Mouse... o con guiones/números)"
+                                    onChange={(e) => {
+                                      const pasted = e.target.value;
+                                      if (pasted.trim()) {
+                                        const parsed = parseListText(pasted);
+                                        if (parsed.length > 0) {
+                                          updateBlock(idx, { items: parsed });
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <p className="text-[9px] text-white/35">
+                                    Detecta automáticamente puntos seguidos de mayúsculas, saltos de línea y viñetas (•, -, *, números).
+                                  </p>
+                                </div>
+
                                 <div className="space-y-2">
                                   {(block.items || []).map((item, itemIdx) => (
                                     <div key={itemIdx} className="flex items-center gap-2">

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { collection, query, where, getDocs, limit, serverTimestamp } from "firebase/firestore";
-import { motion } from "framer-motion";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { Calendar, User, Clock, ArrowLeft, ArrowRight, Share2, Tag, BookOpen } from "lucide-react";
 import { db } from "@/api/firebase";
 import PageSEO from "@/components/seo/PageSEO";
@@ -154,11 +153,11 @@ export default function BlogDetail() {
       )}
 
       <div className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-        {/* BOTÓN VOLVER */}
+        {/* BOTÓN VOLVER (Adaptado a temas) */}
         <div className="mb-6">
           <Link
             to="/blog"
-            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] font-semibold text-slate-400 hover:text-white transition"
+            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] font-semibold tk-theme-muted hover:tk-theme-text transition"
           >
             <ArrowLeft className="w-4 h-4" />
             Volver al Blog
@@ -167,17 +166,17 @@ export default function BlogDetail() {
 
         {loading ? (
           <div className="py-32 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-cyan-400 border-r-2 border-transparent mr-2" />
-            <span className="text-slate-400 text-sm uppercase tracking-widest">Cargando artículo...</span>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-blue-600 dark:border-cyan-400 border-r-2 border-transparent mr-2" />
+            <span className="tk-theme-muted text-sm uppercase tracking-widest">Cargando artículo...</span>
           </div>
         ) : error ? (
           <div className="py-20 text-center space-y-4">
-            <BookOpen className="w-16 h-16 text-slate-700 mx-auto" />
-            <h2 className="text-2xl font-bold text-white">Artículo No Encontrado</h2>
-            <p className="text-slate-400 max-w-md mx-auto text-sm">{error}</p>
+            <BookOpen className="w-16 h-16 tk-theme-muted mx-auto opacity-50" />
+            <h2 className="text-2xl font-bold tk-theme-text">Artículo No Encontrado</h2>
+            <p className="tk-theme-muted max-w-md mx-auto text-sm">{error}</p>
             <Link
               to="/blog"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 text-[#0B1020] px-6 py-2.5 text-xs font-bold tracking-[0.15em] uppercase hover:opacity-90 transition"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-cyan-400 dark:to-blue-500 text-white dark:text-slate-950 px-6 py-2.5 text-xs font-bold tracking-[0.15em] uppercase hover:opacity-90 transition"
             >
               Ir a listado del blog
             </Link>
@@ -187,35 +186,35 @@ export default function BlogDetail() {
           <article className="space-y-8">
             {/* Meta y Título */}
             <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 uppercase tracking-wider font-semibold">
+              <div className="flex flex-wrap items-center gap-3 text-xs tk-theme-muted uppercase tracking-wider font-semibold">
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                   {formatDate(post.publishedAt || post.createdAt)}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-cyan-400" />
+                  <User className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                   {post.author || BRAND_NAME}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                  <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                   Lectura {readingTime(post.contentBlocks)} min
                 </span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight tk-theme-text leading-tight">
                 {post.title}
               </h1>
 
-              <p className="text-base sm:text-xl text-slate-300 leading-relaxed font-light border-l-3 border-cyan-400 pl-4 py-1 bg-white/5 rounded-r-2xl pr-4">
+              <p className="text-base sm:text-xl tk-theme-text leading-relaxed font-light border-l-4 border-blue-600 dark:border-cyan-400 pl-4 py-1.5 bg-[var(--tk-soft)] rounded-r-2xl pr-4">
                 {post.excerpt}
               </p>
             </div>
 
             {/* Portada e Imagen */}
             {post.coverImage && (
-              <div className="relative rounded-3xl overflow-hidden aspect-[21/10] bg-slate-950 border border-slate-800/80 shadow-2xl">
+              <div className="relative rounded-3xl overflow-hidden aspect-[21/10] bg-[var(--tk-soft)] border tk-theme-border shadow-2xl">
                 <img
                   src={getCloudinaryUrl(post.coverImage, { width: 1000, quality: "auto" })}
                   alt={post.title}
@@ -225,38 +224,38 @@ export default function BlogDetail() {
             )}
 
             {/* BOTÓN COMPARTIR Y TAGS */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-y border-slate-800/40 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-y tk-theme-border py-4">
               <div className="flex flex-wrap items-center gap-2">
-                <Tag className="w-4 h-4 text-cyan-400" />
+                <Tag className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
                 {post.tags && post.tags.length > 0 ? (
                   post.tags.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-0.5 rounded-md text-xs bg-slate-800/40 border border-slate-700/60 text-cyan-300"
+                      className="px-2.5 py-0.5 rounded-md text-xs bg-[var(--tk-field-bg)] border tk-theme-border text-blue-600 dark:text-cyan-300 font-medium"
                     >
                       #{tag}
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-500">Sin etiquetas</span>
+                  <span className="text-xs tk-theme-muted">Sin etiquetas</span>
                 )}
               </div>
 
               <button
                 onClick={handleShare}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800/40 hover:bg-slate-850 border border-slate-700/40 text-xs font-semibold text-white transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--tk-soft)] hover:bg-[var(--tk-field-bg)] border tk-theme-border text-xs font-semibold tk-theme-text transition"
               >
                 <Share2 className="w-3.5 h-3.5" />
-                {copiedShare ? "¡Copiado en Portapapeles!" : "Compartir Artículo"}
+                {copiedShare ? "¡Copiado al Portapapeles!" : "Compartir Artículo"}
               </button>
             </div>
 
             {/* CONTENIDO SEMÁNTICO RENDERIZADO POR BLOQUES */}
-            <div className="space-y-6 text-slate-300 font-sans leading-relaxed text-base sm:text-lg">
+            <div className="space-y-6 tk-theme-text font-sans leading-relaxed text-base sm:text-lg">
               {(post.contentBlocks || []).map((block, idx) => {
                 if (block.type === "paragraph") {
                   return (
-                    <p key={idx} className="whitespace-pre-wrap font-light text-slate-300 leading-relaxed mb-6">
+                    <p key={idx} className="whitespace-pre-wrap font-light tk-theme-text leading-relaxed mb-6">
                       {block.text}
                     </p>
                   );
@@ -265,7 +264,7 @@ export default function BlogDetail() {
                   return (
                     <h2
                       key={idx}
-                      className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-10 mb-4 border-b border-slate-800/60 pb-3"
+                      className="text-2xl sm:text-3xl font-bold tk-theme-text tracking-tight mt-10 mb-4 border-b tk-theme-border pb-3"
                     >
                       {block.text}
                     </h2>
@@ -273,7 +272,7 @@ export default function BlogDetail() {
                 }
                 if (block.type === "heading3") {
                   return (
-                    <h3 key={idx} className="text-xl sm:text-2xl font-semibold text-cyan-100 tracking-tight mt-8 mb-3">
+                    <h3 key={idx} className="text-xl sm:text-2xl font-semibold text-blue-600 dark:text-cyan-100 tracking-tight mt-8 mb-3">
                       {block.text}
                     </h3>
                   );
@@ -282,7 +281,7 @@ export default function BlogDetail() {
                   return (
                     <figure key={idx} className="space-y-2 mt-6 mb-8 text-center">
                       {block.url && (
-                        <div className="rounded-2xl overflow-hidden border border-slate-800 shadow-xl max-h-[500px]">
+                        <div className="rounded-2xl overflow-hidden border tk-theme-border shadow-xl max-h-[500px]">
                           <img
                             src={getCloudinaryUrl(block.url, { width: 800, quality: "auto" })}
                             alt={block.caption || post.title}
@@ -292,7 +291,7 @@ export default function BlogDetail() {
                         </div>
                       )}
                       {block.caption && (
-                        <figcaption className="text-xs sm:text-sm text-slate-400 italic font-light">
+                        <figcaption className="text-xs sm:text-sm tk-theme-muted italic font-light">
                           {block.caption}
                         </figcaption>
                       )}
@@ -301,7 +300,7 @@ export default function BlogDetail() {
                 }
                 if (block.type === "list") {
                   return (
-                    <ul key={idx} className="list-disc pl-6 space-y-2.5 mb-6 text-slate-300 font-light">
+                    <ul key={idx} className="list-disc pl-6 space-y-2.5 mb-6 tk-theme-text font-light">
                       {(block.items || []).map((li, i) => (
                         <li key={i} className="pl-1">
                           {li}
@@ -316,10 +315,10 @@ export default function BlogDetail() {
 
             {/* ARTÍCULOS RELACIONADOS / INTERNAL LINKING */}
             {relatedPosts.length > 0 && (
-              <div className="border-t border-slate-800/60 pt-10 mt-16 space-y-6">
+              <div className="border-t tk-theme-border pt-10 mt-16 space-y-6">
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white">Artículos Recomendados</h3>
-                  <p className="text-xs sm:text-sm text-slate-400 mt-1">Seguí leyendo más novedades sobre electrónica en Once.</p>
+                  <h3 className="text-xl sm:text-2xl font-bold tk-theme-text">Artículos Recomendados</h3>
+                  <p className="text-xs sm:text-sm tk-theme-muted mt-1">Seguí leyendo más novedades sobre electrónica en Once.</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -327,25 +326,25 @@ export default function BlogDetail() {
                     <Link
                       key={related.id}
                       to={`/blog/${related.slug}`}
-                      className="group block p-4 rounded-2xl bg-slate-900/30 border border-slate-800/40 hover:border-cyan-400/30 hover:bg-slate-900/50 transition-all duration-300"
+                      className="group block p-4 rounded-2xl tk-theme-surface border tk-theme-border hover:border-blue-500 dark:hover:border-cyan-400/30 hover:bg-[var(--tk-soft)] transition-all duration-300"
                     >
-                      <div className="aspect-[16/10] bg-slate-950 rounded-xl overflow-hidden border border-slate-800/60 mb-3 shrink-0">
+                      <div className="aspect-[16/10] bg-[var(--tk-soft)] rounded-xl overflow-hidden border tk-theme-border mb-3 shrink-0">
                         {related.coverImage ? (
                           <img
                             src={getCloudinaryUrl(related.coverImage, { width: 300, quality: "auto" })}
                             alt={related.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-600">
-                            <BookOpen className="w-6 h-6" />
+                          <div className="w-full h-full flex items-center justify-center tk-theme-muted">
+                            <BookOpen className="w-6 h-6 opacity-40" />
                           </div>
                         )}
                       </div>
-                      <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2 leading-tight">
+                      <h4 className="text-sm font-bold tk-theme-text group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition-colors line-clamp-2 leading-tight">
                         {related.title}
                       </h4>
-                      <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 uppercase tracking-wider">
+                      <p className="text-[11px] text-blue-600 dark:text-cyan-300 mt-1.5 flex items-center gap-1 uppercase tracking-wider font-semibold">
                         Ver artículo <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </p>
                     </Link>
