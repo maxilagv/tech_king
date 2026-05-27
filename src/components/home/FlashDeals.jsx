@@ -7,6 +7,7 @@ import { useOffers } from "@/hooks/useOffers";
 import { getProductPricing } from "@/utils/offers";
 import { createProductSlug } from "@/utils";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { getCloudinaryUrl } from "@/utils/cloudinary";
 
 function getSecondsUntilMidnight() {
   const now = new Date();
@@ -60,6 +61,18 @@ export default function FlashDeals() {
       })
       .slice(0, 4);
   }, [products, offers]);
+
+  // CLS FIX: Don't return null while loading — reserve height for the section
+  // so content below doesn't jump when flash deals appear.
+  if (loading) {
+    return (
+      <section
+        aria-hidden="true"
+        style={{ minHeight: "400px", contain: "layout" }}
+        className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-[#071530]"
+      />
+    );
+  }
 
   if (!loading && flashProducts.length === 0) return null;
 
@@ -151,11 +164,16 @@ export default function FlashDeals() {
                   <Link to={`/products/${createProductSlug(item)}`} className="group block">
                     <div className="relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 group-hover:border-yellow-400/30 transition-all duration-300">
                       <img
-                        src={item.imagenes?.[0] || "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=600&q=80"}
+                        src={getCloudinaryUrl(
+                          item.imagenes?.[0] || "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=600&q=80",
+                          { width: 400, format: "auto", quality: "auto" }
+                        )}
                         alt={item.nombre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         loading="lazy"
                         decoding="async"
+                        width="400"
+                        height="400"
                       />
                       {/* Discount badge */}
                       <div className="absolute top-3 left-3">

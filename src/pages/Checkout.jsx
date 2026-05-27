@@ -6,7 +6,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "@/api/firebase";
+import { getAuthAsync, db } from "@/api/firebase";
 import { notifyOwnerAboutOrder } from "@/api/orderNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useCustomerProfile } from "@/hooks/useCustomerProfile";
@@ -221,7 +221,8 @@ export default function Checkout() {
     setMessage("");
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
+      const authInstance = await getAuthAsync();
+      await signInWithEmailAndPassword(authInstance, loginForm.email, loginForm.password);
     } catch (err) {
       setError("Credenciales invalidas.");
     } finally {
@@ -241,8 +242,9 @@ export default function Checkout() {
     }
     setLoading(true);
     try {
+      const authInstance = await getAuthAsync();
       const credential = await createUserWithEmailAndPassword(
-        auth,
+        authInstance,
         registerForm.email,
         registerForm.password
       );
@@ -564,7 +566,10 @@ export default function Checkout() {
                     </button>
                   )}
                   <button
-                    onClick={() => signOut(auth)}
+                    onClick={async () => {
+                      const authInstance = await getAuthAsync();
+                      signOut(authInstance);
+                    }}
                     className="text-xs uppercase tracking-[0.2em] text-blue-600"
                   >
                     Cerrar sesion

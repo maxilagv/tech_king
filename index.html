@@ -86,9 +86,22 @@
     <!-- Firebase domains — saves ~620 ms per Lighthouse recommendation -->
     <link rel="preconnect" href="https://tchking-e3f9e.firebaseapp.com" />
     <link rel="preconnect" href="https://firebaseinstallations.googleapis.com" />
-    <link rel="dns-prefetch" href="https://i.postimg.cc" />
+    <!-- postimg.cc hosts hero fallback images — preconnect for fast load -->
+    <link rel="preconnect" href="https://i.postimg.cc" />
     <!-- Logo preload — always visible above the fold -->
     <link rel="preload" href="/brand/nexastore-logo.webp" as="image" type="image/webp" />
+    <!--
+      LCP CRITICAL: Preload the first hero image so the browser starts fetching it
+      before JavaScript executes. This eliminates the 2,200ms resource load delay
+      caused by waiting for Firestore to return the hero URL.
+      This image matches LANDING_HERO_FALLBACK_SLIDES[0].imagen in brand.js.
+    -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://i.postimg.cc/HxK9cS11/Chat-GPT-Image-5-mar-2026-12-07-28-p-m.png"
+      fetchpriority="high"
+    />
 
     <!-- ═══════════════════════════════════════════════════
          FUENTE PREMIUM — INTER (Google Fonts)

@@ -25,7 +25,20 @@ export default function OffersBanner() {
 
   const visibleOffers = useMemo(() => offers.slice(0, 3), [offers]);
 
-  if (loading || visibleOffers.length === 0) return null;
+  // Reservar espacio para evitar CLS — la sección ocupa ~170px cuando aparece.
+  // Retornar null haría que todo el contenido debajo suba y luego baje.
+  if (loading) {
+    return (
+      <section
+        aria-hidden="true"
+        style={{ minHeight: "170px", contain: "layout" }}
+        className="px-6 md:px-16 lg:px-24 py-10 tk-theme-bg"
+      />
+    );
+  }
+
+  if (visibleOffers.length === 0) return null;
+
 
   return (
     <section className="px-6 md:px-16 lg:px-24 py-10 tk-theme-bg">

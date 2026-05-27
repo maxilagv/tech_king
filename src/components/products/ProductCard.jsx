@@ -6,6 +6,7 @@ import { getProductPricing } from "@/utils/offers";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { useTheme } from "@/context/ThemeContext";
 import { createProductSlug } from "@/utils";
+import { getCloudinaryUrl, getCloudinarySrcSet } from "@/utils/cloudinary";
 
 const LIKED_KEY = "tk-liked-products";
 
@@ -118,11 +119,16 @@ export default function ProductCard({ product, index, offers = [] }) {
     <div className="product-card group h-full flex flex-col">
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden tk-theme-soft mb-4">
         <img
-          src={previewImage}
+          src={getCloudinaryUrl(previewImage, { width: 600, format: "auto", quality: "auto" })}
+          srcSet={getCloudinarySrcSet(previewImage, [300, 600, 900])}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           alt={name}
           onClick={() => navigate(detailPath)}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out cursor-pointer"
           loading="lazy"
+          decoding="async"
+          width="600"
+          height="800"
         />
 
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/30 via-black/5 to-transparent opacity-70" />

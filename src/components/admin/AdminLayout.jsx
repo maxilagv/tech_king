@@ -16,9 +16,10 @@ import {
   UserCog,
   Users,
   Warehouse,
+  BookOpen,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
-import { auth } from "@/api/firebase";
+import { getAuthAsync } from "@/api/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { ADMIN_MODULES } from "@/constants/adminAccess";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -43,6 +44,7 @@ const MODULE_ICON_BY_ID = {
   stock: Warehouse,
   finance: BadgeDollarSign,
   users: UserCog,
+  blogs: BookOpen,
 };
 
 export default function AdminLayout() {
@@ -51,7 +53,8 @@ export default function AdminLayout() {
   const { checking, authLoading, isSuperAdmin, modules } = useAdminAccess();
 
   const handleLogout = async () => {
-    await signOut(auth);
+    const authInstance = await getAuthAsync();
+    await signOut(authInstance);
     navigate("/admin/login");
   };
 

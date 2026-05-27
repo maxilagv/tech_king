@@ -30,64 +30,78 @@ export default function FeaturedProducts() {
   useGSAP(() => {
     if (reduceMotion) return;
 
-    gsap.set(".header-elem", { opacity: 0, y: 40 });
+    const headerElems = gsap.utils.toArray(".header-elem", sectionRef.current);
+    if (!headerElems.length) return;
+
+    gsap.set(headerElems, { opacity: 0, y: 30 });
 
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,
-        start: "top 80%",
-        end: "bottom 20%",
-        toggleActions: "play none none none"
+        start: "top 82%",
+        toggleActions: "play none none none",
+        fastScrollEnd: true,
       }
     });
 
-    tl.to(".header-elem", {
+    tl.to(headerElems, {
       opacity: 1,
       y: 0,
-      duration: 1,
+      duration: 0.8,
       stagger: 0.1,
-      ease: "power4.out"
+      ease: "power3.out",
+      clearProps: "transform",
     });
   }, { scope: sectionRef, dependencies: [reduceMotion] });
 
   useGSAP(() => {
     if (reduceMotion || products.length === 0) return;
-    
+
+    const cards = gsap.utils.toArray(".product-card", sectionRef.current);
+    if (!cards.length) return;
+
+    const grid = sectionRef.current?.querySelector(".products-grid");
+    if (!grid) return;
+
     let mm = gsap.matchMedia();
 
     mm.add("(min-width: 768px)", () => {
-      gsap.fromTo(".product-card", 
-        { opacity: 0, y: 60, scale: 0.95 },
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 50 },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: "power4.out",
+          duration: 0.7,
+          stagger: 0.09,
+          ease: "power3.out",
+          clearProps: "transform",
           scrollTrigger: {
-            trigger: ".products-grid",
-            start: "top 85%",
-            toggleActions: "play none none none"
+            trigger: grid,
+            start: "top 87%",
+            toggleActions: "play none none none",
+            fastScrollEnd: true,
           }
         }
       );
     });
 
     mm.add("(max-width: 767px)", () => {
-      gsap.fromTo(".product-card", 
-        { opacity: 0, y: 20, scale: 0.98 },
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 20 },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
-          duration: 0.5,
+          duration: 0.45,
           stagger: 0.05,
-          ease: "power3.out",
+          ease: "power2.out",
+          clearProps: "transform",
           scrollTrigger: {
-            trigger: ".products-grid",
+            trigger: grid,
             start: "top 90%",
-            toggleActions: "play none none none"
+            toggleActions: "play none none none",
+            fastScrollEnd: true,
           }
         }
       );

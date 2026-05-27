@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Lock, Mail, ShieldCheck } from "lucide-react";
-import { auth } from "@/api/firebase";
+import { getAuthAsync } from "@/api/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { BRAND_ADMIN_EMAIL_PLACEHOLDER, BRAND_NAME } from "@/constants/brand";
 
@@ -26,7 +26,8 @@ export default function AdminLogin() {
     setError("");
     setSubmitting(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const authInstance = await getAuthAsync();
+      await signInWithEmailAndPassword(authInstance, email, password);
       const redirectTo = location.state?.from?.pathname || "/admin";
       navigate(redirectTo, { replace: true });
     } catch {

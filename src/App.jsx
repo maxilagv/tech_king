@@ -10,6 +10,8 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Checkout = lazy(() => import("./pages/Checkout"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogDetail = lazy(() => import("./pages/BlogDetail"));
 
 // ─── Admin pages — lazy loaded (never in initial bundle) ───────────────────────
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
@@ -32,6 +34,7 @@ const LandingAdmin = lazy(() => import("./pages/admin/LandingAdmin"));
 const PricingAdmin = lazy(() => import("./pages/admin/PricingAdmin"));
 const QRAdmin = lazy(() => import("./pages/admin/QRAdmin"));
 const AdminHome = lazy(() => import("./components/admin/AdminHome"));
+const BlogsAdmin = lazy(() => import("./pages/admin/BlogsAdmin"));
 
 // ─── Route helpers ─────────────────────────────────────────────────────────────
 const routes = [
@@ -40,6 +43,7 @@ const routes = [
   { path: "/checkout", name: "Checkout", element: <Checkout /> },
   { path: "/about", name: "About", element: <About /> },
   { path: "/contact", name: "Contact", element: <Contact /> },
+  { path: "/blog", name: "Blog", element: <Blog /> },
 ];
 
 // Minimal fallback — no layout shift, no spinner flicker
@@ -56,7 +60,8 @@ function AppContent() {
   const location = useLocation();
   const currentPageName =
     getPageNameFromPath(location.pathname) ||
-    (location.pathname.startsWith("/products/") ? "Products" : "Home");
+    (location.pathname.startsWith("/products/") ? "Products" :
+     location.pathname.startsWith("/blog/") ? "Blog" : "Home");
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   const moduleElement = (moduleId, element) => (
@@ -72,6 +77,7 @@ function AppContent() {
           <Route key={route.path} path={route.path} element={route.element} />
         ))}
         <Route path="/products/:productId" element={<ProductDetail />} />
+        <Route path="/blog/:slug" element={<BlogDetail />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/admin"
@@ -88,6 +94,7 @@ function AppContent() {
           <Route path="productos" element={moduleElement("products", <ProductsAdmin />)} />
           <Route path="categorias" element={moduleElement("categories", <CategoriesAdmin />)} />
           <Route path="ofertas" element={moduleElement("offers", <OffersAdmin />)} />
+          <Route path="blogs" element={moduleElement("blogs", <BlogsAdmin />)} />
           <Route path="landing" element={moduleElement("landing", <LandingAdmin />)} />
           <Route path="qr" element={moduleElement("qr", <QRAdmin />)} />
           <Route path="pedidos" element={moduleElement("orders", <OrdersAdmin />)} />

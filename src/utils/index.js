@@ -4,6 +4,7 @@ const ROUTES = {
   Checkout: "/checkout",
   About: "/about",
   Contact: "/contact",
+  Blog: "/blog",
 };
 
 export function slugify(text) {

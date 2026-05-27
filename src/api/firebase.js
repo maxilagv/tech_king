@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 export const firebaseConfig = {
@@ -26,13 +25,47 @@ export const isFirebaseConfigured = requiredFirebaseValues.every(
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// Firestore is needed immediately for data fetching (products, heroes, etc.)
 export const db = getFirestore(app);
 
-isSupported()
-  .then((supported) => {
-    if (supported) {
-      getAnalytics(app);
-    }
-  })
-  .catch(() => undefined);
+// ─── Lazy Firebase Auth ────────────────────────────────────────────────────────
+// CRITICAL PERFORMANCE: Do NOT call getAuth(app) at module load time.
+// Calling getAuth() triggers the download of auth/iframe.js (90KB) which
+// adds ~1,474ms to the critical path before the page is interactive.
+//
+// Instead, auth is initialized lazily on first access. The browser only
+// downloads iframe.js when the user actually needs authentication.
+// ─────────────────────────────────────────────────────────────────────────────
+
+let _auth = null;
+
+export function getAuthInstance() {
+  // Note: This is intentionally left as a sync stub.
+  // In ESM/Vite context, use getAuthAsync() instead.
+  throw new Error("Use getAuthAsync() in Vite/ESM projects.");
+}
+
+// Async version for use in hooks (preferred — avoids require() in ESM context)
+let _authPromise = null;
+
+export async function getAuthAsync() {
+  if (_auth) return _auth;
+  if (!_authPromise) {
+    _authPromise = import("firebase/auth").then(({ getAuth }) => {
+      _auth = getAuth(app);
+      return _auth;
+    });
+  }
+  return _authPromise;
+}
+
+// Analytics — defer completely (non-critical)
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => {
+    isSupported()
+      .then((supported) => {
+        if (supported) getAnalytics(app);
+      })
+      .catch(() => undefined);
+  }, { once: true, passive: true });
+}

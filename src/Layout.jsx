@@ -158,6 +158,7 @@ export default function Layout({ children, currentPageName }) {
               { to: createPageUrl("Home"), label: "Inicio" },
               { to: createPageUrl("Products"), label: "Productos" },
               { to: createPageUrl("About"), label: "Nosotros" },
+              { to: createPageUrl("Blog"), label: "Blog" },
               { to: createPageUrl("Contact"), label: "Contacto" },
             ].map(({ to, label }) => {
               const isActive = location.pathname === to;

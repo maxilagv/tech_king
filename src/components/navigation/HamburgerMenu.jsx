@@ -8,6 +8,7 @@ const menuItems = [
   { label: "Inicio", page: "Home" },
   { label: "Productos", page: "Products" },
   { label: "Nosotros", page: "About" },
+  { label: "Blog", page: "Blog" },
   { label: "Contacto", page: "Contact" },
 ];
 

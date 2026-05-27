@@ -30,6 +30,7 @@ const moduleLabels = {
   customers: "Clientes",
   orders: "Pedidos",
   remitos: "Remitos",
+  blogs: "Blogs",
 };
 
 function buildInitialCreateForm() {
