@@ -277,10 +277,10 @@ export default function ProductFilters({
             value={localMin}
             onChange={(event) => setLocalMin(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && applyPrice()}
-            className={`h-9 w-28 rounded-lg border px-3 text-xs outline-none transition ${
+            className={`tk-focus-glow h-9 w-28 rounded-lg border px-3 text-xs outline-none ${
               isDark
-                ? "border-white/15 bg-white/5 text-white placeholder:text-white/30 focus:border-blue-500"
-                : "border-black/10 bg-white text-[#0A0A0A] placeholder:text-black/30 focus:border-blue-500"
+                ? "border-white/15 bg-white/5 text-white placeholder:text-white/30"
+                : "border-black/10 bg-white text-[#0A0A0A] placeholder:text-black/30"
             }`}
           />
           <span className={`text-xs ${isDark ? "text-white/40" : "text-black/30"}`}>-</span>
@@ -291,18 +291,18 @@ export default function ProductFilters({
             value={localMax}
             onChange={(event) => setLocalMax(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && applyPrice()}
-            className={`h-9 w-28 rounded-lg border px-3 text-xs outline-none transition ${
+            className={`tk-focus-glow h-9 w-28 rounded-lg border px-3 text-xs outline-none ${
               isDark
-                ? "border-white/15 bg-white/5 text-white placeholder:text-white/30 focus:border-blue-500"
-                : "border-black/10 bg-white text-[#0A0A0A] placeholder:text-black/30 focus:border-blue-500"
+                ? "border-white/15 bg-white/5 text-white placeholder:text-white/30"
+                : "border-black/10 bg-white text-[#0A0A0A] placeholder:text-black/30"
             }`}
           />
           <button
             type="button"
             onClick={applyPrice}
-            className="h-9 rounded-lg bg-blue-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-blue-700"
+            className="tk-shine h-9 rounded-lg bg-blue-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-blue-700"
           >
-            Aplicar
+            <span className="relative z-[2]">Aplicar</span>
           </button>
           {hasPriceFilter && (
             <button

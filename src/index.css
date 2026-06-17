@@ -156,6 +156,184 @@ h6,
   clip-path: inset(0 0 0 0 round 8px);
 }
 
+/* ============ GRADIENT TEXT ACCENT ============ */
+.tk-gradient-text {
+  /* #3b82f6 mid keeps ~3:1+ contrast on light surfaces while staying vivid on dark */
+  background: linear-gradient(90deg, var(--tk-accent) 0%, #3b82f6 50%, var(--tk-accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+}
+
+.tk-gradient-text-animated {
+  animation: shimmer 4s linear infinite;
+}
+
+:root[data-performance="reduced"] .tk-gradient-text-animated {
+  animation: none;
+}
+
+/* Bright variant for permanently-dark surfaces (hero, footer) — theme-independent
+   so it never camouflages in light mode. */
+.tk-gradient-text-bright {
+  background: linear-gradient(95deg, #ffffff 0%, #cfe3ff 42%, #6cb1ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
+}
+
+/* ============ GRADIENT / ANIMATED BORDER (no CLS: same 1px box) ============ */
+.tk-gradient-border {
+  position: relative;
+  background:
+    linear-gradient(var(--tk-surface), var(--tk-surface)) padding-box,
+    linear-gradient(135deg, var(--tk-accent), #60a5fa 45%, transparent 75%) border-box;
+  border: 1px solid transparent;
+}
+
+.tk-gradient-border-animated {
+  background:
+    linear-gradient(var(--tk-surface), var(--tk-surface)) padding-box,
+    linear-gradient(135deg, var(--tk-accent), #60a5fa, var(--tk-accent)) border-box;
+  background-size: 100% 100%, 200% 200%;
+  animation: tk-border-pan 6s ease infinite;
+}
+
+:root[data-performance="reduced"] .tk-gradient-border-animated {
+  animation: none;
+}
+
+/* ============ GLASS CARD DEPTH (light + dark aware) ============ */
+.tk-glass {
+  background: color-mix(in srgb, var(--tk-surface) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tk-border) 70%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, #ffffff 55%, transparent) inset,
+    0 18px 48px -24px rgba(8, 18, 34, 0.45);
+}
+
+[data-theme="dark"] .tk-glass {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 24px 60px -28px rgba(0, 0, 0, 0.7);
+}
+
+:root[data-performance="reduced"] .tk-glass {
+  background: var(--tk-surface);
+}
+
+/* ============ FOCUS-RING GLOW (inputs) ============ */
+.tk-focus-glow {
+  transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.tk-focus-glow:focus,
+.tk-focus-glow:focus-visible,
+.tk-focus-glow:focus-within {
+  outline: none;
+  border-color: var(--tk-accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--tk-accent) 22%, transparent),
+    0 0 18px -4px color-mix(in srgb, var(--tk-accent) 40%, transparent);
+}
+
+/* ============ SHINE / SHEEN SWEEP (buttons) ============ */
+.tk-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.tk-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: translateX(-130%) skewX(-18deg);
+  z-index: 1;
+}
+
+.tk-shine:hover::after {
+  animation: tk-sheen 0.85s ease-out;
+}
+
+@media (hover: none) {
+  .tk-shine:hover::after {
+    animation: none;
+  }
+}
+
+/* ============ SKELETON SHIMMER ============ */
+.tk-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--tk-field-bg);
+  border-radius: 0.5rem;
+}
+
+.tk-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--tk-surface) 65%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+:root[data-performance="reduced"] .tk-skeleton::after {
+  animation: none;
+}
+
+/* ============ SPOTLIGHT FOLLOW-CURSOR GLOW ============ */
+/* JS sets --tk-mx / --tk-my (px) on the element. */
+.tk-spotlight {
+  position: relative;
+}
+
+.tk-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  background: radial-gradient(
+    420px circle at var(--tk-mx, 50%) var(--tk-my, 50%),
+    color-mix(in srgb, var(--tk-accent) 22%, transparent),
+    transparent 60%
+  );
+  z-index: 0;
+}
+
+.tk-spotlight:hover::before {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .tk-spotlight::before {
+    display: none;
+  }
+}
+
+:root[data-performance="reduced"] .tk-spotlight::before {
+  display: none;
+}
+
 @media (max-width: 640px) {
   .tk-section-shell {
     width: min(100% - 1.25rem, 80rem);

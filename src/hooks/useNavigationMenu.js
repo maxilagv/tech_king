@@ -57,6 +57,19 @@ export function useMobileDrawerMenu() {
     setOpenAccordionId(null);
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [closeMenu, isOpen]);
+
   const toggleMenu = useCallback(() => {
     setIsOpen((prev) => !prev);
   }, []);

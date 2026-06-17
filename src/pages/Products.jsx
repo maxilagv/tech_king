@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
 import ProductFilters from "../components/products/ProductFilters";
 import Footer from "../components/common/Footer";
+import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { Search } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
@@ -323,14 +324,9 @@ export default function Products() {
       <section className="px-6 pt-7 pb-16 md:px-16 md:pt-9 md:pb-20 lg:px-24">
         <div className="max-w-7xl mx-auto">
           {loading ? (
-            <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="mb-4 aspect-[4/5] rounded-lg bg-blue-100 dark:bg-blue-900/20" />
-                  <div className="h-3 rounded bg-blue-100 dark:bg-blue-900/20 w-2/3 mb-2" />
-                  <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-full mb-2" />
-                  <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-1/3" />
-                </div>
+                <ProductCardSkeleton key={i} />
               ))}
             </div>
           ) : (

@@ -22,6 +22,7 @@ import {
   normalizeCustomerPhone,
 } from "@/utils/customerPhone";
 import { Eye, EyeOff } from "lucide-react";
+import { Reveal } from "@/components/ui/Reveal";
 
 function getTimestampValue(value) {
   if (!value) return 0;
@@ -417,7 +418,7 @@ export default function Checkout() {
                       setLoginForm((prev) => ({ ...prev, email: event.target.value }))
                     }
                     placeholder="Email"
-                    className="w-full rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    className="w-full tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <div className="relative">
@@ -428,7 +429,7 @@ export default function Checkout() {
                         setLoginForm((prev) => ({ ...prev, password: event.target.value }))
                       }
                       placeholder="Contrasena"
-                      className="w-full rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text pr-10"
+                      className="w-full tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text pr-10"
                       required
                     />
                     <button
@@ -442,7 +443,7 @@ export default function Checkout() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:opacity-60"
+                    className="tk-shine w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] transition-colors hover:bg-blue-700 disabled:opacity-60"
                   >
                     {loading ? "Ingresando..." : "Ingresar"}
                   </button>
@@ -457,7 +458,7 @@ export default function Checkout() {
                         setRegisterForm((prev) => ({ ...prev, nombre: event.target.value }))
                       }
                       placeholder="Nombre"
-                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                       required
                     />
                     <input
@@ -467,7 +468,7 @@ export default function Checkout() {
                         setRegisterForm((prev) => ({ ...prev, apellido: event.target.value }))
                       }
                       placeholder="Apellido"
-                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                       required
                     />
                   </div>
@@ -478,7 +479,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, dni: event.target.value }))
                     }
                     placeholder="DNI"
-                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                   />
                   <input
                     type="text"
@@ -487,7 +488,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, direccion: event.target.value }))
                     }
                     placeholder="Direccion"
-                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                   />
                   <input
                     type="tel"
@@ -504,7 +505,7 @@ export default function Checkout() {
                       }))
                     }
                     placeholder="Telefono"
-                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <input
@@ -514,7 +515,7 @@ export default function Checkout() {
                       setRegisterForm((prev) => ({ ...prev, email: event.target.value }))
                     }
                     placeholder="Email"
-                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <div className="relative">
@@ -525,7 +526,7 @@ export default function Checkout() {
                         setRegisterForm((prev) => ({ ...prev, password: event.target.value }))
                       }
                       placeholder="Contrasena"
-                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text pr-10"
+                      className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text pr-10"
                       required
                     />
                     <button
@@ -539,7 +540,7 @@ export default function Checkout() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:opacity-60"
+                    className="tk-shine w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] transition-colors hover:bg-blue-700 disabled:opacity-60"
                   >
                     {loading ? "Creando..." : "Crear cuenta"}
                   </button>
@@ -615,7 +616,7 @@ export default function Checkout() {
                         setProfileForm((prev) => ({ ...prev, nombre: event.target.value }))
                       }
                       placeholder="Nombre"
-                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                       required
                     />
                     <input
@@ -625,7 +626,7 @@ export default function Checkout() {
                         setProfileForm((prev) => ({ ...prev, apellido: event.target.value }))
                       }
                       placeholder="Apellido"
-                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                       required
                     />
                   </div>
@@ -637,7 +638,7 @@ export default function Checkout() {
                         setProfileForm((prev) => ({ ...prev, dni: event.target.value }))
                       }
                       placeholder="DNI"
-                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     />
                     <input
                       type="email"
@@ -646,7 +647,7 @@ export default function Checkout() {
                         setProfileForm((prev) => ({ ...prev, email: event.target.value }))
                       }
                       placeholder="Email"
-                      className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                      className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                       required
                     />
                   </div>
@@ -657,7 +658,7 @@ export default function Checkout() {
                       setProfileForm((prev) => ({ ...prev, direccion: event.target.value }))
                     }
                     placeholder="Direccion"
-                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                   />
                   <input
                     type="tel"
@@ -674,13 +675,13 @@ export default function Checkout() {
                       }))
                     }
                     placeholder="Telefono"
-                    className="rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
+                    className="tk-focus-glow rounded-2xl border tk-theme-border tk-theme-surface px-4 py-3 text-sm outline-none tk-theme-text"
                     required
                   />
                   <button
                     type="submit"
                     disabled={savingProfile}
-                    className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:opacity-60"
+                    className="tk-shine w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] transition-colors hover:bg-blue-700 disabled:opacity-60"
                   >
                     {savingProfile ? "Guardando..." : profile ? "Guardar cambios" : "Guardar datos"}
                   </button>
@@ -810,14 +811,14 @@ export default function Checkout() {
           )}
 
           {message && (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600">
+            <Reveal y={8} amount={0.1} duration={0.4} className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600">
               {message}
-            </div>
+            </Reveal>
           )}
           {error && (
-            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+            <Reveal y={8} amount={0.1} duration={0.4} className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600">
               {error}
-            </div>
+            </Reveal>
           )}
         </div>
 
@@ -928,9 +929,9 @@ export default function Checkout() {
               <button
                 onClick={handleCheckout}
                 disabled={!canCheckout || loading}
-                className="w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] disabled:opacity-50"
+                className="tk-shine w-full rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
               >
-                {loading ? "Procesando..." : "Confirmar pedido"}
+                <span className="relative z-[2]">{loading ? "Procesando..." : "Confirmar pedido"}</span>
               </button>
             </div>
           )}

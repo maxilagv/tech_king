@@ -3,7 +3,9 @@
     "allow": [
       "Bash(grep -E '\\\\.\\(html|txt|xml|css\\)$')",
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(mkdir -p \"C:/Users/User/.claude/plans\")",
+      "Read(//c/Users/User/.claude/plans/**)"
     ]
   }
 }

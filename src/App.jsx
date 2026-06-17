@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Layout from "./Layout";
+import PageTransition from "./components/ui/PageTransition";
 import { getPageNameFromPath } from "./utils";
 
 // ─── Public pages — lazy loaded ────────────────────────────────────────────────
@@ -117,7 +118,11 @@ function AppContent() {
     return content;
   }
 
-  return <Layout currentPageName={currentPageName}>{content}</Layout>;
+  return (
+    <Layout currentPageName={currentPageName}>
+      <PageTransition routeKey={location.pathname}>{content}</PageTransition>
+    </Layout>
+  );
 }
 
 export default function App() {

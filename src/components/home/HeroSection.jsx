@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ChevronDown } from "lucide-react";
 import { useLandingHeroes } from "@/hooks/useLandingHeroes";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { useMagneticHover } from "@/hooks/useMagneticHover";
 import { useTheme } from "@/context/ThemeContext";
 import { normalizeLandingHeroSlide } from "@/utils/landingHeroes";
 import { getCloudinaryUrl, getCloudinarySrcSet } from "@/utils/cloudinary";
@@ -13,28 +14,33 @@ import { useGSAP } from "@gsap/react";
 gsap.registerPlugin(useGSAP);
 
 function SlideAction({ slide }) {
+  const magnetic = useMagneticHover({ strength: 0.3, max: 10 });
+  const magneticProps = magnetic.inert
+    ? {}
+    : { ref: magnetic.ref, onMouseMove: magnetic.onMouseMove, onMouseLeave: magnetic.onMouseLeave };
   const isExternal = /^https?:\/\//i.test(slide.ctaUrl);
+  const className =
+    "hero-text-elem tk-pressable group inline-flex min-h-12 items-center gap-3 rounded-lg border border-white/25 bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.22)] transition-colors hover:bg-blue-50 sm:px-6";
+
   if (isExternal) {
     return (
       <a
         href={slide.ctaUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="hero-text-elem tk-pressable inline-flex min-h-12 items-center gap-3 rounded-lg border border-white/25 bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.22)] transition-colors hover:bg-blue-50 sm:px-6"
+        className={className}
+        {...magneticProps}
       >
         {slide.ctaLabel}
-        <ArrowRight className="w-4 h-4" />
+        <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
       </a>
     );
   }
 
   return (
-    <Link
-      to={slide.ctaUrl}
-      className="hero-text-elem tk-pressable inline-flex min-h-12 items-center gap-3 rounded-lg border border-white/25 bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.22)] transition-colors hover:bg-blue-50 sm:px-6"
-    >
+    <Link to={slide.ctaUrl} className={className} {...magneticProps}>
       {slide.ctaLabel}
-      <ArrowRight className="w-4 h-4" />
+      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
     </Link>
   );
 }
@@ -155,7 +161,7 @@ export default function HeroSection() {
   const titleSizeClass = isDark
     ? "text-[2.65rem] md:text-6xl lg:text-7xl"
     : "text-[2.65rem] md:text-6xl lg:text-8xl";
-  const headlineClass = "hero-text-elem mt-4 max-w-4xl text-2xl font-semibold leading-[1.05] tracking-[0] text-white/92 md:text-4xl lg:text-5xl";
+  const headlineClass = "hero-text-elem mt-4 max-w-3xl text-2xl font-semibold leading-[1.08] tracking-[-0.01em] text-white drop-shadow-[0_3px_18px_rgba(2,8,20,0.92)] md:text-4xl lg:text-[2.9rem]";
   const overlayMainClass = isDark
     ? "absolute inset-0 bg-[linear-gradient(90deg,rgba(2,12,30,0.94)_0%,rgba(2,12,30,0.72)_42%,rgba(2,12,30,0.26)_100%)]"
     : "absolute inset-0 bg-[linear-gradient(90deg,rgba(2,12,30,0.96)_0%,rgba(2,12,30,0.8)_48%,rgba(2,12,30,0.42)_100%)]";
@@ -166,11 +172,11 @@ export default function HeroSection() {
     ? "hero-text-elem inline-flex w-fit items-center gap-2 rounded-lg border border-white/18 bg-white/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-blue-50"
     : "hero-text-elem inline-flex w-fit items-center gap-2 rounded-lg border border-white/18 bg-black/32 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] backdrop-blur-sm";
   const subtitleClass = isDark
-    ? "hero-text-elem mt-4 max-w-xl text-sm font-semibold uppercase tracking-[0.2em] text-blue-100/90 md:text-base"
-    : "hero-text-elem mt-4 max-w-xl text-sm font-semibold uppercase tracking-[0.2em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] md:text-base";
+    ? "hero-text-elem mt-4 max-w-xl text-sm font-semibold uppercase tracking-[0.2em] text-blue-100/90 drop-shadow-[0_2px_8px_rgba(2,8,20,0.7)] md:text-base"
+    : "hero-text-elem mt-4 max-w-xl text-sm font-semibold uppercase tracking-[0.2em] text-white drop-shadow-[0_2px_8px_rgba(2,8,20,0.9)] md:text-base";
   const descriptionClass = isDark
-    ? "hero-text-elem max-w-xl text-sm leading-relaxed text-white/74 md:text-lg"
-    : "hero-text-elem max-w-xl text-sm leading-relaxed text-white/92 drop-shadow-[0_2px_8px_rgba(0,0,0,0.88)] md:text-lg";
+    ? "hero-text-elem max-w-xl text-sm leading-relaxed text-white/80 drop-shadow-[0_2px_10px_rgba(2,8,20,0.75)] md:text-lg"
+    : "hero-text-elem max-w-xl text-sm leading-relaxed text-white/92 drop-shadow-[0_2px_12px_rgba(2,8,20,0.9)] md:text-lg";
   const showSubtitle =
     activeSlide.subtitulo &&
     activeSlide.subtitulo.trim().toLowerCase() !== BRAND_NAME.toLowerCase();
@@ -181,6 +187,8 @@ export default function HeroSection() {
         <HeroSlideImage slide={activeSlide} imageRef={imageRef} />
         <div className={overlayMainClass} />
         <div className={overlayBottomClass} />
+        {/* Localized bottom-left scrim — guarantees the text column stays legible over bright image areas, both themes */}
+        <div className="absolute inset-0 bg-[radial-gradient(125%_95%_at_0%_100%,rgba(2,8,20,0.9)_0%,rgba(2,8,20,0.5)_34%,rgba(2,8,20,0.12)_60%,transparent_74%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.08)_0,rgba(255,255,255,0.02)_28%,transparent_29%,transparent_100%)] mix-blend-screen" />
       </div>
 
@@ -195,10 +203,12 @@ export default function HeroSection() {
 
         <h1
           key={`${activeSlide.id}-brand`}
-          className={`hero-text-elem mt-5 max-w-5xl font-semibold leading-[0.94] tracking-[0] text-white ${titleSizeClass}`}
+          className={`hero-text-elem tk-gradient-text-bright mt-5 max-w-5xl font-semibold leading-[0.94] tracking-[0] ${titleSizeClass}`}
         >
           {BRAND_NAME}
         </h1>
+
+        <div className="hero-text-elem mt-6 h-[3px] w-16 rounded-full bg-gradient-to-r from-blue-400 to-cyan-300 shadow-[0_0_20px_rgba(96,165,250,0.65)]" />
 
         <p key={`${activeSlide.id}-title`} className={headlineClass}>
           {activeSlide.titulo}
@@ -231,7 +241,9 @@ export default function HeroSection() {
                 type="button"
                 onClick={() => setIndex(dotIndex)}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  dotIndex === index ? "w-10 bg-white" : "w-2 bg-white/42 hover:bg-white/72"
+                  dotIndex === index
+                    ? "w-10 bg-gradient-to-r from-blue-400 to-cyan-300 shadow-[0_0_14px_rgba(96,165,250,0.7)]"
+                    : "w-2 bg-white/42 hover:bg-white/72"
                 }`}
                 aria-label={`Ir al slide ${dotIndex + 1}`}
               />

@@ -7,7 +7,9 @@ import { useCategories } from "@/hooks/useCategories";
 import { useOffers } from "@/hooks/useOffers";
 import { getProductPricing } from "@/utils/offers";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { useSpotlight } from "@/hooks/useSpotlight";
 import { getCloudinaryUrl, getCloudinarySrcSet } from "@/utils/cloudinary";
+import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -27,7 +29,8 @@ export default function FeaturedProducts() {
   const { categories } = useCategories({ onlyActive: true });
   const { offers } = useOffers({ onlyActive: true });
   const reduceMotion = useShouldReduceMotion();
-  
+  const spotlight = useSpotlight();
+
   const sectionRef = useRef(null);
 
   const categoryMap = Object.fromEntries(
@@ -156,12 +159,7 @@ export default function FeaturedProducts() {
         {loading ? (
           <div className="products-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="mb-4 aspect-[3/4] rounded-lg bg-blue-100 dark:bg-blue-900/20" />
-                <div className="h-3 rounded bg-blue-100 dark:bg-blue-900/20 w-2/3 mb-2" />
-                <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-full mb-2" />
-                <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-1/3" />
-              </div>
+              <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : products.length === 0 ? (
@@ -179,8 +177,10 @@ export default function FeaturedProducts() {
                 return (
                   <div key={item.id} className="product-card lg:col-span-2 lg:row-span-2">
                     <Link
+                      ref={spotlight.ref}
+                      onMouseMove={spotlight.onMouseMove}
                       to={`/products/${createProductSlug(item)}`}
-                      className="group relative block h-full min-h-[520px] overflow-hidden rounded-lg border border-white/10 bg-[#07111f] md:min-h-[620px] lg:min-h-full"
+                      className="tk-spotlight group relative block h-full min-h-[520px] overflow-hidden rounded-lg border border-white/10 bg-[#07111f] md:min-h-[620px] lg:min-h-full"
                     >
                       <img
                         src={getCloudinaryUrl(productImage, { width: 900, format: "auto", quality: "auto" })}
@@ -198,7 +198,7 @@ export default function FeaturedProducts() {
                         height="1200"
                       />
                       <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(2,12,30,0.94),rgba(2,12,30,0.48)_44%,rgba(2,12,30,0.12))]" />
-                      <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5 md:p-6">
+                      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-5 md:p-6">
                         <span className="rounded-md border border-white/15 bg-white/12 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md">
                           Seleccion destacada
                         </span>
@@ -207,7 +207,7 @@ export default function FeaturedProducts() {
                         </span>
                       </div>
 
-                      <div className="absolute inset-x-0 bottom-0 p-5 md:p-7">
+                      <div className="absolute inset-x-0 bottom-0 z-10 p-5 md:p-7">
                         <span className="mb-3 block text-[11px] font-bold uppercase tracking-[0.22em] text-blue-200">
                           {getCategoryLabel(item)}
                         </span>

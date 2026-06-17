@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Send } from "lucide-react";
+import { Check, Send } from "lucide-react";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/api/firebase";
@@ -54,23 +54,28 @@ export default function NewsletterSection() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="Tu correo electronico"
-              className="min-h-12 rounded-lg border border-[var(--tk-border)] bg-[var(--tk-surface)] px-5 text-sm text-[var(--tk-text)] outline-none transition-all duration-300 placeholder:text-[var(--tk-muted)] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              className="tk-focus-glow min-h-12 rounded-lg border border-[var(--tk-border)] bg-[var(--tk-surface)] px-5 text-sm text-[var(--tk-text)] outline-none placeholder:text-[var(--tk-muted)]"
             />
             <motion.button
               type="submit"
               disabled={saving}
               whileHover={reduceMotion ? undefined : { y: -2 }}
               whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 text-sm font-bold text-white shadow-[0_18px_50px_rgba(37,99,235,0.24)] transition-colors duration-300 hover:bg-blue-700 disabled:opacity-60"
+              className="tk-shine inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 text-sm font-bold text-white shadow-[0_18px_50px_rgba(37,99,235,0.24)] transition-colors duration-300 hover:bg-blue-700 disabled:opacity-60"
             >
-              {submitted ? (
-                "Suscrito"
-              ) : (
-                <>
-                  {saving ? "Guardando..." : "Suscribirse"}
-                  {!saving && <Send className="h-3.5 w-3.5" />}
-                </>
-              )}
+              <span className="relative z-[2] inline-flex items-center gap-2">
+                {submitted ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 animate-tk-check-pop" />
+                    Suscrito
+                  </>
+                ) : (
+                  <>
+                    {saving ? "Guardando..." : "Suscribirse"}
+                    {!saving && <Send className="h-3.5 w-3.5" />}
+                  </>
+                )}
+              </span>
             </motion.button>
           </form>
         </motion.div>

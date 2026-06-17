@@ -27,10 +27,16 @@ function formatTime(seconds) {
   };
 }
 
-function CountdownUnit({ value, label }) {
+function CountdownUnit({ value, label, urgent = false }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/18 bg-white/10 font-display text-lg font-bold tabular-nums text-white md:h-12 md:w-12 md:text-xl">
+      <div
+        className={`flex h-11 w-11 items-center justify-center rounded-lg border font-display text-lg font-bold tabular-nums md:h-12 md:w-12 md:text-xl ${
+          urgent
+            ? "border-yellow-400/60 bg-yellow-400/15 text-yellow-300 ring-2 ring-yellow-400/50 animate-pulse"
+            : "border-white/18 bg-white/10 text-white"
+        }`}
+      >
         {value}
       </div>
       <span className="mt-1 text-[9px] uppercase tracking-[0.15em] text-white/50">{label}</span>
@@ -74,6 +80,7 @@ export default function FlashDeals() {
   if (!loading && flashProducts.length === 0) return null;
 
   const time = formatTime(remaining);
+  const urgent = remaining <= 60;
 
   return (
     <section className="tk-landing-band relative overflow-hidden bg-[#071530] py-20 md:py-28">
@@ -114,11 +121,11 @@ export default function FlashDeals() {
               <span>Terminan hoy a medianoche</span>
             </div>
             <div className="flex items-center gap-2">
-              <CountdownUnit value={time.h} label="hs" />
+              <CountdownUnit value={time.h} label="hs" urgent={urgent} />
               <span className="mb-4 text-xl font-bold text-white/60">:</span>
-              <CountdownUnit value={time.m} label="min" />
+              <CountdownUnit value={time.m} label="min" urgent={urgent} />
               <span className="mb-4 text-xl font-bold text-white/60">:</span>
-              <CountdownUnit value={time.s} label="seg" />
+              <CountdownUnit value={time.s} label="seg" urgent={urgent} />
             </div>
           </motion.div>
         </div>
@@ -184,10 +191,12 @@ export default function FlashDeals() {
         >
           <Link
             to="/products?category=offers"
-            className="tk-pressable inline-flex min-h-12 items-center gap-2 rounded-lg border border-yellow-400/45 bg-yellow-400/10 px-6 py-3 text-sm font-bold text-yellow-300 transition-all duration-300 hover:border-yellow-400/70 hover:bg-yellow-400/18"
+            className="tk-pressable tk-shine inline-flex min-h-12 items-center gap-2 rounded-lg border border-yellow-400/45 bg-yellow-400/10 px-6 py-3 text-sm font-bold text-yellow-300 transition-all duration-300 hover:border-yellow-400/70 hover:bg-yellow-400/18"
           >
-            Ver todas las ofertas
-            <Zap className="h-4 w-4 fill-yellow-300" />
+            <span className="relative z-[2] inline-flex items-center gap-2">
+              Ver todas las ofertas
+              <Zap className="h-4 w-4 fill-yellow-300" />
+            </span>
           </Link>
         </motion.div>
       </div>

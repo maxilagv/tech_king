@@ -17,6 +17,10 @@ import { getProductPricing } from "@/utils/offers";
 import { createProductSlug, slugify } from "@/utils";
 import { BRAND_NAME, BRAND_OG_IMAGE_URL, BRAND_URL } from "@/constants/brand";
 import { getCloudinaryUrl } from "@/utils/cloudinary";
+import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { useTilt } from "@/hooks/useTilt";
+import { flyToCart } from "@/utils/flyToCart";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 function parseStock(rawStock) {
   const parsed = Number(rawStock);
@@ -41,6 +45,9 @@ export default function ProductDetail() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [qty, setQty] = useState(1);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const reduceMotion = useShouldReduceMotion();
+  const mainImageRef = useRef(null);
+  const tilt = useTilt({ max: 7, scale: 1.02, disabled: zoomOpen });
 
   const product = useMemo(() => {
     return products.find(item => {
@@ -202,8 +209,27 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen tk-theme-bg pt-28 pb-20 flex items-center justify-center">
-        <div className="text-sm tk-theme-muted">Cargando producto...</div>
+      <div className="min-h-screen tk-theme-bg pt-28 pb-20 px-6 md:px-16 lg:px-24">
+        <div className="max-w-7xl mx-auto">
+          <Skeleton className="h-3 w-40" rounded="rounded" />
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-4">
+              <Skeleton className="h-[420px] w-full md:h-[560px]" rounded="rounded-3xl" />
+              <div className="grid grid-cols-5 gap-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" rounded="rounded-xl" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-5 rounded-3xl border tk-theme-border tk-theme-surface p-6 md:p-8">
+              <Skeleton className="h-5 w-28" rounded="rounded-full" />
+              <Skeleton className="h-9 w-3/4" rounded="rounded" />
+              <Skeleton className="h-10 w-40" rounded="rounded" />
+              <Skeleton className="h-20 w-full" rounded="rounded-xl" />
+              <Skeleton className="h-12 w-full" rounded="rounded-2xl" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -263,6 +289,7 @@ export default function ProductDetail() {
       },
       qty
     );
+    flyToCart(mainImageRef.current, { reduceMotion });
   };
 
   const nextImage = () => {
@@ -348,8 +375,14 @@ export default function ProductDetail() {
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="detail-left-col space-y-4">
-              <div className="relative rounded-3xl overflow-hidden border tk-theme-border tk-theme-soft">
+              <div
+                ref={tilt.inert ? undefined : tilt.ref}
+                onMouseMove={tilt.inert ? undefined : tilt.onMouseMove}
+                onMouseLeave={tilt.inert ? undefined : tilt.onMouseLeave}
+                className="relative rounded-3xl overflow-hidden border tk-theme-border tk-theme-soft transition-transform duration-200 ease-out will-change-transform"
+              >
                 <img
+                  ref={mainImageRef}
                   src={getCloudinaryUrl(images[selectedImageIndex], { width: 1200, format: "auto", quality: "auto" })}
                   alt={product.nombre}
                   className="w-full h-[420px] md:h-[560px] object-cover cursor-zoom-in"
@@ -386,8 +419,8 @@ export default function ProductDetail() {
                       key={`${img}-${index}`}
                       type="button"
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`rounded-xl overflow-hidden border ${
-                        selectedImageIndex === index ? "border-blue-600" : "tk-theme-border"
+                      className={`overflow-hidden rounded-xl transition-transform duration-200 hover:-translate-y-0.5 ${
+                        selectedImageIndex === index ? "tk-gradient-border" : "border tk-theme-border"
                       }`}
                     >
                       <img src={getCloudinaryUrl(img, { width: 200, format: "auto", quality: "auto" })} alt={`${product.nombre}-${index + 1}`} className="w-full h-16 object-cover" loading="lazy" />
@@ -397,7 +430,7 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <div className="detail-right-col rounded-3xl border tk-theme-border tk-theme-surface p-6 md:p-8 shadow-sm space-y-5">
+            <div className="detail-right-col tk-glass rounded-3xl p-6 md:p-8 space-y-5">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 rounded-full bg-[var(--tk-field-bg)] text-[10px] tracking-[0.2em] uppercase tk-theme-muted">
                   {categoryLabel}
@@ -419,7 +452,7 @@ export default function ProductDetail() {
               {pricing.hasOffer ? (
                 <div className="space-y-1">
                   <div className="flex items-end gap-3">
-                    <p className="text-4xl font-bold tk-theme-text">${pricing.finalPrice.toFixed(2)}</p>
+                    <p className="tk-gradient-text text-4xl font-bold">${pricing.finalPrice.toFixed(2)}</p>
                     <p className="text-lg tk-theme-muted line-through">${pricing.basePrice.toFixed(2)}</p>
                   </div>
                   <p className="text-sm text-emerald-600">
@@ -467,9 +500,9 @@ export default function ProductDetail() {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={outOfStock}
-                    className="hidden md:flex flex-1 items-center justify-center rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition disabled:bg-black/20 disabled:text-white/60"
+                    className="tk-shine hidden md:flex flex-1 items-center justify-center rounded-2xl bg-blue-600 text-white py-3 text-sm font-semibold uppercase tracking-[0.2em] hover:bg-blue-700 transition-colors disabled:bg-black/20 disabled:text-white/60"
                   >
-                    <span className="inline-flex items-center gap-2">
+                    <span className="relative z-[2] inline-flex items-center gap-2">
                       <ShoppingBag className="w-4 h-4" />
                       {outOfStock ? "Sin stock" : "Agregar al carrito"}
                     </span>
@@ -519,9 +552,9 @@ export default function ProductDetail() {
             type="button"
             onClick={handleAddToCart}
             disabled={outOfStock}
-            className="flex-1 rounded-xl bg-blue-600 text-white py-3 text-xs font-semibold uppercase tracking-[0.2em] disabled:bg-black/20 disabled:text-white/60"
+            className="tk-shine flex-1 rounded-xl bg-blue-600 text-white py-3 text-xs font-semibold uppercase tracking-[0.2em] disabled:bg-black/20 disabled:text-white/60"
           >
-            {outOfStock ? "Sin stock" : `Agregar x${qty}`}
+            <span className="relative z-[2]">{outOfStock ? "Sin stock" : `Agregar x${qty}`}</span>
           </button>
         </div>
       </div>

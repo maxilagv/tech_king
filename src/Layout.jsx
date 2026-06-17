@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useCategories";
 import { BRAND_LOGO_URL, BRAND_NAME } from "@/constants/brand";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
+import { useMagneticHover } from "@/hooks/useMagneticHover";
 import { useTheme } from "@/context/ThemeContext";
 import { buildNavigationItems } from "@/components/navigation/navigationItems";
 
@@ -32,6 +33,7 @@ export default function Layout({ children, currentPageName }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [scrollY, setScrollY] = useState(0);
   const reduceMotion = useShouldReduceMotion();
+  const logoMagnetic = useMagneticHover({ strength: 0.18, max: 5 });
   const { isDark } = useTheme();
   const isLandingRoute = location.pathname === createPageUrl("Home");
   const scrolled = scrollY > 60;
@@ -130,7 +132,13 @@ export default function Layout({ children, currentPageName }) {
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <Link to={createPageUrl("Home")} className="group flex items-center gap-3">
+          <Link
+            to={createPageUrl("Home")}
+            className="group flex items-center gap-3"
+            ref={logoMagnetic.inert ? undefined : logoMagnetic.ref}
+            onMouseMove={logoMagnetic.inert ? undefined : logoMagnetic.onMouseMove}
+            onMouseLeave={logoMagnetic.inert ? undefined : logoMagnetic.onMouseLeave}
+          >
             <img
               src={BRAND_LOGO_URL}
               alt={BRAND_NAME}
@@ -218,7 +226,9 @@ export default function Layout({ children, currentPageName }) {
             )}
             <Link
               to="/checkout"
-              className={`relative p-2 transition-colors duration-300 ${
+              data-cart-target
+              aria-label="Ver carrito"
+              className={`relative rounded-lg p-2 transition-colors duration-300 ${
                 isHome && !scrolled ? "text-white hover:text-blue-200" : "tk-theme-text hover:text-blue-600"
               }`}
             >
@@ -270,7 +280,7 @@ export default function Layout({ children, currentPageName }) {
           >
             <form
               onSubmit={handleSearchSubmit}
-              className="mx-auto flex max-w-7xl items-center gap-2 rounded-lg border tk-theme-border tk-theme-surface p-2 shadow-xl md:p-3"
+              className="tk-focus-glow mx-auto flex max-w-7xl items-center gap-2 rounded-lg border tk-theme-border tk-theme-surface p-2 shadow-xl md:p-3"
             >
               <Search className="w-4 h-4 md:w-5 md:h-5 text-blue-500 shrink-0 ml-2" />
               <input

@@ -19,9 +19,11 @@ export default function DesktopNav({ items, location, isFloatingOnHero, reduceMo
           : `text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] hover:bg-white/10 hover:text-blue-100 ${
               isActive ? "bg-white/10" : ""
             }`
-        : isActive
-          ? "text-blue-600 font-semibold"
-          : "tk-theme-text hover:text-blue-500"
+        : `relative after:pointer-events-none after:absolute after:bottom-0 after:left-2.5 after:right-2.5 after:h-0.5 after:origin-left after:rounded-full after:bg-blue-500 after:transition-transform after:duration-300 ${
+            isActive
+              ? "text-blue-600 after:scale-x-100"
+              : "tk-theme-text hover:text-blue-500 after:scale-x-0 hover:after:scale-x-100"
+          }`
     }`;
 
   return (
