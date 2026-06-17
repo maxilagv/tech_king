@@ -5,17 +5,21 @@
 @tailwind utilities;
 
 :root {
-  --tk-bg: #f0f7ff;
-  --tk-text: #0f172a;
-  --tk-muted: #475569;
+  --tk-bg: #f6f8fb;
+  --tk-text: #0c1222;
+  --tk-muted: #556171;
   --tk-surface: #ffffff;
-  --tk-soft: #e0f2fe;
+  --tk-soft: #eef4fb;
   --tk-surface-elevated: #ffffff;
-  --tk-border: #bfdbfe;
-  --tk-border-strong: #93c5fd;
-  --tk-field-bg: #dbeafe;
-  --tk-offer-border: #93c5fd;
-  --tk-offer-surface: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  --tk-border: #d9e2ee;
+  --tk-border-strong: #a9b8ca;
+  --tk-field-bg: #e8eef6;
+  --tk-offer-border: #bdd0e5;
+  --tk-offer-surface: linear-gradient(135deg, #ffffff 0%, #eef4fb 100%);
+  --tk-ink: #07111f;
+  --tk-accent: #2563eb;
+  --tk-warm: #f59e0b;
+  --tk-green: #10b981;
 }
 
 [data-theme="dark"] {
@@ -29,7 +33,11 @@
   --tk-border-strong: #254d8a;
   --tk-field-bg: #0d1f45;
   --tk-offer-border: #2563eb88;
-  --tk-offer-surface: linear-gradient(135deg, rgba(37,99,235,0.28) 0%, rgba(15,40,100,0.32) 100%);
+  --tk-offer-surface: linear-gradient(135deg, rgba(9,20,43,0.96) 0%, rgba(13,31,69,0.94) 100%);
+  --tk-ink: #f8fbff;
+  --tk-accent: #60a5fa;
+  --tk-warm: #fbbf24;
+  --tk-green: #34d399;
 }
 
 * {
@@ -81,6 +89,86 @@ h6,
 
 .tk-theme-border {
   border-color: var(--tk-border);
+}
+
+.tk-section-shell {
+  width: min(100% - 2rem, 80rem);
+  margin-inline: auto;
+}
+
+.tk-kicker {
+  color: var(--tk-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.tk-heading {
+  color: var(--tk-text);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.98;
+}
+
+.tk-landing-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.tk-landing-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 78%, transparent);
+}
+
+.tk-image-lift {
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 500ms ease, border-color 300ms ease;
+}
+
+.tk-image-lift:hover {
+  transform: translateY(-4px);
+}
+
+.tk-pressable {
+  transition: transform 220ms ease, background-color 220ms ease, border-color 220ms ease, color 220ms ease;
+}
+
+.tk-pressable:hover {
+  transform: translateY(-2px);
+}
+
+.tk-pressable:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.tk-reveal-mask {
+  clip-path: inset(0 0 0 0 round 8px);
+}
+
+@media (max-width: 640px) {
+  .tk-section-shell {
+    width: min(100% - 1.25rem, 80rem);
+  }
+
+  .tk-kicker {
+    font-size: 0.64rem;
+    letter-spacing: 0.2em;
+  }
+
+  .tk-heading {
+    line-height: 1.02;
+  }
 }
 
 :root[data-performance="reduced"] {

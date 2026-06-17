@@ -1,26 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { createPageUrl } from "@/utils";
+import { ChevronDown } from "lucide-react";
+import { useMobileDrawerMenu } from "@/hooks/useNavigationMenu";
 
-const menuItems = [
-  { label: "Inicio", page: "Home" },
-  { label: "Productos", page: "Products" },
-  { label: "Nosotros", page: "About" },
-  { label: "Blog", page: "Blog" },
-  { label: "Contacto", page: "Contact" },
-];
-
-export default function HamburgerMenu({ user }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+export default function HamburgerMenu({ user, items = [] }) {
+  const { isOpen, openAccordionId, closeMenu, toggleMenu, toggleAccordion } = useMobileDrawerMenu();
 
   const lineVariants = {
     closed: {
@@ -68,6 +54,10 @@ export default function HamburgerMenu({ user }) {
           <AnimatePresence>
             {isOpen && (
               <motion.div
+                id="mobile-navigation-drawer"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Menu principal"
                 variants={overlayVariants}
                 initial="hidden"
                 animate="visible"
@@ -80,49 +70,101 @@ export default function HamburgerMenu({ user }) {
                 </div>
 
                 <div className="flex-1 flex items-center justify-center px-8">
-                  <nav className="flex flex-col gap-2">
-                    {menuItems.map((item, i) => (
+                  <nav className="flex w-full max-w-xl flex-col gap-2" aria-label="Navegacion mobile">
+                    {items.map((item, i) => {
+                      const hasSubItems = Boolean(item.subItems?.length);
+                      const accordionId = `mobile-submenu-${item.id}`;
+                      const accordionOpen = openAccordionId === item.id;
+
+                      return (
                       <motion.div
-                        key={item.page}
+                        key={item.id}
                         custom={i}
                         variants={itemVariants}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
                       >
-                        <Link
-                          to={createPageUrl(item.page)}
-                          onClick={() => setIsOpen(false)}
-                          className="group flex items-center gap-4 py-3"
-                        >
-                          <span className="text-blue-200/45 text-sm font-light tracking-[0.3em] uppercase">
-                            0{i + 1}
-                          </span>
-                          <span className="text-white text-5xl md:text-7xl font-light tracking-tight group-hover:text-blue-200 transition-colors duration-500">
-                            {item.label}
-                          </span>
-                          <motion.span
-                            className="h-[1px] bg-blue-200 origin-left"
-                            initial={{ width: 0 }}
-                            whileHover={{ width: 60 }}
-                            transition={{ duration: 0.4 }}
-                          />
-                        </Link>
+                        {hasSubItems ? (
+                          <div className="rounded-lg">
+                            <button
+                              type="button"
+                              onClick={() => toggleAccordion(item.id)}
+                              className="group flex w-full items-center gap-4 py-3 text-left"
+                              aria-haspopup="true"
+                              aria-expanded={accordionOpen}
+                              aria-controls={accordionId}
+                            >
+                              <span className="text-blue-200/45 text-sm font-light tracking-[0.3em] uppercase">
+                                0{i + 1}
+                              </span>
+                              <span className="min-w-0 flex-1 text-5xl font-light tracking-tight text-white transition-colors duration-500 group-hover:text-blue-200 md:text-7xl">
+                                {item.label}
+                              </span>
+                              <ChevronDown
+                                className={`h-7 w-7 shrink-0 text-blue-100 transition-transform duration-300 ${
+                                  accordionOpen ? "rotate-180" : ""
+                                }`}
+                              />
+                            </button>
+                            <AnimatePresence initial={false}>
+                              {accordionOpen && (
+                                <motion.div
+                                  id={accordionId}
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="ml-16 grid max-h-[34vh] gap-1 overflow-y-auto border-l border-white/15 py-2 pl-4">
+                                    {item.subItems.map((subItem) => (
+                                      <Link
+                                        key={subItem.id}
+                                        to={subItem.to}
+                                        onClick={closeMenu}
+                                        className="rounded-md px-3 py-2 text-base font-medium text-white/78 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                                      >
+                                        {subItem.label}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        ) : (
+                          <Link to={item.to} onClick={closeMenu} className="group flex items-center gap-4 py-3">
+                            <span className="text-blue-200/45 text-sm font-light tracking-[0.3em] uppercase">
+                              0{i + 1}
+                            </span>
+                            <span className="text-5xl font-light tracking-tight text-white transition-colors duration-500 group-hover:text-blue-200 md:text-7xl">
+                              {item.label}
+                            </span>
+                            <motion.span
+                              className="h-[1px] bg-blue-200 origin-left"
+                              initial={{ width: 0 }}
+                              whileHover={{ width: 60 }}
+                              transition={{ duration: 0.4 }}
+                            />
+                          </Link>
+                        )}
                       </motion.div>
-                    ))}
+                    );
+                    })}
 
                     {!user ? (
                       <div className="mt-10 flex flex-col gap-3">
                         <Link
                           to="/checkout?mode=login"
-                          onClick={() => setIsOpen(false)}
+                          onClick={closeMenu}
                           className="inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-xs uppercase tracking-[0.2em] text-white hover:bg-white/10 transition"
                         >
                           Iniciar sesion
                         </Link>
                         <Link
                           to="/checkout?mode=register"
-                          onClick={() => setIsOpen(false)}
+                          onClick={closeMenu}
                           className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-xs uppercase tracking-[0.2em] text-[#0A0A0A] hover:bg-white/90 transition"
                         >
                           Registrarse
@@ -132,7 +174,7 @@ export default function HamburgerMenu({ user }) {
                       <div className="mt-10">
                         <Link
                           to="/checkout"
-                          onClick={() => setIsOpen(false)}
+                          onClick={closeMenu}
                           className="inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-xs uppercase tracking-[0.2em] text-white hover:bg-white/10 transition"
                         >
                           Mi cuenta
@@ -161,14 +203,17 @@ export default function HamburgerMenu({ user }) {
   return (
     <>
       <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`relative z-[110] w-10 h-10 flex flex-col items-center justify-center gap-[6px] focus:outline-none rounded-lg backdrop-blur-sm transition-all duration-300 ${
+        type="button"
+        onClick={toggleMenu}
+        className={`relative z-[110] w-10 h-10 flex flex-col items-center justify-center gap-[6px] rounded-lg backdrop-blur-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
           isOpen
             ? "bg-blue-700 shadow-lg shadow-blue-900/35"
             : "bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-900/25"
         }`}
-        aria-label="Menu"
+        aria-label={isOpen ? "Cerrar menu" : "Abrir menu"}
+        aria-haspopup="dialog"
         aria-expanded={isOpen}
+        aria-controls="mobile-navigation-drawer"
       >
         {[0, 1, 2].map((i) => (
           <motion.span

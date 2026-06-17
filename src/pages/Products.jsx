@@ -284,50 +284,49 @@ export default function Products() {
           ],
         }}
       />
-      <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-visible">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <span
-            className="products-hero text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold"
-          >
-            Catalogo completo
-          </span>
-          <h1
-            className="products-hero tk-theme-text text-4xl md:text-6xl font-bold tracking-tight mb-6"
-          >
-            Productos{" "}
-            <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent">
-              premium
-            </span>
-          </h1>
-          <p
-            className="products-hero tk-theme-muted text-sm font-normal max-w-md mx-auto mb-10"
-          >
-            Tecnologia de ultima generacion con garantia oficial. Los mejores precios y envios
-            gratis a partir de 200.000 ARS.
-          </p>
+      <section className="tk-landing-band relative overflow-visible border-b tk-theme-border pt-24 pb-5 tk-theme-soft">
+        <div className="tk-section-shell relative z-10">
+          <div className="products-hero mb-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <span className="tk-kicker mb-2 block">Catalogo completo</span>
+              <h1 className="tk-heading text-3xl md:text-4xl">
+                Productos <span className="text-blue-600">premium</span>
+              </h1>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed tk-theme-muted">
+                Tecnologia con stock real, precios claros y garantia oficial.
+              </p>
+            </div>
+            <div className="hidden rounded-lg border tk-theme-border bg-[var(--tk-surface)] px-4 py-3 text-right shadow-sm lg:block">
+              <p className="text-2xl font-bold tk-theme-text">{normalized.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] tk-theme-muted">
+                productos visibles
+              </p>
+            </div>
+          </div>
 
-          <ProductFilters
-            activeCategory={activeCategory}
-            onCategoryChange={handleCategoryChange}
-            categories={categories}
-            includeOffers={hasActiveOffers}
-            sortOrder={sortOrder}
-            onSortChange={handleSortChange}
-            priceMin={priceMin}
-            priceMax={priceMax}
-            onPriceChange={handlePriceChange}
-          />
+          <div className="products-hero">
+            <ProductFilters
+              activeCategory={activeCategory}
+              onCategoryChange={handleCategoryChange}
+              categories={categories}
+              includeOffers={hasActiveOffers}
+              sortOrder={sortOrder}
+              onSortChange={handleSortChange}
+              priceMin={priceMin}
+              priceMax={priceMax}
+              onPriceChange={handlePriceChange}
+            />
+          </div>
         </div>
       </section>
 
-      <section className="py-16 md:py-24 px-6 md:px-16 lg:px-24">
+      <section className="px-6 pt-7 pb-16 md:px-16 md:pt-9 md:pb-20 lg:px-24">
         <div className="max-w-7xl mx-auto">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="animate-pulse">
-                  <div className="aspect-[3/4] rounded-2xl bg-blue-100 dark:bg-blue-900/20 mb-4" />
+                  <div className="mb-4 aspect-[4/5] rounded-lg bg-blue-100 dark:bg-blue-900/20" />
                   <div className="h-3 rounded bg-blue-100 dark:bg-blue-900/20 w-2/3 mb-2" />
                   <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-full mb-2" />
                   <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-1/3" />
@@ -336,7 +335,7 @@ export default function Products() {
             </div>
           ) : (
             <>
-              <div className="flex justify-between items-center mb-10">
+              <div className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="tk-theme-muted text-sm">
                   {normalized.length} producto{normalized.length !== 1 ? "s" : ""}
                 </p>
@@ -346,7 +345,7 @@ export default function Products() {
                   </p>
                 )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {normalized.map((product, i) => (
                   <ProductCard key={product.id} product={product} index={i} offers={offers} />
                 ))}
@@ -364,7 +363,7 @@ export default function Products() {
                   </p>
                   <button
                     onClick={() => handleCategoryChange("all")}
-                    className="mt-2 px-5 py-2.5 rounded-full bg-blue-600 text-white text-xs uppercase tracking-[0.2em] font-semibold hover:bg-blue-700 transition"
+                    className="mt-2 rounded-lg bg-blue-600 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-blue-700"
                   >
                     Ver todos los productos
                   </button>

@@ -11,22 +11,22 @@ const badges = [
   {
     icon: ShieldCheck,
     title: "Garantia oficial",
-    desc: "Todos nuestros productos cuentan con garantia del fabricante.",
+    desc: "Productos con respaldo del fabricante.",
   },
   {
     icon: Truck,
     title: "Envio rapido",
-    desc: "Despacho agil con embalaje seguro a todo el pais.",
+    desc: "Despacho agil y embalaje seguro.",
   },
   {
     icon: BadgeCheck,
     title: "Productos verificados",
-    desc: "Solo marcas reconocidas con stock real y disponible.",
+    desc: "Marcas reales con stock disponible.",
   },
   {
     icon: Headphones,
     title: "Soporte dedicado",
-    desc: "Asistencia tecnica antes, durante y despues de tu compra.",
+    desc: "Asesoramiento antes y despues de comprar.",
   },
 ];
 
@@ -68,22 +68,25 @@ export default function TrustBadges() {
     // preventing the section from expanding and pushing content below.
     <section
       ref={sectionRef}
-      className="py-16 px-6 md:px-16 lg:px-24 tk-theme-bg border-y tk-theme-border"
-      style={{ minHeight: "160px", contain: "layout" }}
+      className="tk-landing-band py-10 md:py-14 tk-theme-bg border-y tk-theme-border"
+      style={{ minHeight: "150px", contain: "layout" }}
     >
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      <div className="tk-section-shell">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border tk-theme-border bg-[var(--tk-border)] lg:grid-cols-4">
           {badges.map((badge) => (
             <div
               key={badge.title}
-              className="trust-badge flex flex-col items-center text-center gap-4 group"
+              className="trust-badge group flex min-h-[130px] flex-col justify-between bg-[var(--tk-bg)] p-4 text-left transition-colors duration-300 hover:bg-[var(--tk-surface)] md:min-h-[150px] md:p-6"
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 group-hover:scale-105 transition-all duration-300">
-                <badge.icon className="w-6 h-6 text-white" strokeWidth={1.5} />
+              <div className="flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg border tk-theme-border bg-[var(--tk-surface)] text-blue-600 transition-transform duration-300 group-hover:-translate-y-1 md:h-11 md:w-11">
+                  <badge.icon className="h-5 w-5" strokeWidth={1.7} />
+                </div>
+                <span className="h-px w-8 bg-[var(--tk-border-strong)] opacity-60 transition-all duration-300 group-hover:w-12 group-hover:bg-blue-500" />
               </div>
               <div>
-                <h3 className="tk-theme-text text-sm font-semibold mb-1">{badge.title}</h3>
-                <p className="tk-theme-muted text-xs leading-relaxed">{badge.desc}</p>
+                <h3 className="tk-theme-text mb-1 text-sm font-bold md:text-base">{badge.title}</h3>
+                <p className="tk-theme-muted text-xs leading-relaxed md:text-sm">{badge.desc}</p>
               </div>
             </div>
           ))}

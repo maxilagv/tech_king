@@ -17,15 +17,14 @@ const BRANDS = [
   { name: "Belkin", color: "#004B87" },
 ];
 
-// Triple para asegurar loop sin saltos visibles en viewports pequeños
 const TRACK = [...BRANDS, ...BRANDS, ...BRANDS];
 
 function BrandCard({ brand }) {
   return (
-    <div className="flex items-center justify-center min-w-[100px] sm:min-w-[130px] md:min-w-[150px] h-12 sm:h-14 md:h-16 rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm px-4 sm:px-5 md:px-6 hover:border-blue-300/30 hover:bg-white/10 transition-all duration-300 group select-none">
+    <div className="group flex h-12 min-w-[104px] select-none items-center justify-center rounded-lg border tk-theme-border bg-[var(--tk-surface)] px-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-400/45 sm:h-14 sm:min-w-[132px] md:min-w-[154px] md:px-6">
       <span
-        className="text-sm sm:text-base md:text-lg font-bold tracking-tight opacity-55 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap"
-        style={{ color: brand.color, filter: "saturate(0.65)" }}
+        className="whitespace-nowrap text-sm font-extrabold tracking-[0] opacity-60 transition-opacity duration-300 group-hover:opacity-100 sm:text-base md:text-lg"
+        style={{ color: brand.color, filter: "saturate(0.72)" }}
       >
         {brand.name}
       </span>
@@ -37,61 +36,41 @@ export default function BrandsSection() {
   const reduceMotion = useShouldReduceMotion();
 
   return (
-    <section className="py-12 md:py-16 px-0 tk-theme-bg border-y tk-theme-border overflow-hidden">
-      {/* Título */}
-      <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mb-8 md:mb-10">
+    <section className="overflow-hidden border-y tk-theme-border py-12 md:py-16 tk-theme-bg">
+      <div className="tk-section-shell mb-8 md:mb-10">
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={reduceMotion ? undefined : { once: true }}
-          transition={reduceMotion ? undefined : { duration: 0.5 }}
+          viewport={reduceMotion ? undefined : { once: true, amount: 0.4 }}
+          transition={reduceMotion ? undefined : { duration: 0.45 }}
           className="text-center"
         >
-          <span className="text-blue-500 text-[10px] sm:text-xs tracking-[0.3em] uppercase font-semibold block mb-2">
-            Marcas oficiales
-          </span>
-          <h2 className="tk-theme-text text-xl sm:text-2xl md:text-3xl font-bold font-display tracking-tight">
-            Las mejores marcas, al{" "}
-            <span className="bg-gradient-to-r from-blue-500 to-sky-400 bg-clip-text text-transparent">
-              mejor precio
-            </span>
+          <span className="tk-kicker mb-2 block">Marcas oficiales</span>
+          <h2 className="tk-heading text-2xl md:text-3xl">
+            Las mejores marcas, al <span className="text-blue-600">mejor precio</span>
           </h2>
         </motion.div>
       </div>
 
-      {/* Marquee */}
       {reduceMotion ? (
-        /* Fallback accesible: grilla estática en 3 cols mobile, 4 tablet, 6 desktop */
-        <div className="px-6 md:px-16 lg:px-24">
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-            {BRANDS.map((brand) => (
-              <BrandCard key={brand.name} brand={brand} />
-            ))}
-          </div>
+        <div className="tk-section-shell grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+          {BRANDS.map((brand) => (
+            <BrandCard key={brand.name} brand={brand} />
+          ))}
         </div>
       ) : (
         <div className="relative">
-          {/* Fade left — más angosto en mobile para no tapar tanto */}
           <div
-            className="pointer-events-none absolute left-0 top-0 h-full z-10 w-10 sm:w-16 md:w-24"
-            style={{ background: "linear-gradient(to right, var(--tk-bg, #020c1e), transparent)" }}
+            className="pointer-events-none absolute left-0 top-0 z-10 h-full w-10 sm:w-16 md:w-24"
+            style={{ background: "linear-gradient(to right, var(--tk-bg), transparent)" }}
           />
-          {/* Fade right */}
           <div
-            className="pointer-events-none absolute right-0 top-0 h-full z-10 w-10 sm:w-16 md:w-24"
-            style={{ background: "linear-gradient(to left, var(--tk-bg, #020c1e), transparent)" }}
+            className="pointer-events-none absolute right-0 top-0 z-10 h-full w-10 sm:w-16 md:w-24"
+            style={{ background: "linear-gradient(to left, var(--tk-bg), transparent)" }}
           />
-
-          {/* Pista animada — gap y velocidad adaptados */}
-          <div
-            className="flex gap-3 sm:gap-4 md:gap-6 w-max animate-marquee"
-            style={{
-              /* Mobile: más rápido porque el viewport es chico y se ve más rápido de lo que es */
-              animationDuration: "22s",
-            }}
-          >
-            {TRACK.map((brand, i) => (
-              <BrandCard key={`${brand.name}-${i}`} brand={brand} />
+          <div className="flex w-max gap-3 animate-marquee sm:gap-4 md:gap-5" style={{ animationDuration: "24s" }}>
+            {TRACK.map((brand, index) => (
+              <BrandCard key={`${brand.name}-${index}`} brand={brand} />
             ))}
           </div>
         </div>

@@ -21,7 +21,7 @@ export default function NewsletterSection() {
         createdAt: serverTimestamp(),
       });
     } catch {
-      // fallo silenciosamente — no bloquear al usuario
+      // Do not block the conversion path if the newsletter write fails.
     } finally {
       setSaving(false);
       setSubmitted(true);
@@ -31,53 +31,44 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-20 left-[-10%] w-[560px] h-[560px] rounded-full bg-blue-500/10 blur-[140px]" />
-        <div className="absolute -bottom-24 right-[-12%] w-[620px] h-[620px] rounded-full bg-sky-500/10 blur-[170px]" />
-      </div>
-
-      <div className="max-w-2xl mx-auto text-center relative z-10">
+    <section className="tk-landing-band relative overflow-hidden py-20 md:py-28 tk-theme-soft">
+      <div className="tk-section-shell relative z-10">
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 30 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={reduceMotion ? undefined : { once: true }}
-          transition={reduceMotion ? undefined : { duration: 0.6 }}
+          viewport={reduceMotion ? undefined : { once: true, amount: 0.35 }}
+          transition={reduceMotion ? undefined : { duration: 0.55 }}
+          className="mx-auto max-w-2xl text-center"
         >
-          <span className="text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
-            Newsletter
-          </span>
-          <h2 className="tk-theme-text text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Recibe ofertas{" "}
-            <span className="bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-500 bg-clip-text text-transparent">
-              exclusivas
-            </span>
+          <span className="tk-kicker mb-4 block">Newsletter</span>
+          <h2 className="tk-heading mb-4 text-3xl md:text-5xl">
+            Recibe ofertas <span className="text-blue-600">exclusivas</span>
           </h2>
-          <p className="tk-theme-muted text-sm font-normal mb-10 max-w-md mx-auto">
-            Se el primero en conocer lanzamientos, descuentos especiales y novedades de tecnologia.
+          <p className="mx-auto mb-8 max-w-md text-sm leading-relaxed tk-theme-muted md:text-base">
+            Lanzamientos, descuentos especiales y novedades de tecnologia en tu correo.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <form onSubmit={handleSubmit} className="mx-auto grid max-w-lg gap-3 sm:grid-cols-[1fr_auto]">
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="Tu correo electronico"
-              className="flex-1 px-5 py-3.5 rounded-xl bg-[var(--tk-surface)] border border-[var(--tk-border)] text-[var(--tk-text)] text-sm placeholder:text-[var(--tk-muted)] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
+              className="min-h-12 rounded-lg border border-[var(--tk-border)] bg-[var(--tk-surface)] px-5 text-sm text-[var(--tk-text)] outline-none transition-all duration-300 placeholder:text-[var(--tk-muted)] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
             <motion.button
               type="submit"
               disabled={saving}
-              whileHover={reduceMotion ? undefined : { scale: 1.02 }}
+              whileHover={reduceMotion ? undefined : { y: -2 }}
               whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-              className="px-6 py-3.5 bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-blue-400 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-blue-500/25 disabled:opacity-60"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 text-sm font-bold text-white shadow-[0_18px_50px_rgba(37,99,235,0.24)] transition-colors duration-300 hover:bg-blue-700 disabled:opacity-60"
             >
               {submitted ? (
-                "Suscrito ✓"
+                "Suscrito"
               ) : (
                 <>
                   {saving ? "Guardando..." : "Suscribirse"}
-                  {!saving && <Send className="w-3.5 h-3.5" />}
+                  {!saving && <Send className="h-3.5 w-3.5" />}
                 </>
               )}
             </motion.button>

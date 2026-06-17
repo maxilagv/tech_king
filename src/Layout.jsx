@@ -4,14 +4,17 @@ import { createPageUrl } from "@/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, Search, X } from "lucide-react";
 import HamburgerMenu from "./components/navigation/HamburgerMenu";
+import DesktopNav from "./components/navigation/DesktopNav";
 import CartNotice from "./components/navigation/CartNotice";
 import ThemeToggleButton from "./components/navigation/ThemeToggleButton";
 import FloatingActions from "./components/navigation/FloatingActions";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useCategories } from "@/hooks/useCategories";
 import { BRAND_LOGO_URL, BRAND_NAME } from "@/constants/brand";
 import { useShouldReduceMotion } from "@/hooks/useShouldReduceMotion";
 import { useTheme } from "@/context/ThemeContext";
+import { buildNavigationItems } from "@/components/navigation/navigationItems";
 
 function sanitizeSearchTerm(value) {
   return String(value || "").trim().replace(/\s+/g, " ");
@@ -21,6 +24,7 @@ export default function Layout({ children, currentPageName }) {
   const isHome = currentPageName === "Home";
   const { totalQty } = useCart();
   const { user } = useAuth();
+  const { categories } = useCategories({ onlyActive: true });
   const navigate = useNavigate();
   const location = useLocation();
   const searchInputRef = useRef(null);
@@ -32,6 +36,7 @@ export default function Layout({ children, currentPageName }) {
   const isLandingRoute = location.pathname === createPageUrl("Home");
   const scrolled = scrollY > 60;
   const showBackToTop = isLandingRoute && scrollY > 640;
+  const navigationItems = useMemo(() => buildNavigationItems(categories), [categories]);
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -115,7 +120,7 @@ export default function Layout({ children, currentPageName }) {
         initial={reduceMotion ? false : { y: -100 }}
         animate={reduceMotion ? undefined : { y: 0 }}
         transition={reduceMotion ? undefined : { duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-        className={`tk-mobile-section fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-10 py-3 sm:py-4 transition-all duration-500 ${
+        className={`tk-mobile-section fixed top-0 left-0 right-0 z-50 px-4 py-3 transition-all duration-500 sm:px-6 lg:px-10 ${
           isHome && !scrolled
             ? "bg-transparent"
             : reduceMotion
@@ -125,62 +130,34 @@ export default function Layout({ children, currentPageName }) {
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <Link to={createPageUrl("Home")} className="flex items-center gap-3">
+          <Link to={createPageUrl("Home")} className="group flex items-center gap-3">
             <img
               src={BRAND_LOGO_URL}
               alt={BRAND_NAME}
-              className="w-11 h-11 md:w-12 md:h-12 rounded-xl object-cover border border-white/25 shadow-lg shadow-black/20"
+              className="h-10 w-10 rounded-lg border border-white/25 object-cover shadow-lg shadow-black/20 transition-transform duration-300 group-hover:-translate-y-0.5 md:h-11 md:w-11"
               decoding="async"
               loading="eager"
               width="48"
               height="48"
             />
             <span className={`text-xl font-semibold transition-colors duration-300 ${
-              isHome
+              isHome && !scrolled
                 ? isDark
-                  ? "text-white"
-                  : "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] bg-black/35 px-3 py-1 rounded-lg border border-white/25"
+                    ? "text-white"
+                    : "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
                 : "tk-theme-text"
             }`}>
               {BRAND_NAME}
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav
-            className={`hidden md:flex items-center ${
-              isHome && !isDark
-                ? "gap-4 rounded-full bg-black/35 px-4 py-2 border border-white/25 backdrop-blur-md"
-                : "gap-8"
-            }`}
-          >
-            {[
-              { to: createPageUrl("Home"), label: "Inicio" },
-              { to: createPageUrl("Products"), label: "Productos" },
-              { to: createPageUrl("About"), label: "Nosotros" },
-              { to: createPageUrl("Blog"), label: "Blog" },
-              { to: createPageUrl("Contact"), label: "Contacto" },
-            ].map(({ to, label }) => {
-              const isActive = location.pathname === to;
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={`text-sm font-medium transition-colors ${
-                    isHome && !scrolled
-                      ? isDark
-                        ? `text-white hover:text-blue-200 ${isActive ? "font-semibold" : ""}`
-                        : `text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] hover:text-blue-100 ${isActive ? "font-semibold" : ""}`
-                      : isActive
-                        ? "text-blue-600 font-semibold"
-                        : "tk-theme-text hover:text-blue-500"
-                  }`}
-                >
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
+          <DesktopNav
+            items={navigationItems}
+            location={location}
+            isFloatingOnHero={isHome && !scrolled && !isDark}
+            reduceMotion={reduceMotion}
+            isDark={isDark}
+          />
 
           {/* Right side */}
           <div className="flex items-center gap-3">
@@ -195,7 +172,7 @@ export default function Layout({ children, currentPageName }) {
                 isHome && !scrolled
                   ? isDark
                     ? "text-white bg-white/10 hover:bg-white/20"
-                    : "text-white bg-black/45 border border-white/25 shadow-lg shadow-black/35 hover:bg-black/60"
+                    : "text-white bg-black/32 border border-white/18 shadow-lg shadow-black/30 hover:bg-black/46"
                   : hasSearchTerm
                     ? "text-white bg-blue-600 hover:bg-blue-700"
                     : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-blue-100"
@@ -207,10 +184,10 @@ export default function Layout({ children, currentPageName }) {
               <div className="hidden md:flex items-center gap-2">
                 <Link
                   to="/checkout?mode=login"
-                  className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] border transition-colors ${isHome && !scrolled
+                  className={`rounded-lg border px-4 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${isHome && !scrolled
                       ? isDark
-                        ? "border-white/40 text-white hover:bg-white/10"
-                        : "border-white/25 bg-black/45 text-white shadow-lg shadow-black/35 hover:bg-black/60"
+                      ? "border-white/40 text-white hover:bg-white/10"
+                        : "border-white/20 bg-black/32 text-white shadow-lg shadow-black/30 hover:bg-black/46"
                       : "tk-theme-border tk-theme-text hover:bg-[var(--tk-field-bg)]"
                     }`}
                 >
@@ -218,8 +195,8 @@ export default function Layout({ children, currentPageName }) {
                 </Link>
                 <Link
                   to="/checkout?mode=register"
-                  className={`px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] transition-colors ${isHome && !scrolled
-                      ? "bg-white text-[#0A0A0A] hover:bg-white/90"
+                  className={`rounded-lg px-4 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${isHome && !scrolled
+                      ? "bg-white text-[#0A0A0A] hover:bg-blue-50"
                       : "bg-blue-600 text-white hover:bg-blue-700"
                     }`}
                 >
@@ -229,10 +206,10 @@ export default function Layout({ children, currentPageName }) {
             ) : (
               <Link
                 to="/checkout"
-                className={`hidden md:flex px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] border transition-colors ${isHome && !scrolled
+                className={`hidden rounded-lg border px-4 py-2 text-xs uppercase tracking-[0.18em] transition-colors md:flex ${isHome && !scrolled
                     ? isDark
-                      ? "border-white/40 text-white hover:bg-white/10"
-                      : "border-white/25 bg-black/45 text-white shadow-lg shadow-black/35 hover:bg-black/60"
+                    ? "border-white/40 text-white hover:bg-white/10"
+                      : "border-white/20 bg-black/32 text-white shadow-lg shadow-black/30 hover:bg-black/46"
                     : "tk-theme-border tk-theme-text hover:bg-[var(--tk-field-bg)]"
                   }`}
               >
@@ -270,7 +247,7 @@ export default function Layout({ children, currentPageName }) {
                   isHome && !scrolled
                   ? isDark
                     ? "text-white bg-white/10 hover:bg-white/20"
-                    : "text-white bg-black/45 border border-white/25 shadow-md shadow-black/35 hover:bg-black/60"
+                    : "text-white bg-black/32 border border-white/18 shadow-md shadow-black/30 hover:bg-black/46"
                   : hasSearchTerm
                       ? "text-white bg-blue-600 hover:bg-blue-700"
                       : "tk-theme-text bg-[var(--tk-field-bg)] hover:bg-blue-100"
@@ -278,7 +255,7 @@ export default function Layout({ children, currentPageName }) {
               >
                 <Search className="w-5 h-5" />
               </button>
-              <HamburgerMenu user={user} />
+              <HamburgerMenu user={user} items={navigationItems} />
             </div>
           </div>
         </div>
@@ -293,7 +270,7 @@ export default function Layout({ children, currentPageName }) {
           >
             <form
               onSubmit={handleSearchSubmit}
-              className="max-w-7xl mx-auto tk-theme-surface border tk-theme-border rounded-2xl shadow-xl p-2 md:p-3 flex items-center gap-2"
+              className="mx-auto flex max-w-7xl items-center gap-2 rounded-lg border tk-theme-border tk-theme-surface p-2 shadow-xl md:p-3"
             >
               <Search className="w-4 h-4 md:w-5 md:h-5 text-blue-500 shrink-0 ml-2" />
               <input
@@ -308,7 +285,7 @@ export default function Layout({ children, currentPageName }) {
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="w-9 h-9 rounded-lg tk-theme-text opacity-70 hover:opacity-100 hover:bg-[var(--tk-field-bg)] flex items-center justify-center"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg tk-theme-text opacity-70 hover:bg-[var(--tk-field-bg)] hover:opacity-100"
                   aria-label="Limpiar busqueda"
                 >
                   <X className="w-4 h-4" />
@@ -316,7 +293,7 @@ export default function Layout({ children, currentPageName }) {
               )}
               <button
                 type="submit"
-                className="px-4 md:px-5 h-9 rounded-xl bg-blue-600 text-white text-xs md:text-sm tracking-[0.12em] uppercase font-semibold hover:bg-blue-700 transition-colors"
+                className="h-9 rounded-lg bg-blue-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-blue-700 md:px-5 md:text-sm"
               >
                 Buscar
               </button>

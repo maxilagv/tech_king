@@ -31,54 +31,51 @@ export default function TestimonialsSection() {
   const reduceMotion = useShouldReduceMotion();
 
   return (
-    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-[#071530] relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/12 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-sky-500/12 rounded-full blur-2xl" />
-
-      <div className="max-w-7xl mx-auto relative z-10">
+    <section className="tk-landing-band relative overflow-hidden bg-[#071530] py-20 md:py-28">
+      <div className="tk-section-shell relative z-10">
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 30 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={reduceMotion ? undefined : { once: true }}
-          transition={reduceMotion ? undefined : { duration: 0.6 }}
-          className="text-center mb-16"
+          viewport={reduceMotion ? undefined : { once: true, amount: 0.35 }}
+          transition={reduceMotion ? undefined : { duration: 0.55 }}
+          className="mb-12 max-w-2xl md:mb-14"
         >
-          <span className="text-blue-200 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+          <span className="mb-4 block text-xs font-bold uppercase tracking-[0.24em] text-blue-200">
             Testimonios
           </span>
-          <h2 className="text-white text-4xl md:text-5xl font-bold tracking-tight">
+          <h2 className="font-display text-4xl font-bold tracking-[0] text-white md:text-5xl">
             Lo que dicen nuestros <span className="text-blue-300">clientes</span>
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-white/10 md:grid-cols-3">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.name}
-              initial={reduceMotion ? false : { opacity: 0, y: 32 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 28 }}
               whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-              viewport={reduceMotion ? undefined : { once: true }}
+              viewport={reduceMotion ? undefined : { once: true, amount: 0.25 }}
               transition={reduceMotion ? undefined : { delay: index * 0.1, duration: 0.5 }}
-              className="bg-white/[0.05] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.08] hover:border-blue-300/25 transition-all duration-300"
+              className="group border-b border-white/10 bg-white/[0.045] p-6 transition-colors duration-300 hover:bg-white/[0.075] last:border-b-0 md:border-b-0 md:border-r md:p-8 md:last:border-r-0"
             >
-              <div className="flex gap-1 mb-6">
+              <div className="mb-6 flex gap-1">
                 {Array.from({ length: testimonial.rating }).map((_, ratingIndex) => (
-                  <Star key={ratingIndex} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star key={ratingIndex} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
 
-              <p className="text-white/80 text-sm leading-relaxed mb-8">"{testimonial.text}"</p>
+              <p className="mb-8 text-sm leading-relaxed text-white/80">"{testimonial.text}"</p>
 
               <div className="flex items-center gap-3">
                 <img
                   src={testimonial.avatar}
                   alt={testimonial.name}
-                  className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-300/35"
+                  className="h-10 w-10 rounded-lg object-cover ring-1 ring-white/18"
                   loading="lazy"
                 />
                 <div>
-                  <p className="text-white text-sm font-medium">{testimonial.name}</p>
-                  <p className="text-white/50 text-xs">{testimonial.role}</p>
+                  <p className="text-sm font-semibold text-white">{testimonial.name}</p>
+                  <p className="text-xs text-white/50">{testimonial.role}</p>
                 </div>
               </div>
             </motion.div>

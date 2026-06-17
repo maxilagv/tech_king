@@ -30,10 +30,10 @@ function formatTime(seconds) {
 function CountdownUnit({ value, label }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-xl font-bold font-display text-white tabular-nums">
+      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/18 bg-white/10 font-display text-lg font-bold tabular-nums text-white md:h-12 md:w-12 md:text-xl">
         {value}
       </div>
-      <span className="text-[9px] text-white/50 mt-1 uppercase tracking-[0.15em]">{label}</span>
+      <span className="mt-1 text-[9px] uppercase tracking-[0.15em] text-white/50">{label}</span>
     </div>
   );
 }
@@ -51,25 +51,22 @@ export default function FlashDeals() {
     return () => clearInterval(timer);
   }, []);
 
-  // Productos que tienen oferta activa con descuento porcentual
   const flashProducts = useMemo(() => {
     if (!products.length || !offers.length) return [];
     return products
-      .filter((p) => {
-        const pricing = getProductPricing(p, offers, 1);
+      .filter((product) => {
+        const pricing = getProductPricing(product, offers, 1);
         return pricing.hasOffer && pricing.discountPctApplied >= 5;
       })
       .slice(0, 4);
   }, [products, offers]);
 
-  // CLS FIX: Don't return null while loading — reserve height for the section
-  // so content below doesn't jump when flash deals appear.
   if (loading) {
     return (
       <section
         aria-hidden="true"
         style={{ minHeight: "400px", contain: "layout" }}
-        className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-[#071530]"
+        className="bg-[#071530] py-20 md:py-28"
       />
     );
   }
@@ -79,144 +76,118 @@ export default function FlashDeals() {
   const time = formatTime(remaining);
 
   return (
-    <section className="py-24 md:py-32 px-6 md:px-16 lg:px-24 bg-[#071530] relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-60px] right-[-5%] w-[420px] h-[420px] rounded-full bg-blue-500/15 blur-[140px]" />
-        <div className="absolute bottom-[-80px] left-[-8%] w-[350px] h-[350px] rounded-full bg-sky-500/10 blur-[120px]" />
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12 gap-6">
+    <section className="tk-landing-band relative overflow-hidden bg-[#071530] py-20 md:py-28">
+      <div className="tk-section-shell relative z-10">
+        <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between">
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, x: -30 }}
+            initial={reduceMotion ? false : { opacity: 0, x: -24 }}
             whileInView={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-            viewport={reduceMotion ? undefined : { once: true }}
-            transition={reduceMotion ? undefined : { duration: 0.6 }}
+            viewport={reduceMotion ? undefined : { once: true, amount: 0.35 }}
+            transition={reduceMotion ? undefined : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="text-yellow-400 text-xs tracking-[0.3em] uppercase font-semibold">
-                Ofertas del día
+            <div className="mb-3 flex items-center gap-2">
+              <Zap className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs font-bold uppercase tracking-[0.24em] text-yellow-400">
+                Ofertas del dia
               </span>
             </div>
-            <h2 className="text-white text-4xl md:text-5xl font-bold font-display tracking-tight">
+            <h2 className="font-display text-4xl font-bold tracking-[0] text-white md:text-6xl">
               Flash{" "}
-              <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
                 Deals
               </span>
             </h2>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/62 md:text-base">
+              Descuentos activos hasta medianoche en productos seleccionados.
+            </p>
           </motion.div>
 
-          {/* Countdown */}
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, x: 30 }}
+            initial={reduceMotion ? false : { opacity: 0, x: 24 }}
             whileInView={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-            viewport={reduceMotion ? undefined : { once: true }}
-            transition={reduceMotion ? undefined : { duration: 0.6 }}
-            className="flex flex-col items-start md:items-end gap-2"
+            viewport={reduceMotion ? undefined : { once: true, amount: 0.35 }}
+            transition={reduceMotion ? undefined : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col items-start gap-2 md:items-end"
           >
-            <div className="flex items-center gap-2 text-white/60 text-xs">
-              <Clock className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <Clock className="h-3.5 w-3.5" />
               <span>Terminan hoy a medianoche</span>
             </div>
             <div className="flex items-center gap-2">
               <CountdownUnit value={time.h} label="hs" />
-              <span className="text-white/60 text-xl font-bold mb-4">:</span>
+              <span className="mb-4 text-xl font-bold text-white/60">:</span>
               <CountdownUnit value={time.m} label="min" />
-              <span className="text-white/60 text-xl font-bold mb-4">:</span>
+              <span className="mb-4 text-xl font-bold text-white/60">:</span>
               <CountdownUnit value={time.s} label="seg" />
             </div>
           </motion.div>
         </div>
 
-        {/* Products grid */}
-        {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden">
-                <div
-                  className="aspect-square bg-white/10 rounded-2xl"
-                  style={{
-                    background: "linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%)",
-                    backgroundSize: "200% 100%",
-                    animation: "shimmer 2.5s linear infinite",
-                  }}
-                />
-                <div className="mt-3 h-3 rounded-full bg-white/10 w-2/3" />
-                <div className="mt-2 h-4 rounded-full bg-white/10 w-full" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {flashProducts.map((item, i) => {
-              const pricing = getProductPricing(item, offers, 1);
-              return (
-                <motion.div
-                  key={item.id}
-                  initial={reduceMotion ? false : { opacity: 0, y: 30 }}
-                  whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                  viewport={reduceMotion ? undefined : { once: true }}
-                  transition={reduceMotion ? undefined : { delay: i * 0.08, duration: 0.55 }}
-                >
-                  <Link to={`/products/${createProductSlug(item)}`} className="group block">
-                    <div className="relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 group-hover:border-yellow-400/30 transition-all duration-300">
-                      <img
-                        src={getCloudinaryUrl(
-                          item.imagenes?.[0] || "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=600&q=80",
-                          { width: 400, format: "auto", quality: "auto" }
-                        )}
-                        alt={item.nombre}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                        loading="lazy"
-                        decoding="async"
-                        width="400"
-                        height="400"
-                      />
-                      {/* Discount badge */}
-                      <div className="absolute top-3 left-3">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-400 text-[#020c1e] text-[10px] font-bold uppercase tracking-[0.15em]">
-                          <Zap className="w-2.5 h-2.5 fill-[#020c1e]" />
-                          -{pricing.discountPctApplied}%
-                        </span>
-                      </div>
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+          {flashProducts.map((item, index) => {
+            const pricing = getProductPricing(item, offers, 1);
+            return (
+              <motion.div
+                key={item.id}
+                initial={reduceMotion ? false : { opacity: 0, y: 28 }}
+                whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                viewport={reduceMotion ? undefined : { once: true, amount: 0.25 }}
+                transition={reduceMotion ? undefined : { delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <Link to={`/products/${createProductSlug(item)}`} className="group block">
+                  <div className="tk-image-lift relative aspect-square overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-all duration-300 group-hover:border-yellow-400/35">
+                    <img
+                      src={getCloudinaryUrl(
+                        item.imagenes?.[0] || "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=600&q=80",
+                        { width: 400, format: "auto", quality: "auto" }
+                      )}
+                      alt={item.nombre}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                      width="400"
+                      height="400"
+                    />
+                    <div className="absolute left-3 top-3">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-yellow-400 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#020c1e]">
+                        <Zap className="h-2.5 w-2.5 fill-[#020c1e]" />
+                        -{pricing.discountPctApplied}%
+                      </span>
                     </div>
+                  </div>
 
-                    <div className="mt-3 space-y-1">
-                      <h3 className="text-white/90 text-sm font-medium leading-tight group-hover:text-yellow-300 transition-colors duration-300 line-clamp-2">
-                        {item.nombre}
-                      </h3>
-                      <div className="flex items-end gap-2">
-                        <p className="text-white text-lg font-bold font-display">
-                          ${pricing.finalPrice.toLocaleString("es-AR")}
-                        </p>
-                        <p className="text-white/40 text-xs line-through mb-0.5">
-                          ${pricing.basePrice.toLocaleString("es-AR")}
-                        </p>
-                      </div>
+                  <div className="mt-3 space-y-1">
+                    <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-white/90 transition-colors duration-300 group-hover:text-yellow-300">
+                      {item.nombre}
+                    </h3>
+                    <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
+                      <p className="font-display text-lg font-bold text-white">
+                        ${pricing.finalPrice.toLocaleString("es-AR")}
+                      </p>
+                      <p className="mb-0.5 text-xs text-white/40 line-through">
+                        ${pricing.basePrice.toLocaleString("es-AR")}
+                      </p>
                     </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
 
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0 }}
-          whileInView={reduceMotion ? undefined : { opacity: 1 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={reduceMotion ? undefined : { once: true }}
-          transition={reduceMotion ? undefined : { delay: 0.4 }}
+          transition={reduceMotion ? undefined : { delay: 0.4, duration: 0.45 }}
           className="mt-10 text-center"
         >
           <Link
             to="/products?category=offers"
-            className="inline-flex items-center gap-2 rounded-full border border-yellow-400/40 bg-yellow-400/10 px-6 py-3 text-sm text-yellow-300 hover:bg-yellow-400/20 hover:border-yellow-400/60 transition-all duration-300"
+            className="tk-pressable inline-flex min-h-12 items-center gap-2 rounded-lg border border-yellow-400/45 bg-yellow-400/10 px-6 py-3 text-sm font-bold text-yellow-300 transition-all duration-300 hover:border-yellow-400/70 hover:bg-yellow-400/18"
           >
             Ver todas las ofertas
-            <Zap className="w-4 h-4 fill-yellow-300" />
+            <Zap className="h-4 w-4 fill-yellow-300" />
           </Link>
         </motion.div>
       </div>

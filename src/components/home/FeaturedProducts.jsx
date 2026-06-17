@@ -15,6 +15,13 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
+function formatCurrency(value) {
+  return `$${Number(value || 0).toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export default function FeaturedProducts() {
   const { products, loading } = useProducts({ onlyActive: true, featuredOnly: true, limit: 4 });
   const { categories } = useCategories({ onlyActive: true });
@@ -26,6 +33,13 @@ export default function FeaturedProducts() {
   const categoryMap = Object.fromEntries(
     categories.map((cat) => [cat.slug || cat.id, cat.nombre])
   );
+
+  const getCategoryLabel = (item) =>
+    categoryMap[item.categorySlug] || item.categorySlug || "Electronica";
+
+  const getProductImage = (item) =>
+    item.imagenes?.[0] ||
+    "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=900&q=80";
 
   useGSAP(() => {
     if (reduceMotion) return;
@@ -111,36 +125,39 @@ export default function FeaturedProducts() {
   }, { scope: sectionRef, dependencies: [products, reduceMotion] });
 
   return (
-    <section ref={sectionRef} className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-soft">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16">
+    <section ref={sectionRef} className="tk-landing-band py-20 md:py-28 tk-theme-soft">
+      <div className="tk-section-shell">
+        <div className="mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="header-elem text-blue-500 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
-              Lo mas vendido
+            <span className="header-elem tk-kicker mb-4 block">
+              Lo mas elegido
             </span>
-            <h2 className="header-elem tk-theme-text text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+            <h2 className="header-elem tk-heading text-4xl md:text-5xl lg:text-6xl">
               Productos
               <br />
-              <span className="bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-500 bg-clip-text text-transparent">
+              <span className="text-blue-600">
                 destacados
               </span>
             </h2>
+            <p className="header-elem mt-4 max-w-xl text-sm leading-relaxed tk-theme-muted md:text-base">
+              Accesorios y tecnologia seleccionados por rotacion, precio y disponibilidad.
+            </p>
           </div>
           <div className="header-elem">
             <Link
               to={createPageUrl("Products")}
-              className="tk-theme-muted text-sm tracking-[0.15em] uppercase hover:text-blue-500 transition-colors duration-500 mt-6 md:mt-0 inline-block"
+              className="tk-pressable inline-flex min-h-11 items-center rounded-lg border tk-theme-border px-4 text-xs font-bold uppercase tracking-[0.16em] tk-theme-text transition-colors hover:border-blue-500 hover:text-blue-600 md:mt-0"
             >
-              Ver todo -&gt;
+              Ver catalogo -&gt;
             </Link>
           </div>
         </div>
 
         {loading ? (
-          <div className="products-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="products-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="aspect-[3/4] rounded-2xl bg-blue-100 dark:bg-blue-900/20 mb-4" />
+                <div className="mb-4 aspect-[3/4] rounded-lg bg-blue-100 dark:bg-blue-900/20" />
                 <div className="h-3 rounded bg-blue-100 dark:bg-blue-900/20 w-2/3 mb-2" />
                 <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-full mb-2" />
                 <div className="h-4 rounded bg-blue-100 dark:bg-blue-900/20 w-1/3" />
@@ -152,70 +169,153 @@ export default function FeaturedProducts() {
             No hay productos destacados.
           </div>
         ) : (
-          <div className="products-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((item, i) => {
+          <div className="products-grid grid grid-cols-1 gap-4 lg:grid-cols-4 lg:grid-rows-2">
+            {products.map((item, index) => {
               const pricing = getProductPricing(item, offers, 1);
-              return (
-                <div key={item.id} className="product-card">
-                  <Link to={`/products/${createProductSlug(item)}`} className="group block h-full">
-                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-5 tk-theme-surface">
+              const productImage = getProductImage(item);
+              const isSpotlight = index === 0;
+
+              if (isSpotlight) {
+                return (
+                  <div key={item.id} className="product-card lg:col-span-2 lg:row-span-2">
+                    <Link
+                      to={`/products/${createProductSlug(item)}`}
+                      className="group relative block h-full min-h-[520px] overflow-hidden rounded-lg border border-white/10 bg-[#07111f] md:min-h-[620px] lg:min-h-full"
+                    >
                       <img
-                        src={
-                          getCloudinaryUrl(
-                            item.imagenes?.[0] ||
-                            "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=900&q=80",
-                            { width: 600, format: "auto", quality: "auto" }
-                          )
-                        }
+                        src={getCloudinaryUrl(productImage, { width: 900, format: "auto", quality: "auto" })}
                         srcSet={
                           item.imagenes?.[0]
-                            ? getCloudinarySrcSet(item.imagenes[0], [300, 600, 900])
+                            ? getCloudinarySrcSet(productImage, [480, 720, 900, 1200])
                             : undefined
                         }
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        sizes="(max-width: 1024px) 100vw, 50vw"
                         alt={item.nombre}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.045]"
+                        loading="lazy"
+                        decoding="async"
+                        width="900"
+                        height="1200"
+                      />
+                      <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(2,12,30,0.94),rgba(2,12,30,0.48)_44%,rgba(2,12,30,0.12))]" />
+                      <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5 md:p-6">
+                        <span className="rounded-md border border-white/15 bg-white/12 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md">
+                          Seleccion destacada
+                        </span>
+                        <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/18 bg-white/12 text-white opacity-80 transition-all duration-300 group-hover:translate-x-1 group-hover:bg-white group-hover:text-[#07111f]">
+                          <ArrowUpRight className="h-4 w-4" />
+                        </span>
+                      </div>
+
+                      <div className="absolute inset-x-0 bottom-0 p-5 md:p-7">
+                        <span className="mb-3 block text-[11px] font-bold uppercase tracking-[0.22em] text-blue-200">
+                          {getCategoryLabel(item)}
+                        </span>
+                        <h3 className="max-w-xl font-display text-3xl font-bold leading-[1.02] tracking-[0] text-white md:text-5xl">
+                          {item.nombre}
+                        </h3>
+                        <div className="mt-5 flex flex-col gap-4 border-t border-white/14 pt-5 sm:flex-row sm:items-end sm:justify-between">
+                          <div>
+                            {pricing.hasOffer ? (
+                              <div className="flex flex-wrap items-end gap-2">
+                                <p className="font-display text-3xl font-bold text-white">
+                                  {formatCurrency(pricing.finalPrice)}
+                                </p>
+                                <p className="pb-1 text-sm text-white/48 line-through">
+                                  {formatCurrency(pricing.basePrice)}
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="font-display text-3xl font-bold text-white">
+                                {formatCurrency(item.precio)}
+                              </p>
+                            )}
+                            {pricing.hasOffer && (
+                              <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+                                -{pricing.discountPctApplied}% activo
+                              </p>
+                            )}
+                          </div>
+                          <span className="inline-flex min-h-11 w-fit items-center rounded-lg bg-white px-4 text-xs font-bold uppercase tracking-[0.16em] text-[#07111f] transition-colors group-hover:bg-blue-50">
+                            Ver producto
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={item.id} className={`product-card ${index === 3 ? "lg:col-span-2" : ""}`}>
+                  <Link
+                    to={`/products/${createProductSlug(item)}`}
+                    className={`group grid h-full min-h-[180px] grid-cols-[42%_1fr] overflow-hidden rounded-lg border tk-theme-border bg-[var(--tk-surface)] transition-all duration-500 hover:-translate-y-1 hover:border-blue-400/55 hover:shadow-[0_24px_70px_rgba(15,23,42,0.13)] sm:min-h-[220px] lg:min-h-0 ${
+                      index === 3 ? "lg:grid-cols-[42%_1fr]" : "lg:grid-cols-1"
+                    }`}
+                  >
+                    <div className={`relative min-h-full overflow-hidden bg-[var(--tk-soft)] ${index === 3 ? "" : "lg:aspect-[4/3]"}`}>
+                      <img
+                        src={getCloudinaryUrl(productImage, { width: 600, format: "auto", quality: "auto" })}
+                        srcSet={
+                          item.imagenes?.[0]
+                            ? getCloudinarySrcSet(productImage, [300, 600, 900])
+                            : undefined
+                        }
+                        sizes="(max-width: 1024px) 42vw, 25vw"
+                        alt={item.nombre}
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         loading="lazy"
                         decoding="async"
                         width="600"
                         height="800"
                       />
-                      <div className="absolute inset-0 bg-[#0A0A0A]/0 group-hover:bg-[#0A0A0A]/20 transition-all duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#020c1e]/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                       {pricing.hasOffer && (
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1.5 rounded-full bg-orange-500 text-[10px] tracking-[0.15em] uppercase text-white font-semibold shadow-lg">
+                        <div className="absolute left-3 top-3">
+                          <span className="rounded-md bg-orange-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow-lg">
                             -{pricing.discountPctApplied}%
                           </span>
                         </div>
                       )}
-                      
-                      {/* Arrow animated using Tailwind group-hover */}
-                      <div className="absolute top-4 right-4 w-10 h-10 rounded-full tk-theme-surface flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110">
-                        <ArrowUpRight className="w-4 h-4 tk-theme-text" />
-                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <span className="text-blue-600 text-[11px] tracking-[0.25em] uppercase font-semibold">
-                        {categoryMap[item.categorySlug] || item.categorySlug || "Electronica"}
-                      </span>
-                      <h3 className="tk-theme-text text-lg font-medium leading-tight group-hover:text-blue-500 transition-colors duration-300">
-                        {item.nombre}
-                      </h3>
-                      {pricing.hasOffer ? (
-                        <div className="flex items-end gap-2">
-                          <p className="tk-theme-text text-xl font-bold">
-                            ${pricing.finalPrice.toFixed(2)}
-                          </p>
-                          <p className="text-sm tk-theme-muted line-through">
-                            ${pricing.basePrice.toFixed(2)}
-                          </p>
+                    <div className="flex flex-col justify-between p-4 md:p-5">
+                      <div>
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-600">
+                            {getCategoryLabel(item)}
+                          </span>
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border tk-theme-border text-[var(--tk-text)] opacity-60 transition-all duration-300 group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white group-hover:opacity-100">
+                            <ArrowUpRight className="h-3.5 w-3.5" />
+                          </span>
                         </div>
-                      ) : (
-                        <p className="tk-theme-text text-xl font-bold">
-                          ${Number(item.precio || 0).toFixed(2)}
-                        </p>
-                      )}
+                        <h3 className="line-clamp-2 text-base font-bold leading-tight tk-theme-text transition-colors duration-300 group-hover:text-blue-600 md:text-lg">
+                          {item.nombre}
+                        </h3>
+                      </div>
+
+                      <div className="mt-5 border-t tk-theme-border pt-4">
+                        {pricing.hasOffer ? (
+                          <div>
+                            <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
+                              <p className="font-display text-xl font-bold tk-theme-text">
+                                {formatCurrency(pricing.finalPrice)}
+                              </p>
+                              <p className="pb-0.5 text-xs tk-theme-muted line-through">
+                                {formatCurrency(pricing.basePrice)}
+                              </p>
+                            </div>
+                            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-orange-600">
+                              Oferta activa
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="font-display text-xl font-bold tk-theme-text">
+                            {formatCurrency(item.precio)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 </div>

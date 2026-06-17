@@ -58,26 +58,29 @@ export default function CategoriesSection() {
   }, { scope: sectionRef, dependencies: [categories, reduceMotion] });
 
   return (
-    <section ref={sectionRef} className="py-24 md:py-32 px-6 md:px-16 lg:px-24 tk-theme-surface">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="cat-header text-blue-600 text-xs tracking-[0.3em] uppercase mb-4 block font-semibold">
+    <section ref={sectionRef} className="tk-landing-band py-20 md:py-28 tk-theme-surface">
+      <div className="tk-section-shell">
+        <div className="mb-10 max-w-2xl md:mb-14">
+          <span className="cat-header tk-kicker mb-4 block">
             Categorias
           </span>
-          <h2 className="cat-header tk-theme-text text-4xl md:text-5xl font-bold tracking-tight">
+          <h2 className="cat-header tk-heading text-4xl md:text-5xl">
             Explora por{" "}
-            <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent">
+            <span className="text-blue-600">
               categoria
             </span>
           </h2>
+          <p className="cat-header mt-4 text-sm leading-relaxed tk-theme-muted md:text-base">
+            Accesos rapidos a los rubros que mas se buscan en tienda.
+          </p>
         </div>
 
         {loading ? (
-          <div className="categories-grid grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="categories-grid grid grid-cols-1 gap-4 md:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="animate-pulse aspect-[4/5] rounded-3xl bg-[var(--tk-field-bg)]"
+                className="aspect-[4/5] animate-pulse rounded-lg bg-[var(--tk-field-bg)]"
               />
             ))}
           </div>
@@ -86,8 +89,8 @@ export default function CategoriesSection() {
             No hay categorias cargadas.
           </div>
         ) : (
-          <div className="categories-grid grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {categories.map((cat, i) => {
+          <div className="categories-grid grid grid-cols-1 gap-4 md:grid-cols-3">
+            {categories.map((cat) => {
               const categoryKey = cat.slug || cat.id;
               const targetUrl = categoryKey
                 ? `${createPageUrl("Products")}?category=${encodeURIComponent(categoryKey)}`
@@ -97,40 +100,40 @@ export default function CategoriesSection() {
               <div key={cat.id} className="category-card">
                 <Link
                   to={targetUrl}
-                  className="group relative block aspect-[4/5] rounded-3xl overflow-hidden"
+                  className="tk-image-lift group relative block aspect-[4/5] overflow-hidden rounded-lg"
                 >
                   <img
                     src={cat.imagen}
                     alt={cat.nombre}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/80 via-[#0A0A0A]/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#020c1e]/86 via-[#020c1e]/26 to-transparent" />
 
-                  <div className="absolute bottom-0 left-0 right-0 p-8">
-                    <div className="flex items-end justify-between">
+                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7">
+                    <div className="flex items-end justify-between gap-4">
                       <div>
-                        <span className="text-white/50 text-xs tracking-[0.2em] uppercase block mb-2">
+                        <span className="mb-2 block text-xs uppercase tracking-[0.18em] text-white/58">
                           {cat.productos || "-"} productos
                         </span>
-                        <h3 className="text-white text-3xl md:text-4xl font-extralight tracking-tight">
+                        <h3 className="text-3xl font-semibold tracking-[0] text-white md:text-4xl">
                           {cat.nombre}
                         </h3>
                         {cat.descripcion && (
-                          <p className="text-white/60 text-sm mt-1 font-light">
+                          <p className="mt-2 line-clamp-2 text-sm font-normal leading-relaxed text-white/68">
                             {cat.descripcion}
                           </p>
                         )}
                       </div>
-                      <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0 group-hover:bg-white/10 group-hover:scale-110 transition-all duration-500">
-                        <span className="text-white text-xl font-light">-&gt;</span>
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/20 text-white transition-all duration-500 group-hover:bg-white/12 group-hover:translate-x-1">
+                        <span className="text-lg font-light">-&gt;</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="absolute top-6 left-6">
-                    <span className="inline-block px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-white text-[10px] tracking-[0.2em] uppercase border border-white/10">
+                  <div className="absolute left-5 top-5 md:left-6 md:top-6">
+                    <span className="inline-block rounded-md border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white backdrop-blur-md">
                       {cat.nombre}
                     </span>
                   </div>
