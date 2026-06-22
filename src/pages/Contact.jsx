@@ -53,7 +53,7 @@ export default function Contact() {
       value: businessConfig.supportEmail,
       href: mailHref,
     },
-    { icon: Clock, label: "Horario", value: "Lunes a sabado 10:00 a 20:00" },
+    { icon: Clock, label: "Horario", value: "Lunes a Viernes 09:00 a 18:30, Sábados 09:00 a 17:00" },
   ];
 
   const handleSubmit = (event) => {
@@ -75,7 +75,7 @@ export default function Contact() {
     <div className="tk-theme-bg">
       <PageSEO
         title="Contacto — Nexastore Once, Buenos Aires"
-        description="Contactá a Nexastore por WhatsApp o email. Local en Av. Corrientes 2332, Once, Buenos Aires. Lunes a sábado 10:00–20:00. Atención personalizada en cargadores, auriculares y electrónica."
+        description="Contactá a Nexastore por WhatsApp o email. Local en Av. Corrientes 2332, Once, Buenos Aires. Lunes a viernes 09:00–18:30, sábados 09:00–17:00. Atención personalizada en cargadores, auriculares y electrónica."
         canonical="/contact"
       />
       <section className="pt-32 pb-16 px-6 md:px-16 lg:px-24 tk-theme-soft relative overflow-hidden">

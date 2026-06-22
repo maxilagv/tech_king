@@ -24,8 +24,8 @@ function MagneticSocial({ href, label, className, children }) {
 }
 
 const HORARIOS = [
-  { dia: "Lunes a Viernes", horario: "10:00 — 20:00" },
-  { dia: "Sábado", horario: "10:00 — 18:00" },
+  { dia: "Lunes a Viernes", horario: "09:00 — 18:30" },
+  { dia: "Sábado", horario: "09:00 — 17:00" },
   { dia: "Domingo", horario: "Cerrado" },
 ];
 

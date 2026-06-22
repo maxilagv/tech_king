@@ -21,7 +21,7 @@ const HOME_JSON_LD = {
       name: "Donde queda Nexastore en Once?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Nexastore esta ubicado en Av. Corrientes 2332, Once, Buenos Aires. Atendemos de lunes a sabado de 10:00 a 20:00.",
+        text: "Nexastore esta ubicado en Av. Corrientes 2332, Once, Buenos Aires. Atendemos de lunes a viernes de 09:00 a 18:30 y sábados de 09:00 a 17:00.",
       },
     },
     {
